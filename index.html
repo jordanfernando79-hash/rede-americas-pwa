@@ -1,1 +1,100 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12395a">
+<title>Central de Gestão Rede Américas</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#19334d}
+header{background:#12395a;color:white;padding:22px}
+header h1{font-size:22px;margin:8px 0}
+header p{color:#d2e4f2;margin:0;font-size:14px}
+main{padding:18px;max-width:1100px;margin:auto}
+h2{font-size:20px}
+select,button{font-size:16px;padding:12px;border-radius:9px;border:1px solid #cbd5e1}
+select{width:100%;background:white;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.card{background:white;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000012}
+.card strong{display:block;color:#14699e;font-size:27px;margin-top:12px}
+.card small{color:#63788b}
+button{background:white;color:#173b59;cursor:pointer;text-align:left}
+button:hover{background:#e2eff9}
+.module{width:100%;min-height:75px;font-weight:bold}
+#detail{margin-top:20px}
+.notice{background:#fff6df;padding:14px;border-radius:9px;margin:20px 0;font-size:14px}
+footer{text-align:center;padding:20px;font-size:12px;color:#60768b}
+</style>
+</head>
+<body>
+<header>
+<h1>Central de Gestão Manutenção Rede Américas</h1>
+<p>Gestão integrada da manutenção hospitalar</p>
+</header>
+<main>
+<h2>Selecionar unidade</h2>
+<select id="unidade">
+<option>Todas as unidades</option>
+<option>COI Ipanema</option>
+<option>COI Nova Iguaçu</option>
+<option>COI Tijuca</option>
+<option>COI Centron</option>
+<option>Campo Grande</option>
+<option>Panamericano</option>
+<option>Pasteur</option>
+<option>Mario Lioni</option>
+<option>AES Nova Iguaçu</option>
+</select>
+<h2>Painel geral</h2>
+<div class="grid">
+<div class="card">Unidades<strong>9</strong><small>Lista inicial</small></div>
+<div class="card">RDI em aberto<strong>—</strong><small>Aguardando dados</small></div>
+<div class="card">Documentos<strong>—</strong><small>Aguardando dados</small></div>
+<div class="card">Alertas<strong>—</strong><small>Aguardando dados</small></div>
+</div>
+<h2>Módulos do sistema</h2>
+<div class="grid" id="modulos"></div>
+<div class="card" id="detail">
+<h2>Bem-vindo</h2>
+<p>Selecione um módulo para visualizar sua estrutura inicial.</p>
+</div>
+<div class="notice">
+Versão demonstrativa. Não insira dados reais ou confidenciais. A autenticação, as permissões e o banco de dados serão implementados nas próximas etapas.
+</div>
+</main>
+<footer>Rede Américas • Versão inicial 0.1</footer>
+<script>
+const nomes=[
+"RDI",
+"Qualidade da Água",
+"Neovero",
+"Relatórios",
+"Documentos",
+"Inventário",
+"Treinamentos",
+"Organograma",
+"Matriz de Comunicação"
+];
+const area=document.getElementById("modulos");
+const detalhe=document.getElementById("detail");
+const unidade=document.getElementById("unidade");
+nomes.forEach(nome=>{
+const botao=document.createElement("button");
+botao.className="module";
+botao.textContent=nome+" →";
+botao.onclick=()=>{
+detalhe.replaceChildren();
+const titulo=document.createElement("h2");
+titulo.textContent=nome;
+const texto=document.createElement("p");
+texto.textContent="Unidade: "+unidade.value+". Este módulo está preparado para receber as funcionalidades de cadastro, consulta, edição e exclusão após a integração segura com o banco de dados.";
+detalhe.append(titulo,texto);
+detalhe.scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+area.appendChild(botao);
+});
+</script>
+</body>
+</html>
