@@ -1,100 +1,1351 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#12395a">
-<title>Central de Gestão Rede Américas</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#19334d}
-header{background:#12395a;color:white;padding:22px}
-header h1{font-size:22px;margin:8px 0}
-header p{color:#d2e4f2;margin:0;font-size:14px}
-main{padding:18px;max-width:1100px;margin:auto}
-h2{font-size:20px}
-select,button{font-size:16px;padding:12px;border-radius:9px;border:1px solid #cbd5e1}
-select{width:100%;background:white;margin-bottom:18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-.card{background:white;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000012}
-.card strong{display:block;color:#14699e;font-size:27px;margin-top:12px}
-.card small{color:#63788b}
-button{background:white;color:#173b59;cursor:pointer;text-align:left}
-button:hover{background:#e2eff9}
-.module{width:100%;min-height:75px;font-weight:bold}
-#detail{margin-top:20px}
-.notice{background:#fff6df;padding:14px;border-radius:9px;margin:20px 0;font-size:14px}
-footer{text-align:center;padding:20px;font-size:12px;color:#60768b}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#123b5c">
+
+  <title>Central de Gestão Rede Américas</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+
+  <style>
+    :root{
+      --primary:#123b5c;
+      --primary2:#17679b;
+      --bg:#f2f6fa;
+      --card:#ffffff;
+      --text:#17324c;
+      --muted:#687b8c;
+      --border:#d9e3eb;
+      --danger:#a93333;
+      --success:#18794e;
+      --warning:#a96d00;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:22px 18px;
+    }
+
+    header h1{
+      margin:4px 0 6px;
+      font-size:clamp(22px,5vw,34px);
+      line-height:1.1;
+    }
+
+    header small{
+      color:#c5ddec;
+      font-weight:600;
+      letter-spacing:.4px;
+    }
+
+    header p{
+      margin:5px 0 0;
+      color:#d7e7f2;
+    }
+
+    main{
+      width:min(1180px,100%);
+      margin:auto;
+      padding:18px 14px 50px;
+    }
+
+    .hidden{display:none!important}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 3px 14px rgba(18,59,92,.06);
+    }
+
+    .login{
+      max-width:460px;
+      margin:30px auto;
+    }
+
+    h2,h3{
+      margin-top:0;
+    }
+
+    label{
+      display:block;
+      margin:13px 0 5px;
+      font-weight:650;
+      font-size:14px;
+    }
+
+    input,select,textarea,button{
+      width:100%;
+      font:inherit;
+      border-radius:9px;
+    }
+
+    input,select,textarea{
+      padding:12px;
+      border:1px solid #bfd0dc;
+      background:#fff;
+      color:var(--text);
+    }
+
+    textarea{
+      min-height:105px;
+      resize:vertical;
+    }
+
+    button{
+      border:0;
+      padding:12px 15px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .primary{
+      color:white;
+      background:var(--primary2);
+    }
+
+    .secondary{
+      color:var(--primary);
+      background:#e8f1f7;
+    }
+
+    .danger{
+      color:white;
+      background:var(--danger);
+    }
+
+    .ghost{
+      color:var(--primary);
+      background:#fff;
+      border:1px solid var(--border);
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:15px;
+    }
+
+    .toolbar button,
+    .toolbar select{
+      width:auto;
+      min-width:145px;
+    }
+
+    .spacer{
+      flex:1;
+    }
+
+    .modules{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:11px;
+      margin:16px 0 22px;
+    }
+
+    .module{
+      background:white;
+      border:1px solid var(--border);
+      color:var(--primary);
+      text-align:left;
+      min-height:72px;
+    }
+
+    .module.active{
+      background:var(--primary2);
+      color:#fff;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+      gap:11px;
+      margin-bottom:20px;
+    }
+
+    .stat strong{
+      display:block;
+      font-size:29px;
+      margin-top:7px;
+      color:var(--primary2);
+    }
+
+    .muted{
+      color:var(--muted);
+    }
+
+    .status{
+      padding:10px 12px;
+      border-radius:8px;
+      margin:12px 0;
+      font-size:14px;
+      display:none;
+    }
+
+    .status.show{display:block}
+    .status.ok{background:#e7f6ee;color:var(--success)}
+    .status.err{background:#fdecec;color:#922}
+    .status.info{background:#eaf3fa;color:#245c7e}
+
+    .section-title{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin:15px 0;
+    }
+
+    .section-title h2{
+      margin:0;
+      flex:1;
+    }
+
+    .section-title button{
+      width:auto;
+    }
+
+    .record-list{
+      display:grid;
+      gap:11px;
+    }
+
+    .record{
+      background:white;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:15px;
+    }
+
+    .record-top{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .record-top h3{
+      margin:0;
+      flex:1;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:99px;
+      font-size:12px;
+      font-weight:700;
+      background:#edf3f7;
+    }
+
+    .badge.alta,.badge.critica{
+      color:#942f2f;
+      background:#fdeaea;
+    }
+
+    .badge.media{
+      color:#8b6200;
+      background:#fff4d7;
+    }
+
+    .badge.baixa{
+      color:#237247;
+      background:#e8f6ee;
+    }
+
+    .record-actions{
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .record-actions button{
+      width:auto;
+      padding:9px 12px;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .full{
+      grid-column:1/-1;
+    }
+
+    dialog{
+      width:min(680px,94vw);
+      border:0;
+      border-radius:15px;
+      padding:0;
+      box-shadow:0 20px 60px rgba(0,0,0,.28);
+    }
+
+    dialog::backdrop{
+      background:rgba(7,27,42,.58);
+    }
+
+    .dialog-body{
+      padding:19px;
+    }
+
+    .dialog-actions{
+      display:flex;
+      gap:9px;
+      margin-top:18px;
+    }
+
+    .dialog-actions button{
+      flex:1;
+    }
+
+    .empty{
+      text-align:center;
+      padding:28px;
+      color:var(--muted);
+      background:#fff;
+      border:1px dashed #bdccd6;
+      border-radius:12px;
+    }
+
+    @media(max-width:650px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .full{
+        grid-column:auto;
+      }
+
+      .toolbar{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .toolbar button,
+      .toolbar select{
+        width:100%;
+      }
+
+      .spacer{
+        display:none;
+      }
+
+      .section-title{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .section-title button{
+        width:100%;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
 <header>
-<h1>Central de Gestão Manutenção Rede Américas</h1>
-<p>Gestão integrada da manutenção hospitalar</p>
+  <small>GRUPO AMÉRICAS • MANUTENÇÃO HOSPITALAR</small>
+  <h1>Central de Gestão Manutenção Rede Américas</h1>
+  <p id="headerStatus">Acesso controlado</p>
 </header>
+
 <main>
-<h2>Selecionar unidade</h2>
-<select id="unidade">
-<option>Todas as unidades</option>
-<option>COI Ipanema</option>
-<option>COI Nova Iguaçu</option>
-<option>COI Tijuca</option>
-<option>COI Centron</option>
-<option>Campo Grande</option>
-<option>Panamericano</option>
-<option>Pasteur</option>
-<option>Mario Lioni</option>
-<option>AES Nova Iguaçu</option>
-</select>
-<h2>Painel geral</h2>
-<div class="grid">
-<div class="card">Unidades<strong>9</strong><small>Lista inicial</small></div>
-<div class="card">RDI em aberto<strong>—</strong><small>Aguardando dados</small></div>
-<div class="card">Documentos<strong>—</strong><small>Aguardando dados</small></div>
-<div class="card">Alertas<strong>—</strong><small>Aguardando dados</small></div>
-</div>
-<h2>Módulos do sistema</h2>
-<div class="grid" id="modulos"></div>
-<div class="card" id="detail">
-<h2>Bem-vindo</h2>
-<p>Selecione um módulo para visualizar sua estrutura inicial.</p>
-</div>
-<div class="notice">
-Versão demonstrativa. Não insira dados reais ou confidenciais. A autenticação, as permissões e o banco de dados serão implementados nas próximas etapas.
-</div>
+
+  <!-- LOGIN -->
+  <section id="loginView" class="card login">
+    <h2>Entrar no sistema</h2>
+    <p class="muted">
+      Utilize o usuário cadastrado no ambiente Rede Américas.
+    </p>
+
+    <form id="loginForm">
+      <label for="email">E-mail</label>
+      <input id="email" type="email" autocomplete="username" required>
+
+      <label for="password">Senha</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <button id="loginButton" class="primary" type="submit" style="margin-top:16px">
+        Entrar
+      </button>
+    </form>
+
+    <div id="loginMessage" class="status"></div>
+  </section>
+
+
+  <!-- APP -->
+  <section id="appView" class="hidden">
+
+    <div class="toolbar">
+      <select id="unitSelect" aria-label="Unidade">
+        <option value="">Carregando unidades...</option>
+      </select>
+
+      <span class="spacer"></span>
+
+      <div>
+        <strong id="userName">Usuário</strong>
+        <div class="muted" id="userRole"></div>
+      </div>
+
+      <button id="logoutButton" class="ghost" type="button">
+        Sair
+      </button>
+    </div>
+
+    <div id="appMessage" class="status"></div>
+
+    <section class="stats">
+      <div class="card stat">
+        <span>Unidade</span>
+        <strong id="unitStat">—</strong>
+      </div>
+
+      <div class="card stat">
+        <span>RDI cadastradas</span>
+        <strong id="rdiCount">0</strong>
+      </div>
+
+      <div class="card stat">
+        <span>Em aberto</span>
+        <strong id="openCount">0</strong>
+      </div>
+
+      <div class="card stat">
+        <span>Críticas</span>
+        <strong id="criticalCount">0</strong>
+      </div>
+    </section>
+
+    <h2>Módulos</h2>
+
+    <section class="modules">
+      <button class="module active" data-module="rdi">RDI</button>
+      <button class="module" disabled>Qualidade da Água</button>
+      <button class="module" disabled>Neovero</button>
+      <button class="module" disabled>Relatórios</button>
+      <button class="module" disabled>Documentos</button>
+      <button class="module" disabled>Inventário</button>
+      <button class="module" disabled>Treinamentos</button>
+      <button class="module" disabled>Organograma</button>
+      <button class="module" disabled>Matriz de Comunicação</button>
+    </section>
+
+    <!-- RDI -->
+    <section id="rdiView">
+
+      <div class="section-title">
+        <div>
+          <h2>RDI — Registro de Demandas</h2>
+          <span class="muted" id="rdiSubtitle">
+            Selecione uma unidade.
+          </span>
+        </div>
+
+        <button id="newRdiButton" class="primary" type="button" disabled>
+          + Nova RDI
+        </button>
+      </div>
+
+      <div id="rdiList" class="record-list">
+        <div class="empty">
+          Selecione uma unidade para carregar os registros.
+        </div>
+      </div>
+
+    </section>
+
+  </section>
+
 </main>
-<footer>Rede Américas • Versão inicial 0.1</footer>
+
+
+<!-- MODAL RDI -->
+<dialog id="rdiDialog">
+  <div class="dialog-body">
+
+    <h2 id="dialogTitle">Nova RDI</h2>
+
+    <form id="rdiForm">
+
+      <input id="recordId" type="hidden">
+
+      <div class="form-grid">
+
+        <div class="full">
+          <label for="rdiTitle">Título / ocorrência</label>
+          <input
+            id="rdiTitle"
+            maxlength="150"
+            required
+            placeholder="Ex.: Vazamento na rede de água gelada"
+          >
+        </div>
+
+        <div>
+          <label for="rdiStatus">Status</label>
+          <select id="rdiStatus" required>
+            <option value="aberto">Aberto</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="aguardando">Aguardando</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="priority">Prioridade</label>
+          <select id="priority">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+            <option value="critica">Crítica</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="location">Local</label>
+          <input id="location" placeholder="Ex.: CAG / UTI / CME">
+        </div>
+
+        <div>
+          <label for="responsible">Responsável</label>
+          <input id="responsible" placeholder="Responsável pela tratativa">
+        </div>
+
+        <div>
+          <label for="dueDate">Prazo</label>
+          <input id="dueDate" type="date">
+        </div>
+
+        <div>
+          <label for="estimatedCost">Custo estimado (R$)</label>
+          <input
+            id="estimatedCost"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0,00"
+          >
+        </div>
+
+        <div class="full">
+          <label for="description">Descrição</label>
+          <textarea
+            id="description"
+            placeholder="Descreva a ocorrência, condição encontrada e demais informações relevantes."
+          ></textarea>
+        </div>
+
+      </div>
+
+      <div class="dialog-actions">
+        <button id="cancelDialog" type="button" class="ghost">
+          Cancelar
+        </button>
+
+        <button id="saveRdiButton" type="submit" class="primary">
+          Salvar
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</dialog>
+
+
 <script>
-const nomes=[
-"RDI",
-"Qualidade da Água",
-"Neovero",
-"Relatórios",
-"Documentos",
-"Inventário",
-"Treinamentos",
-"Organograma",
-"Matriz de Comunicação"
-];
-const area=document.getElementById("modulos");
-const detalhe=document.getElementById("detail");
-const unidade=document.getElementById("unidade");
-nomes.forEach(nome=>{
-const botao=document.createElement("button");
-botao.className="module";
-botao.textContent=nome+" →";
-botao.onclick=()=>{
-detalhe.replaceChildren();
-const titulo=document.createElement("h2");
-titulo.textContent=nome;
-const texto=document.createElement("p");
-texto.textContent="Unidade: "+unidade.value+". Este módulo está preparado para receber as funcionalidades de cadastro, consulta, edição e exclusão após a integração segura com o banco de dados.";
-detalhe.append(titulo,texto);
-detalhe.scrollIntoView({behavior:"smooth",block:"nearest"});
-};
-area.appendChild(botao);
-});
+  const SUPABASE_URL =
+    "https://ndvfunasairodldltnmi.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
+
+  const db = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+
+  let currentSession = null;
+  let currentProfile = null;
+  let currentUnitId = "";
+  let currentRecords = [];
+
+
+  const loginView = document.getElementById("loginView");
+  const appView = document.getElementById("appView");
+
+  const loginForm = document.getElementById("loginForm");
+  const loginButton = document.getElementById("loginButton");
+  const loginMessage = document.getElementById("loginMessage");
+
+  const unitSelect = document.getElementById("unitSelect");
+  const userName = document.getElementById("userName");
+  const userRole = document.getElementById("userRole");
+
+  const appMessage = document.getElementById("appMessage");
+
+  const unitStat = document.getElementById("unitStat");
+  const rdiCount = document.getElementById("rdiCount");
+  const openCount = document.getElementById("openCount");
+  const criticalCount = document.getElementById("criticalCount");
+
+  const newRdiButton = document.getElementById("newRdiButton");
+  const rdiList = document.getElementById("rdiList");
+  const rdiSubtitle = document.getElementById("rdiSubtitle");
+
+  const rdiDialog = document.getElementById("rdiDialog");
+  const rdiForm = document.getElementById("rdiForm");
+
+  const recordId = document.getElementById("recordId");
+  const rdiTitle = document.getElementById("rdiTitle");
+  const rdiStatus = document.getElementById("rdiStatus");
+  const priority = document.getElementById("priority");
+  const locationInput = document.getElementById("location");
+  const responsible = document.getElementById("responsible");
+  const dueDate = document.getElementById("dueDate");
+  const estimatedCost = document.getElementById("estimatedCost");
+  const description = document.getElementById("description");
+
+
+
+  function setMessage(element, text, type = "info") {
+    element.textContent = text;
+    element.className = `status show ${type}`;
+
+    if (!text) {
+      element.className = "status";
+    }
+  }
+
+
+  function escapeText(value) {
+    return String(value ?? "");
+  }
+
+
+  async function start() {
+
+    const { data, error } = await db.auth.getSession();
+
+    if (error) {
+      console.error(error);
+    }
+
+    currentSession = data?.session ?? null;
+
+    if (currentSession) {
+      await enterApplication();
+    } else {
+      showLogin();
+    }
+  }
+
+
+  function showLogin() {
+    loginView.classList.remove("hidden");
+    appView.classList.add("hidden");
+
+    document.getElementById("headerStatus").textContent =
+      "Acesso controlado";
+  }
+
+
+  function showApplication() {
+    loginView.classList.add("hidden");
+    appView.classList.remove("hidden");
+
+    document.getElementById("headerStatus").textContent =
+      "Ambiente autenticado";
+  }
+
+
+
+  loginForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    setMessage(loginMessage, "Entrando...", "info");
+
+    loginButton.disabled = true;
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    const { data, error } =
+      await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    loginButton.disabled = false;
+
+    if (error) {
+      console.error(error);
+
+      setMessage(
+        loginMessage,
+        "Não foi possível entrar. Verifique o e-mail e a senha.",
+        "err"
+      );
+
+      return;
+    }
+
+    currentSession = data.session;
+
+    setMessage(loginMessage, "");
+
+    await enterApplication();
+  });
+
+
+
+  document
+    .getElementById("logoutButton")
+    .addEventListener("click", async () => {
+
+      await db.auth.signOut();
+
+      currentSession = null;
+      currentProfile = null;
+      currentUnitId = "";
+      currentRecords = [];
+
+      showLogin();
+    });
+
+
+
+  async function enterApplication() {
+
+    showApplication();
+
+    setMessage(appMessage, "Carregando seu acesso...", "info");
+
+    const userId = currentSession.user.id;
+
+    const { data: profile, error: profileError } =
+      await db
+        .from("profiles")
+        .select("user_id, display_name, role, active")
+        .eq("user_id", userId)
+        .single();
+
+    if (profileError || !profile) {
+
+      console.error(profileError);
+
+      setMessage(
+        appMessage,
+        "Seu usuário não possui perfil autorizado no sistema.",
+        "err"
+      );
+
+      return;
+    }
+
+    if (!profile.active) {
+
+      setMessage(
+        appMessage,
+        "Seu acesso está desativado. Procure o administrador.",
+        "err"
+      );
+
+      return;
+    }
+
+    currentProfile = profile;
+
+    userName.textContent =
+      profile.display_name || currentSession.user.email;
+
+    userRole.textContent =
+      profile.role === "admin"
+        ? "Administrador Geral"
+        : "Usuário";
+
+    await loadUnits();
+
+    setMessage(appMessage, "");
+  }
+
+
+
+  async function loadUnits() {
+
+    unitSelect.innerHTML =
+      '<option value="">Carregando...</option>';
+
+    const { data, error } =
+      await db
+        .from("units")
+        .select("id, name")
+        .eq("active", true)
+        .order("name");
+
+    if (error) {
+
+      console.error(error);
+
+      unitSelect.innerHTML =
+        '<option value="">Erro ao carregar</option>';
+
+      setMessage(
+        appMessage,
+        "Não foi possível carregar as unidades autorizadas.",
+        "err"
+      );
+
+      return;
+    }
+
+    unitSelect.innerHTML =
+      '<option value="">Selecione uma unidade</option>';
+
+    for (const unit of data) {
+
+      const option = document.createElement("option");
+
+      option.value = unit.id;
+      option.textContent = unit.name;
+
+      unitSelect.appendChild(option);
+    }
+
+    if (data.length === 1) {
+
+      unitSelect.value = data[0].id;
+
+      await selectUnit();
+    }
+  }
+
+
+
+  unitSelect.addEventListener("change", selectUnit);
+
+
+  async function selectUnit() {
+
+    currentUnitId = unitSelect.value;
+
+    const selected =
+      unitSelect.options[unitSelect.selectedIndex];
+
+    if (!currentUnitId) {
+
+      unitStat.textContent = "—";
+
+      newRdiButton.disabled = true;
+
+      rdiSubtitle.textContent =
+        "Selecione uma unidade.";
+
+      rdiList.innerHTML =
+        '<div class="empty">Selecione uma unidade para carregar os registros.</div>';
+
+      updateStats([]);
+
+      return;
+    }
+
+    unitStat.textContent = selected.textContent;
+
+    rdiSubtitle.textContent =
+      selected.textContent;
+
+    newRdiButton.disabled = false;
+
+    await loadRdi();
+  }
+
+
+
+  async function loadRdi() {
+
+    rdiList.innerHTML =
+      '<div class="empty">Carregando registros...</div>';
+
+    const { data, error } =
+      await db
+        .from("records")
+        .select(
+          "id, unit_id, module, category, title, status, data, created_at, updated_at"
+        )
+        .eq("unit_id", currentUnitId)
+        .eq("module", "rdi")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+
+      console.error(error);
+
+      rdiList.innerHTML =
+        '<div class="empty">Não foi possível carregar os registros.</div>';
+
+      setMessage(
+        appMessage,
+        "Falha ao consultar as RDI desta unidade.",
+        "err"
+      );
+
+      return;
+    }
+
+    currentRecords = data || [];
+
+    renderRdi();
+
+    updateStats(currentRecords);
+  }
+
+
+
+  function updateStats(records) {
+
+    rdiCount.textContent =
+      records.length;
+
+    openCount.textContent =
+      records.filter(
+        r => r.status !== "concluido"
+      ).length;
+
+    criticalCount.textContent =
+      records.filter(
+        r => r.data?.priority === "critica"
+      ).length;
+  }
+
+
+
+  function renderRdi() {
+
+    rdiList.replaceChildren();
+
+    if (!currentRecords.length) {
+
+      const empty = document.createElement("div");
+
+      empty.className = "empty";
+      empty.textContent =
+        "Nenhuma RDI cadastrada para esta unidade.";
+
+      rdiList.appendChild(empty);
+
+      return;
+    }
+
+
+    for (const record of currentRecords) {
+
+      const item = document.createElement("article");
+      item.className = "record";
+
+
+      const top = document.createElement("div");
+      top.className = "record-top";
+
+
+      const title = document.createElement("h3");
+      title.textContent = escapeText(record.title);
+
+
+      const badge = document.createElement("span");
+
+      const priorityValue =
+        record.data?.priority || "media";
+
+      badge.className =
+        `badge ${priorityValue}`;
+
+      badge.textContent =
+        priorityLabel(priorityValue);
+
+
+      top.append(title, badge);
+
+
+      const statusLine = document.createElement("p");
+
+      statusLine.innerHTML =
+        `<strong>Status:</strong> ${statusLabel(record.status)}`;
+
+
+      const details = document.createElement("p");
+      details.className = "muted";
+
+      const location =
+        record.data?.location || "Local não informado";
+
+      const responsibleName =
+        record.data?.responsible || "Responsável não informado";
+
+      details.textContent =
+        `${location} • ${responsibleName}`;
+
+
+      const desc = document.createElement("p");
+
+      desc.textContent =
+        record.data?.description || "";
+
+
+      const actions = document.createElement("div");
+      actions.className = "record-actions";
+
+
+      const edit = document.createElement("button");
+
+      edit.className = "secondary";
+      edit.textContent = "Editar";
+
+      edit.addEventListener(
+        "click",
+        () => openEditDialog(record)
+      );
+
+
+      const remove = document.createElement("button");
+
+      remove.className = "danger";
+      remove.textContent = "Excluir";
+
+      remove.addEventListener(
+        "click",
+        () => deleteRdi(record)
+      );
+
+
+      actions.append(edit, remove);
+
+      item.append(
+        top,
+        statusLine,
+        details,
+        desc,
+        actions
+      );
+
+      rdiList.appendChild(item);
+    }
+  }
+
+
+
+  function priorityLabel(value) {
+
+    const labels = {
+      baixa: "Baixa",
+      media: "Média",
+      alta: "Alta",
+      critica: "Crítica"
+    };
+
+    return labels[value] || value;
+  }
+
+
+  function statusLabel(value) {
+
+    const labels = {
+      aberto: "Aberto",
+      em_andamento: "Em andamento",
+      aguardando: "Aguardando",
+      concluido: "Concluído"
+    };
+
+    return labels[value] || value || "—";
+  }
+
+
+
+  newRdiButton.addEventListener(
+    "click",
+    openNewDialog
+  );
+
+
+  function openNewDialog() {
+
+    rdiForm.reset();
+
+    recordId.value = "";
+
+    rdiStatus.value = "aberto";
+    priority.value = "media";
+
+    document.getElementById("dialogTitle")
+      .textContent = "Nova RDI";
+
+    rdiDialog.showModal();
+  }
+
+
+
+  function openEditDialog(record) {
+
+    recordId.value =
+      record.id;
+
+    rdiTitle.value =
+      record.title || "";
+
+    rdiStatus.value =
+      record.status || "aberto";
+
+    priority.value =
+      record.data?.priority || "media";
+
+    locationInput.value =
+      record.data?.location || "";
+
+    responsible.value =
+      record.data?.responsible || "";
+
+    dueDate.value =
+      record.data?.due_date || "";
+
+    estimatedCost.value =
+      record.data?.estimated_cost ?? "";
+
+    description.value =
+      record.data?.description || "";
+
+    document.getElementById("dialogTitle")
+      .textContent = "Editar RDI";
+
+    rdiDialog.showModal();
+  }
+
+
+
+  document
+    .getElementById("cancelDialog")
+    .addEventListener("click", () => {
+      rdiDialog.close();
+    });
+
+
+
+  rdiForm.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      if (!currentUnitId) {
+        return;
+      }
+
+      const saveButton =
+        document.getElementById("saveRdiButton");
+
+      saveButton.disabled = true;
+      saveButton.textContent = "Salvando...";
+
+
+      const payloadData = {
+
+        priority:
+          priority.value,
+
+        location:
+          locationInput.value.trim(),
+
+        responsible:
+          responsible.value.trim(),
+
+        due_date:
+          dueDate.value || null,
+
+        estimated_cost:
+          estimatedCost.value
+            ? Number(estimatedCost.value)
+            : null,
+
+        description:
+          description.value.trim()
+      };
+
+
+      let result;
+
+
+      if (recordId.value) {
+
+        result =
+          await db
+            .from("records")
+            .update({
+              title:
+                rdiTitle.value.trim(),
+
+              status:
+                rdiStatus.value,
+
+              category:
+                "demanda",
+
+              data:
+                payloadData
+            })
+            .eq("id", recordId.value);
+
+      } else {
+
+        result =
+          await db
+            .from("records")
+            .insert({
+              unit_id:
+                currentUnitId,
+
+              module:
+                "rdi",
+
+              category:
+                "demanda",
+
+              title:
+                rdiTitle.value.trim(),
+
+              status:
+                rdiStatus.value,
+
+              data:
+                payloadData,
+
+              created_by:
+                currentSession.user.id
+            });
+      }
+
+
+      saveButton.disabled = false;
+      saveButton.textContent = "Salvar";
+
+
+      if (result.error) {
+
+        console.error(result.error);
+
+        setMessage(
+          appMessage,
+          "Não foi possível salvar a RDI. Verifique sua permissão.",
+          "err"
+        );
+
+        return;
+      }
+
+
+      rdiDialog.close();
+
+      setMessage(
+        appMessage,
+        "RDI salva com sucesso.",
+        "ok"
+      );
+
+      await loadRdi();
+    }
+  );
+
+
+
+  async function deleteRdi(record) {
+
+    const confirmed =
+      window.confirm(
+        `Excluir definitivamente a RDI "${record.title}"?`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    const { error } =
+      await db
+        .from("records")
+        .delete()
+        .eq("id", record.id);
+
+
+    if (error) {
+
+      console.error(error);
+
+      setMessage(
+        appMessage,
+        "Não foi possível excluir. Verifique sua permissão.",
+        "err"
+      );
+
+      return;
+    }
+
+
+    setMessage(
+      appMessage,
+      "RDI excluída.",
+      "ok"
+    );
+
+    await loadRdi();
+  }
+
+
+
+  db.auth.onAuthStateChange(
+    async (event, session) => {
+
+      currentSession = session;
+
+      if (event === "SIGNED_OUT") {
+        showLogin();
+      }
+    }
+  );
+
+
+  start();
 </script>
+
 </body>
 </html>
