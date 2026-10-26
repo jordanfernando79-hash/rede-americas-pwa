@@ -81,6 +81,19 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .org-group-card{background:#eef5fa;border:1px solid #c7dce9;border-radius:14px;padding:16px}
 .org-group-card h3{margin:0 0 10px}
 
+
+.employee-photo-preview{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid #e3edf4;margin-top:8px}
+.org-tree{display:grid;gap:22px}
+.org-tree-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.org-node-wrap{display:grid;justify-items:center;position:relative}
+.org-node{width:min(240px,100%);background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;box-shadow:0 2px 8px #123b5c0d;position:relative}
+.org-node img{width:78px;height:78px;border-radius:50%;object-fit:cover;border:3px solid #e5eef4;margin-bottom:8px}
+.avatar-placeholder{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:#e9f1f6;color:#5c7182;font-weight:800;margin:0 auto 8px}
+.org-children{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;position:relative;padding-top:24px}
+.org-children:before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:#b8c9d5}
+.org-node-wrap>.org-children:after{content:"";position:absolute;top:18px;left:12%;right:12%;height:2px;background:#b8c9d5}
+.org-node-wrap>.org-children>.org-node-wrap:before{content:"";position:absolute;top:-6px;left:50%;width:2px;height:12px;background:#b8c9d5}
+
 dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
 dialog::backdrop{background:#061b2b99}
 .dialog-body{padding:18px}
@@ -666,6 +679,19 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div>
 <label>Grupo</label>
 <input id="employeeOrgGroup" placeholder="Ex.: Equipe volante">
+</div>
+
+<div>
+<label>Superior imediato</label>
+<select id="employeeSupervisor">
+<option value="">Sem superior</option>
+</select>
+</div>
+
+<div class="full">
+<label>Foto do profissional</label>
+<input id="employeePhoto" type="file" accept="image/*">
+<div id="employeeCurrentPhoto"></div>
 </div>
 
 
@@ -1699,7 +1725,51 @@ function renderEmployeeUnitChecks(selected=[]){
  });
 }
 
-$("newEmployeeButton").onclick=()=>{
+
+async function loadSupervisorOptions(currentId=null,selectedId=null){
+ const select=$("employeeSupervisor");
+ select.innerHTML='<option value="">Sem superior</option>';
+
+ const {data,error}=await db
+  .from("employees")
+  .select("id,full_name,org_role,status")
+  .eq("status","ativo")
+  .order("full_name");
+
+ if(error){
+  console.error(error);
+  return;
+ }
+
+ (data||[]).forEach(person=>{
+  if(person.id===currentId)return;
+  const option=document.createElement("option");
+  option.value=person.id;
+  option.textContent=person.full_name+(person.org_role?` — ${person.org_role}`:"");
+  option.selected=person.id===selectedId;
+  select.appendChild(option);
+ });
+}
+
+async function showEmployeeCurrentPhoto(path){
+ const box=$("employeeCurrentPhoto");
+ box.replaceChildren();
+
+ if(!path)return;
+
+ const {data}=await db.storage
+  .from("employee-photos")
+  .createSignedUrl(path,600);
+
+ if(!data?.signedUrl)return;
+
+ const img=document.createElement("img");
+ img.src=data.signedUrl;
+ img.className="employee-photo-preview";
+ box.appendChild(img);
+}
+
+$("newEmployeeButton").onclick=async()=>{
  editingEmployee=null;
 
  $("employeeForm").reset();
@@ -1707,6 +1777,9 @@ $("newEmployeeButton").onclick=()=>{
  $("employeeStatus").value="ativo";
  $("employeeOrgRole").value="";
  $("employeeOrgGroup").value="";
+ $("employeePhoto").value="";
+ $("employeeCurrentPhoto").replaceChildren();
+ await loadSupervisorOptions(null,null);
 
  renderEmployeeUnitChecks(unitId?[unitId]:[]);
 
@@ -1714,7 +1787,7 @@ $("newEmployeeButton").onclick=()=>{
  $("employeeDialog").showModal();
 };
 
-function openEmployeeEdit(e){
+async function openEmployeeEdit(e){
  editingEmployee=e;
 
  $("employeeId").value=e.id;
@@ -1731,6 +1804,9 @@ function openEmployeeEdit(e){
  $("employeeStatus").value=e.status||"ativo";
  $("employeeOrgRole").value=e.org_role||"";
  $("employeeOrgGroup").value=e.org_group||"";
+ $("employeePhoto").value="";
+ await loadSupervisorOptions(e.id,e.supervisor_id||null);
+ await showEmployeeCurrentPhoto(e.photo_path||null);
 
  renderEmployeeUnitChecks(e.unit_ids||[]);
 
@@ -1739,6 +1815,22 @@ function openEmployeeEdit(e){
 }
 
 $("cancelEmployeeDialog").onclick=()=>$("employeeDialog").close();
+
+
+async function uploadEmployeePhoto(employeeId,file){
+ if(!file)return editingEmployee?.photo_path||null;
+
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+ const path=`${unitId}/${employeeId}/${Date.now()}.${ext}`;
+
+ const {error}=await db.storage
+  .from("employee-photos")
+  .upload(path,file,{cacheControl:"3600",upsert:false});
+
+ if(error)throw error;
+
+ return path;
+}
 
 $("employeeForm").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -1770,6 +1862,7 @@ $("employeeForm").addEventListener("submit",async e=>{
    status:$("employeeStatus").value,
    org_role:$("employeeOrgRole").value||null,
    org_group:textOrNull($("employeeOrgGroup").value),
+   supervisor_id:$("employeeSupervisor").value||null,
    updated_by:session.user.id
   };
 
@@ -1803,6 +1896,21 @@ $("employeeForm").addEventListener("submit",async e=>{
    if(error)throw error;
 
    id=data.id;
+  }
+
+  const photoFile=$("employeePhoto").files[0];
+  const oldPhoto=editingEmployee?.photo_path||null;
+  const newPhoto=await uploadEmployeePhoto(id,photoFile);
+
+  const {error:photoUpdateError}=await db
+   .from("employees")
+   .update({photo_path:newPhoto,updated_by:session.user.id})
+   .eq("id",id);
+
+  if(photoUpdateError)throw photoUpdateError;
+
+  if(photoFile&&oldPhoto&&oldPhoto!==newPhoto){
+   await db.storage.from("employee-photos").remove([oldPhoto]);
   }
 
   const rows=selectedUnits.map(selectedUnitId=>({
@@ -1851,6 +1959,8 @@ async function deleteEmployee(e){
   return;
  }
 
+ const photoPath=e.photo_path||null;
+
  const {error}=await db
   .from("employees")
   .delete()
@@ -1859,6 +1969,10 @@ async function deleteEmployee(e){
  if(error){
   message($("appMessage"),"Falha ao excluir profissional.","err");
   return;
+ }
+
+ if(photoPath){
+  await db.storage.from("employee-photos").remove([photoPath]);
  }
 
  message($("appMessage"),"Profissional excluído.","ok");
@@ -1935,7 +2049,79 @@ async function loadOrganogram(){
  renderOrganogram(enriched);
 }
 
-function renderOrganogram(data){
+async function signedEmployeePhoto(path){
+ if(!path)return null;
+ const {data}=await db.storage
+  .from("employee-photos")
+  .createSignedUrl(path,600);
+ return data?.signedUrl||null;
+}
+
+async function buildOrgNode(person,bySupervisor,seen=new Set()){
+ if(seen.has(person.id))return null;
+
+ const nextSeen=new Set(seen);
+ nextSeen.add(person.id);
+
+ const wrap=document.createElement("div");
+ wrap.className="org-node-wrap";
+
+ const node=document.createElement("div");
+ node.className="org-node";
+
+ const photoUrl=await signedEmployeePhoto(person.photo_path);
+
+ if(photoUrl){
+  const img=document.createElement("img");
+  img.src=photoUrl;
+  img.alt=person.full_name;
+  node.appendChild(img);
+ }else{
+  const ph=document.createElement("div");
+  ph.className="avatar-placeholder";
+  ph.textContent=(person.full_name||"?")
+   .split(/\s+/)
+   .slice(0,2)
+   .map(x=>x[0]||"")
+   .join("")
+   .toUpperCase();
+  node.appendChild(ph);
+ }
+
+ const name=document.createElement("strong");
+ name.textContent=person.full_name;
+ node.appendChild(name);
+
+ const role=document.createElement("div");
+ role.textContent=person.org_role||person.job_title||"Função não definida";
+ node.appendChild(role);
+
+ const meta=document.createElement("div");
+ meta.className="muted";
+ meta.textContent=[person.shift,person.day_night].filter(Boolean).join(" • ");
+ node.appendChild(meta);
+
+ wrap.appendChild(node);
+
+ const children=(bySupervisor.get(person.id)||[])
+  .filter(c=>!nextSeen.has(c.id));
+
+ if(children.length){
+  const childBox=document.createElement("div");
+  childBox.className="org-children";
+
+  for(const child of children){
+   const childNode=await buildOrgNode(child,bySupervisor,nextSeen);
+   if(childNode)childBox.appendChild(childNode);
+  }
+
+  wrap.appendChild(childBox);
+ }
+
+ return wrap;
+}
+
+async function renderOrganogram(data){
  const box=$("orgContent");
  box.replaceChildren();
 
@@ -1944,116 +2130,104 @@ function renderOrganogram(data){
   return;
  }
 
- const groups=new Map();
+ const volante=data.filter(
+  e=>(e.org_group||"").trim().toLowerCase()==="equipe volante"
+ );
+ const normal=data.filter(e=>!volante.includes(e));
 
- data.forEach(e=>{
-  const group=(e.org_group||"").trim();
-  if(!group)return;
-  if(!groups.has(group))groups.set(group,[]);
-  groups.get(group).push(e);
+ const ids=new Set(normal.map(e=>e.id));
+ const bySupervisor=new Map();
+
+ normal.forEach(e=>{
+  if(e.supervisor_id&&ids.has(e.supervisor_id)){
+   if(!bySupervisor.has(e.supervisor_id)){
+    bySupervisor.set(e.supervisor_id,[]);
+   }
+   bySupervisor.get(e.supervisor_id).push(e);
+  }
  });
 
- const groupedIds=new Set(
-  [...groups.values()].flat().map(e=>e.id)
+ const roots=normal.filter(
+  e=>!e.supervisor_id||!ids.has(e.supervisor_id)
  );
 
- const normal=data.filter(e=>!groupedIds.has(e.id));
+ const tree=document.createElement("div");
+ tree.className="org-tree";
 
- if(normal.length){
-  const chart=document.createElement("div");
-  chart.className="org-chart";
+ if(roots.length){
+  const row=document.createElement("div");
+  row.className="org-tree-row";
 
-  ORG_ORDER.forEach(role=>{
-   const people=normal.filter(e=>e.org_role===role);
-   if(!people.length)return;
-
-   const level=document.createElement("section");
-   level.className="org-level";
-
-   const title=document.createElement("div");
-   title.className="org-level-title";
-   title.textContent=role;
-
-   const row=document.createElement("div");
-   row.className="org-row";
-
-   people.forEach(e=>{
-    const card=document.createElement("div");
-    card.className="org-card";
-    card.innerHTML=`
-     <strong>${escapeHtml(e.full_name)}</strong>
-     <div>${escapeHtml(e.job_title||role)}</div>
-     <div class="muted">${escapeHtml(e.shift||"")} ${e.day_night?"• "+escapeHtml(e.day_night):""}</div>
-    `;
-    row.appendChild(card);
-   });
-
-   level.appendChild(title);
-   level.appendChild(row);
-   chart.appendChild(level);
-  });
-
-  const undefinedPeople=normal.filter(e=>!e.org_role);
-  if(undefinedPeople.length){
-   const level=document.createElement("section");
-   level.className="org-level";
-
-   const title=document.createElement("div");
-   title.className="org-level-title";
-   title.textContent="Sem posição definida";
-
-   const row=document.createElement("div");
-   row.className="org-row";
-
-   undefinedPeople.forEach(e=>{
-    const card=document.createElement("div");
-    card.className="org-card";
-    card.innerHTML=`
-     <strong>${escapeHtml(e.full_name)}</strong>
-     <div>${escapeHtml(e.job_title||"Função não informada")}</div>
-    `;
-    row.appendChild(card);
-   });
-
-   level.appendChild(title);
-   level.appendChild(row);
-   chart.appendChild(level);
+  for(const root of roots){
+   const node=await buildOrgNode(root,bySupervisor);
+   if(node)row.appendChild(node);
   }
 
-  box.appendChild(chart);
+  tree.appendChild(row);
+ }else if(normal.length){
+  const warning=document.createElement("div");
+  warning.className="empty";
+  warning.textContent=
+   "Não foi possível determinar a raiz da hierarquia. Revise o campo Superior imediato.";
+  tree.appendChild(warning);
  }
 
- for(const [group,people] of groups){
+ box.appendChild(tree);
+
+ if(volante.length){
   const section=document.createElement("section");
   section.className="org-group-card";
 
   const title=document.createElement("h3");
-  title.textContent=group;
+  title.textContent="Equipe volante";
+  section.appendChild(title);
 
   const row=document.createElement("div");
   row.className="org-row";
 
-  people.forEach(e=>{
+  for(const e of volante){
    const card=document.createElement("div");
-   card.className="org-card";
-   card.innerHTML=`
-    <strong>${escapeHtml(e.full_name)}</strong>
-    <div>${escapeHtml(e.org_role||e.job_title||"Função não informada")}</div>
-    <div class="muted">${escapeHtml(employeeUnitNames(e.unit_ids||[]))}</div>
-   `;
-   row.appendChild(card);
-  });
+   card.className="org-node";
 
-  section.appendChild(title);
+   const photoUrl=await signedEmployeePhoto(e.photo_path);
+
+   if(photoUrl){
+    const img=document.createElement("img");
+    img.src=photoUrl;
+    img.alt=e.full_name;
+    card.appendChild(img);
+   }else{
+    const ph=document.createElement("div");
+    ph.className="avatar-placeholder";
+    ph.textContent=(e.full_name||"?")
+     .split(/\s+/)
+     .slice(0,2)
+     .map(x=>x[0]||"")
+     .join("")
+     .toUpperCase();
+    card.appendChild(ph);
+   }
+
+   const name=document.createElement("strong");
+   name.textContent=e.full_name;
+   card.appendChild(name);
+
+   const role=document.createElement("div");
+   role.textContent=e.org_role||e.job_title||"Função não definida";
+   card.appendChild(role);
+
+   const units=document.createElement("div");
+   units.className="muted";
+   units.textContent=employeeUnitNames(e.unit_ids||[]);
+   card.appendChild(units);
+
+   row.appendChild(card);
+  }
+
   section.appendChild(row);
   box.appendChild(section);
  }
-
- if(!box.children.length){
-  box.innerHTML='<div class="empty">Defina a posição no organograma dos profissionais na Matriz de Comunicação.</div>';
- }
 }
-
 
 /* INÍCIO */
 
