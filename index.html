@@ -255,17 +255,65 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 .module-unit-bar>div{min-width:260px}
 .module-unit-bar select{min-width:260px}
-.units-grid{display:grid;gap:10px}
-.unit-admin-card{
-  background:#fff;border:1px solid var(--border);border-radius:12px;
-  padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap
+.units-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(245px,1fr));
+  gap:14px
 }
-.unit-admin-card .unit-admin-info{flex:1;min-width:200px}
-.unit-admin-card h3{margin:0 0 4px}
-.unit-admin-card .actions{margin-top:0}
+.unit-admin-card{
+  --unit-accent:#17679b;
+  --unit-soft:#edf6fb;
+  background:linear-gradient(145deg,#fff 0%,var(--unit-soft) 100%);
+  border:1px solid #d6e2ea;
+  border-top:5px solid var(--unit-accent);
+  border-radius:16px;
+  padding:16px;
+  min-height:178px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 5px 16px #123b5c10;
+  transition:transform .18s ease,box-shadow .18s ease
+}
+.unit-admin-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px #123b5c18
+}
+.unit-admin-card:nth-child(4n+1){--unit-accent:#17679b;--unit-soft:#edf6fb}
+.unit-admin-card:nth-child(4n+2){--unit-accent:#287b5b;--unit-soft:#eef8f3}
+.unit-admin-card:nth-child(4n+3){--unit-accent:#6d5aa7;--unit-soft:#f3f0fa}
+.unit-admin-card:nth-child(4n+4){--unit-accent:#a86b16;--unit-soft:#fff7e9}
+.unit-card-top{display:flex;gap:12px;align-items:center}
+.unit-card-icon{
+  width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;
+  flex:0 0 48px;
+  background:var(--unit-accent);color:#fff;
+  font-size:20px;font-weight:900
+}
+.unit-admin-info{flex:1;min-width:0}
+.unit-admin-card h3{margin:0;font-size:18px;line-height:1.2}
+.unit-status{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:7px;padding:4px 8px;border-radius:999px;
+  background:#fff;color:#287044;border:1px solid #dbe9df;
+  font-size:12px;font-weight:800
+}
+.unit-status:before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#2c8a5a
+}
+.unit-card-footer{
+  margin-top:auto;padding-top:14px;
+  border-top:1px solid #dbe5eb;
+  display:flex;gap:8px
+}
+.unit-card-footer button{flex:1;width:auto;padding:9px 10px}
+.unit-edit-btn{background:#fff;color:var(--primary);border:1px solid #cbdbe5}
+.unit-delete-btn{background:#fff;color:var(--danger);border:1px solid #eccdcd}
+.unit-delete-btn:hover{background:#fff1f1}
 @media(max-width:700px){
  .module-unit-bar,.module-unit-bar>div,.module-unit-bar select{width:100%;min-width:0}
- .unit-admin-card{display:grid}
+ .units-grid{grid-template-columns:1fr}
+ .unit-admin-card{min-height:160px}
 }
 
 
@@ -1575,14 +1623,21 @@ async function loadUnitsAdmin(){
  data.forEach(u=>{
   const card=document.createElement("article");
   card.className="unit-admin-card";
+
+  const initial=(u.name||"U").trim().charAt(0).toUpperCase();
+
   card.innerHTML=`
-   <div class="unit-admin-info">
-    <h3>${escapeHtml(u.name)}</h3>
-    <div class="muted">Ativa no sistema</div>
+   <div class="unit-card-top">
+    <div class="unit-card-icon">${escapeHtml(initial)}</div>
+    <div class="unit-admin-info">
+     <h3>${escapeHtml(u.name)}</h3>
+     <span class="unit-status">Ativa</span>
+    </div>
    </div>
-   <div class="actions">
-    <button class="secondary editUnit">Editar</button>
-    <button class="danger deleteUnit">Excluir</button>
+
+   <div class="unit-card-footer">
+    <button class="unit-edit-btn editUnit">Editar</button>
+    <button class="unit-delete-btn deleteUnit">Excluir</button>
    </div>
   `;
 
