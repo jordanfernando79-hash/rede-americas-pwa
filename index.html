@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#123b5c">
 <title>Central de Gestão Rede Américas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -148,6 +150,30 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .employee-photo-box{grid-template-columns:1fr;justify-items:center;text-align:center}
 }
 
+
+.water-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.water-actions button{width:auto}
+.water-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.water-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.water-kpi strong{display:block;font-size:24px;color:var(--primary2);margin-top:4px}
+.water-chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:14px}
+.water-chart-wrap{height:320px;position:relative}
+.water-ref-list{display:grid;gap:8px;margin-top:14px}
+.water-ref-row{display:grid;grid-template-columns:1.5fr .7fr .7fr .7fr auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px}
+.water-result-grid{display:grid;gap:8px;margin-top:12px}
+.water-result-row{display:grid;grid-template-columns:1.5fr .7fr .6fr .8fr;gap:8px;align-items:end;padding:9px;border:1px solid var(--border);border-radius:10px}
+.water-result-row label{margin-top:0}
+.water-out{border-left:5px solid #a63333}
+.water-ok{border-left:5px solid #18794e}
+.import-review{max-height:48vh;overflow:auto;display:grid;gap:8px;margin-top:12px}
+.import-review-row{display:grid;grid-template-columns:1.5fr .7fr .6fr .8fr;gap:8px;align-items:end;padding:9px;border:1px solid var(--border);border-radius:10px}
+@media(max-width:700px){
+ .water-actions{display:grid}
+ .water-actions button{width:100%}
+ .water-ref-row,.water-result-row,.import-review-row{grid-template-columns:1fr}
+ .water-chart-wrap{height:280px}
+}
+
 </style>
 </head>
 
@@ -198,7 +224,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div class="modules">
 <button id="moduleRdi" class="module active">RDI</button>
-<button class="module" disabled>Qualidade da Água</button>
+<button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
 <button class="module" disabled>Relatórios</button>
 <button id="moduleDocuments" class="module">Documentos</button>
@@ -242,6 +268,66 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <div id="rdiList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+
+<!-- QUALIDADE DA ÁGUA -->
+<div id="waterModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Qualidade da Água</h2>
+<div id="waterSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+</div>
+
+<div class="water-actions">
+<button id="waterImportButton" class="primary" disabled>Importar PDF</button>
+<button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
+<button id="waterReferencesButton" class="ghost">Referências</button>
+</div>
+
+<div class="filters">
+<select id="waterTypeFilter">
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+
+<select id="waterParameterFilter">
+<option value="">Selecione um parâmetro</option>
+</select>
+
+<select id="waterPeriodFilter">
+<option value="12">Últimos 12 meses</option>
+<option value="24">Últimos 24 meses</option>
+<option value="0">Todo o histórico</option>
+</select>
+</div>
+
+<div class="water-kpis">
+<div class="water-kpi"><span>Análises</span><strong id="waterAnalysisCount">0</strong></div>
+<div class="water-kpi"><span>Última análise</span><strong id="waterLastDate" style="font-size:18px">—</strong></div>
+<div class="water-kpi"><span>Resultados fora da faixa</span><strong id="waterOutCount">0</strong></div>
+</div>
+
+<div class="water-chart-card">
+<div class="section-title" style="margin-top:0">
+<div>
+<h3 id="waterChartTitle" style="margin:0">Acompanhamento mensal</h3>
+<div id="waterChartReference" class="muted">Selecione um parâmetro.</div>
+</div>
+</div>
+<div class="water-chart-wrap">
+<canvas id="waterChart"></canvas>
+</div>
+</div>
+
+<h3>Últimas análises</h3>
+<div id="waterAnalysisList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
@@ -334,6 +420,161 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 </section>
 </main>
+
+
+<!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
+<dialog id="waterManualDialog">
+<div class="dialog-body">
+<h2 id="waterManualDialogTitle">Lançamento manual</h2>
+<form id="waterManualForm">
+<input id="waterReportId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Tipo de água *</label>
+<select id="waterManualType" required>
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+</div>
+
+<div>
+<label>Data da coleta *</label>
+<input id="waterSampleDate" type="date" required>
+</div>
+
+<div>
+<label>Data do laudo</label>
+<input id="waterReportDate" type="date">
+</div>
+
+<div>
+<label>Laboratório</label>
+<input id="waterLaboratory">
+</div>
+
+<div class="full">
+<label>Observações</label>
+<textarea id="waterNotes"></textarea>
+</div>
+</div>
+
+<h3>Resultados</h3>
+<div id="waterManualResults" class="water-result-grid"></div>
+
+<div class="dialog-actions">
+<button id="cancelWaterManual" type="button" class="ghost">Cancelar</button>
+<button id="saveWaterManual" type="submit" class="primary">Salvar análise</button>
+</div>
+</form>
+</div>
+</dialog>
+
+<!-- MODAL QUALIDADE DA ÁGUA - IMPORTAÇÃO PDF -->
+<dialog id="waterImportDialog">
+<div class="dialog-body">
+<h2>Importar análise por PDF</h2>
+
+<form id="waterImportForm">
+<div class="form-grid">
+<div>
+<label>Tipo de água *</label>
+<select id="waterImportType" required>
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+</div>
+
+<div>
+<label>Data da coleta *</label>
+<input id="waterImportSampleDate" type="date" required>
+</div>
+
+<div>
+<label>Data do laudo</label>
+<input id="waterImportReportDate" type="date">
+</div>
+
+<div>
+<label>Laboratório</label>
+<input id="waterImportLaboratory">
+</div>
+
+<div class="full">
+<label>Arquivo PDF *</label>
+<input id="waterPdfFile" type="file" accept="application/pdf,.pdf" required>
+<p class="muted">O sistema extrai o texto do PDF e sugere os valores. Você revisa tudo antes de confirmar.</p>
+</div>
+</div>
+
+<button id="extractWaterPdfButton" type="button" class="secondary">Ler PDF e revisar</button>
+
+<div id="waterImportMessage" class="status"></div>
+<div id="waterImportReview" class="import-review"></div>
+
+<div class="dialog-actions">
+<button id="cancelWaterImport" type="button" class="ghost">Cancelar</button>
+<button id="confirmWaterImport" type="submit" class="primary" disabled>Confirmar importação</button>
+</div>
+</form>
+</div>
+</dialog>
+
+<!-- MODAL QUALIDADE DA ÁGUA - REFERÊNCIAS -->
+<dialog id="waterReferencesDialog">
+<div class="dialog-body">
+<h2>Parâmetros de referência</h2>
+<p class="muted">Cadastre apenas os parâmetros realmente acompanhados. Mínimo e máximo podem ficar em branco quando não se aplicarem.</p>
+
+<form id="waterReferenceForm">
+<input id="waterReferenceId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Tipo de água *</label>
+<select id="waterReferenceType" required>
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+</div>
+
+<div>
+<label>Parâmetro *</label>
+<input id="waterReferenceName" required placeholder="Ex.: pH">
+</div>
+
+<div>
+<label>Unidade</label>
+<input id="waterReferenceUnit" placeholder="Ex.: mg/L">
+</div>
+
+<div>
+<label>Mínimo desejado</label>
+<input id="waterReferenceMin" type="number" step="any">
+</div>
+
+<div>
+<label>Máximo desejado</label>
+<input id="waterReferenceMax" type="number" step="any">
+</div>
+</div>
+
+<div class="dialog-actions">
+<button id="cancelWaterReferenceEdit" type="button" class="ghost">Limpar</button>
+<button id="saveWaterReference" type="submit" class="primary">Salvar parâmetro</button>
+</div>
+</form>
+
+<div id="waterReferenceList" class="water-ref-list"></div>
+
+<div class="dialog-actions">
+<button id="closeWaterReferences" type="button" class="ghost">Fechar</button>
+</div>
+</div>
+</dialog>
 
 <!-- MODAL RDI -->
 <dialog id="rdiDialog">
@@ -772,6 +1013,14 @@ let editingEmployee=null;
 
 let currentModule="rdi";
 
+let waterReferences=[];
+let waterReports=[];
+let waterResults=[];
+let waterChartInstance=null;
+let editingWaterReport=null;
+let pendingWaterImport=[];
+
+
 const $=id=>document.getElementById(id);
 
 function message(el,text,type="info"){
@@ -889,15 +1138,19 @@ $("unitSelect").onchange=async()=>{
  $("documentSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
  $("communicationSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
  $("orgSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
+ $("waterSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
 
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
+ $("waterImportButton").disabled=!unitId;
+ $("waterManualButton").disabled=!unitId;
 
  if(!unitId){
   $("rdiList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
  }
 
@@ -907,8 +1160,10 @@ $("unitSelect").onchange=async()=>{
   await loadDocuments();
  }else if(currentModule==="communication"){
   await loadEmployees();
- }else{
+ }else if(currentModule==="org"){
   await loadOrganogram();
+ }else{
+  await loadWaterModule();
  }
 };
 
@@ -921,16 +1176,19 @@ function switchModule(name){
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
  const isOrg=name==="org";
+ const isWater=name==="water";
 
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
+ $("waterModuleView").classList.toggle("hidden",!isWater);
 
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
+ $("moduleWater").classList.toggle("active",isWater);
 
  if(!unitId){
   return;
@@ -942,8 +1200,10 @@ function switchModule(name){
   loadDocuments();
  }else if(isCommunication){
   loadEmployees();
- }else{
+ }else if(isOrg){
   loadOrganogram();
+ }else{
+  loadWaterModule();
  }
 }
 
@@ -951,6 +1211,847 @@ $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
+$("moduleWater").onclick=()=>switchModule("water");
+
+
+/* ============================
+   QUALIDADE DA ÁGUA
+============================ */
+
+const WATER_LABELS={
+ conforto:"Água gelada de conforto",
+ processo:"Água gelada de processo",
+ condensada:"Água condensada"
+};
+
+if(window.pdfjsLib){
+ pdfjsLib.GlobalWorkerOptions.workerSrc=
+ "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+}
+
+function normalizeWaterText(value){
+ return String(value||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase()
+  .replace(/\s+/g," ")
+  .trim();
+}
+
+function parsePtNumber(value){
+ if(value===null||value===undefined||value==="")return null;
+ const normalized=String(value)
+  .trim()
+  .replace(/\s/g,"")
+  .replace(/\.(?=\d{3}(?:\D|$))/g,"")
+  .replace(",",".");
+ const n=Number(normalized);
+ return Number.isFinite(n)?n:null;
+}
+
+function isWaterOutOfRange(result){
+ const v=result.result_value;
+ if(v===null||v===undefined)return false;
+ if(result.min_snapshot!==null&&result.min_snapshot!==undefined&&Number(v)<Number(result.min_snapshot))return true;
+ if(result.max_snapshot!==null&&result.max_snapshot!==undefined&&Number(v)>Number(result.max_snapshot))return true;
+ return false;
+}
+
+async function loadWaterReferences(type=null){
+ let query=db
+  .from("water_reference_parameters")
+  .select("*")
+  .eq("active",true)
+  .order("display_order")
+  .order("parameter_name");
+
+ if(type)query=query.eq("water_type",type);
+
+ const {data,error}=await query;
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar referências da água.","err");
+  return [];
+ }
+
+ if(!type)waterReferences=data||[];
+ return data||[];
+}
+
+async function loadWaterModule(){
+ if(!unitId)return;
+
+ const type=$("waterTypeFilter").value;
+
+ await loadWaterReferences();
+
+ const refs=waterReferences.filter(r=>r.water_type===type);
+
+ $("waterParameterFilter").innerHTML=
+  '<option value="">Selecione um parâmetro</option>';
+
+ refs.forEach(ref=>{
+  const option=document.createElement("option");
+  option.value=ref.id;
+  option.textContent=ref.parameter_name;
+  $("waterParameterFilter").appendChild(option);
+ });
+
+ const {data:reports,error}=await db
+  .from("water_analysis_reports")
+  .select("*")
+  .eq("unit_id",unitId)
+  .eq("water_type",type)
+  .order("sample_date",{ascending:false});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar análises de água.","err");
+  return;
+ }
+
+ waterReports=reports||[];
+
+ const ids=waterReports.map(r=>r.id);
+ waterResults=[];
+
+ if(ids.length){
+  const {data:results,error:resultsError}=await db
+   .from("water_analysis_results")
+   .select("*")
+   .in("report_id",ids);
+
+  if(resultsError){
+   console.error(resultsError);
+   message($("appMessage"),"Falha ao carregar resultados de água.","err");
+   return;
+  }
+
+  waterResults=results||[];
+ }
+
+ updateWaterKpis();
+ renderWaterAnalysisList();
+ renderWaterChart();
+}
+
+function updateWaterKpis(){
+ $("waterAnalysisCount").textContent=waterReports.length;
+
+ $("waterLastDate").textContent=
+  waterReports.length
+   ?formatDate(waterReports[0].sample_date)
+   :"—";
+
+ $("waterOutCount").textContent=
+  waterResults.filter(isWaterOutOfRange).length;
+}
+
+function renderWaterAnalysisList(){
+ const list=$("waterAnalysisList");
+ list.replaceChildren();
+
+ if(!waterReports.length){
+  list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este tipo de água.</div>';
+  return;
+ }
+
+ waterReports.slice(0,20).forEach(report=>{
+  const results=waterResults.filter(r=>r.report_id===report.id);
+  const outCount=results.filter(isWaterOutOfRange).length;
+
+  const el=document.createElement("article");
+  el.className="record "+(outCount?"water-out":"water-ok");
+
+  el.innerHTML=`
+   <div class="record-top">
+    <h3>${formatDate(report.sample_date)}</h3>
+    <span class="badge">${report.source==="pdf"?"PDF":"MANUAL"}</span>
+   </div>
+   <p><strong>${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}</strong></p>
+   <p class="muted">${escapeHtml(report.laboratory||"Laboratório não informado")}</p>
+   <p><strong>${results.length}</strong> parâmetro(s) • <strong>${outCount}</strong> fora da faixa</p>
+   <div class="actions">
+    ${report.storage_path?'<button class="primary openWaterPdf">Abrir PDF</button>':""}
+    <button class="secondary editWaterReport">Editar</button>
+    <button class="danger deleteWaterReport">Excluir</button>
+   </div>
+  `;
+
+  const open=el.querySelector(".openWaterPdf");
+  if(open)open.onclick=()=>openWaterPdf(report);
+
+  el.querySelector(".editWaterReport").onclick=()=>openWaterEdit(report);
+  el.querySelector(".deleteWaterReport").onclick=()=>deleteWaterReport(report);
+
+  list.appendChild(el);
+ });
+}
+
+async function openWaterPdf(report){
+ if(!report.storage_path)return;
+
+ const {data,error}=await db.storage
+  .from("water-analysis-pdfs")
+  .createSignedUrl(report.storage_path,600);
+
+ if(error||!data?.signedUrl){
+  message($("appMessage"),"Não foi possível abrir o PDF.","err");
+  return;
+ }
+
+ window.open(data.signedUrl,"_blank");
+}
+
+function selectedWaterReference(){
+ const id=$("waterParameterFilter").value;
+ return waterReferences.find(r=>r.id===id)||null;
+}
+
+function renderWaterChart(){
+ if(waterChartInstance){
+  waterChartInstance.destroy();
+  waterChartInstance=null;
+ }
+
+ const ref=selectedWaterReference();
+ const canvas=$("waterChart");
+
+ if(!ref){
+  $("waterChartTitle").textContent="Acompanhamento mensal";
+  $("waterChartReference").textContent="Selecione um parâmetro.";
+  return;
+ }
+
+ const period=Number($("waterPeriodFilter").value||0);
+
+ let reports=[...waterReports];
+ if(period){
+  const limit=new Date();
+  limit.setMonth(limit.getMonth()-period);
+  reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
+ }
+
+ const reportMap=new Map(reports.map(r=>[r.id,r]));
+ const rows=waterResults
+  .filter(r=>r.reference_id===ref.id&&r.result_value!==null&&reportMap.has(r.report_id))
+  .map(r=>({
+   date:reportMap.get(r.report_id).sample_date,
+   value:Number(r.result_value)
+  }))
+  .sort((a,b)=>a.date.localeCompare(b.date));
+
+ const monthly=new Map();
+
+ rows.forEach(row=>{
+  const month=row.date.slice(0,7);
+  if(!monthly.has(month))monthly.set(month,[]);
+  monthly.get(month).push(row.value);
+ });
+
+ const data=[...monthly.entries()].map(([month,values])=>({
+  month,
+  value:values.reduce((a,b)=>a+b,0)/values.length
+ }));
+
+ $("waterChartTitle").textContent=ref.parameter_name;
+
+ const limits=[];
+ if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
+ if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
+
+ $("waterChartReference").textContent=
+  `${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
+
+ const labels=data.map(d=>{
+  const [year,month]=d.month.split("-");
+  return `${month}/${year}`;
+ });
+
+ const datasets=[{
+  label:ref.parameter_name,
+  data:data.map(d=>d.value),
+  borderWidth:2,
+  tension:.25
+ }];
+
+ if(ref.min_value!==null){
+  datasets.push({
+   label:"Mínimo",
+   data:labels.map(()=>Number(ref.min_value)),
+   borderDash:[6,6],
+   pointRadius:0,
+   borderWidth:1
+  });
+ }
+
+ if(ref.max_value!==null){
+  datasets.push({
+   label:"Máximo",
+   data:labels.map(()=>Number(ref.max_value)),
+   borderDash:[6,6],
+   pointRadius:0,
+   borderWidth:1
+  });
+ }
+
+ waterChartInstance=new Chart(canvas,{
+  type:"line",
+  data:{labels,datasets},
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   interaction:{mode:"index",intersect:false},
+   plugins:{legend:{display:true}},
+   scales:{
+    y:{title:{display:!!ref.unit,text:ref.unit||""}}
+   }
+  }
+ });
+}
+
+$("waterTypeFilter").addEventListener("change",loadWaterModule);
+$("waterParameterFilter").addEventListener("change",renderWaterChart);
+$("waterPeriodFilter").addEventListener("change",renderWaterChart);
+
+/* MANUAL / EDIÇÃO */
+
+async function renderWaterManualResults(type,existing=[]){
+ const refs=waterReferences.filter(r=>r.water_type===type);
+ const box=$("waterManualResults");
+ box.replaceChildren();
+
+ if(!refs.length){
+  box.innerHTML='<div class="empty">Cadastre primeiro os parâmetros em Referências.</div>';
+  return;
+ }
+
+ refs.forEach(ref=>{
+  const current=existing.find(x=>x.reference_id===ref.id);
+
+  const row=document.createElement("div");
+  row.className="water-result-row";
+  row.dataset.refId=ref.id;
+
+  row.innerHTML=`
+   <div>
+    <label>Parâmetro</label>
+    <strong>${escapeHtml(ref.parameter_name)}</strong>
+   </div>
+   <div>
+    <label>Valor</label>
+    <input class="waterManualValue" type="number" step="any" value="${current?.result_value??""}">
+   </div>
+   <div>
+    <label>Unidade</label>
+    <div>${escapeHtml(ref.unit||"—")}</div>
+   </div>
+   <div>
+    <label>Referência</label>
+    <div>${ref.min_value??"—"} a ${ref.max_value??"—"}</div>
+   </div>
+  `;
+
+  box.appendChild(row);
+ });
+}
+
+$("waterManualButton").onclick=async()=>{
+ editingWaterReport=null;
+ $("waterManualForm").reset();
+ $("waterReportId").value="";
+ $("waterManualDialogTitle").textContent="Lançamento manual";
+ $("waterManualType").value=$("waterTypeFilter").value;
+ $("waterSampleDate").value=new Date().toISOString().slice(0,10);
+ await renderWaterManualResults($("waterManualType").value);
+ $("waterManualDialog").showModal();
+};
+
+$("waterManualType").addEventListener("change",async()=>{
+ await renderWaterManualResults($("waterManualType").value);
+});
+
+$("cancelWaterManual").onclick=()=>$("waterManualDialog").close();
+
+async function openWaterEdit(report){
+ editingWaterReport=report;
+
+ $("waterManualForm").reset();
+ $("waterReportId").value=report.id;
+ $("waterManualDialogTitle").textContent="Editar análise";
+ $("waterManualType").value=report.water_type;
+ $("waterSampleDate").value=report.sample_date||"";
+ $("waterReportDate").value=report.report_date||"";
+ $("waterLaboratory").value=report.laboratory||"";
+ $("waterNotes").value=report.notes||"";
+
+ const existing=waterResults.filter(r=>r.report_id===report.id);
+ await renderWaterManualResults(report.water_type,existing);
+
+ $("waterManualDialog").showModal();
+}
+
+$("waterManualForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveWaterManual");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const type=$("waterManualType").value;
+
+  const payload={
+   unit_id:unitId,
+   water_type:type,
+   sample_date:$("waterSampleDate").value,
+   report_date:$("waterReportDate").value||null,
+   source:editingWaterReport?.source||"manual",
+   laboratory:textOrNull($("waterLaboratory").value),
+   notes:textOrNull($("waterNotes").value),
+   updated_by:session.user.id
+  };
+
+  let reportId=$("waterReportId").value;
+
+  if(reportId){
+   const {error}=await db
+    .from("water_analysis_reports")
+    .update(payload)
+    .eq("id",reportId);
+
+   if(error)throw error;
+
+   const {error:deleteError}=await db
+    .from("water_analysis_results")
+    .delete()
+    .eq("report_id",reportId);
+
+   if(deleteError)throw deleteError;
+
+  }else{
+   const {data,error}=await db
+    .from("water_analysis_reports")
+    .insert({...payload,created_by:session.user.id})
+    .select("id")
+    .single();
+
+   if(error)throw error;
+   reportId=data.id;
+  }
+
+  const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
+   .map(row=>{
+    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
+    const value=parsePtNumber(row.querySelector(".waterManualValue").value);
+
+    if(value===null)return null;
+
+    return{
+     report_id:reportId,
+     reference_id:ref.id,
+     parameter_name:ref.parameter_name,
+     unit:ref.unit,
+     result_value:value,
+     min_snapshot:ref.min_value,
+     max_snapshot:ref.max_value
+    };
+   })
+   .filter(Boolean);
+
+  if(rows.length){
+   const {error}=await db.from("water_analysis_results").insert(rows);
+   if(error)throw error;
+  }
+
+  $("waterManualDialog").close();
+  message($("appMessage"),"Análise salva com sucesso.","ok");
+  await loadWaterModule();
+
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível salvar a análise.","err");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar análise";
+ }
+});
+
+async function deleteWaterReport(report){
+ if(!confirm(`Excluir a análise de ${formatDate(report.sample_date)}?`))return;
+
+ const {error}=await db
+  .from("water_analysis_reports")
+  .delete()
+  .eq("id",report.id);
+
+ if(error){
+  message($("appMessage"),"Falha ao excluir a análise.","err");
+  return;
+ }
+
+ if(report.storage_path){
+  await db.storage.from("water-analysis-pdfs").remove([report.storage_path]);
+ }
+
+ message($("appMessage"),"Análise excluída.","ok");
+ await loadWaterModule();
+}
+
+/* IMPORTAÇÃO PDF */
+
+$("waterImportButton").onclick=async()=>{
+ pendingWaterImport=[];
+ $("waterImportForm").reset();
+ $("waterImportReview").replaceChildren();
+ $("confirmWaterImport").disabled=true;
+ message($("waterImportMessage"),"","info");
+ $("waterImportType").value=$("waterTypeFilter").value;
+ $("waterImportSampleDate").value=new Date().toISOString().slice(0,10);
+ $("waterImportDialog").showModal();
+};
+
+$("cancelWaterImport").onclick=()=>$("waterImportDialog").close();
+
+async function extractPdfText(file){
+ const buffer=await file.arrayBuffer();
+ const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+ const pages=[];
+
+ for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
+  const page=await pdf.getPage(pageNo);
+  const content=await page.getTextContent();
+  pages.push(content.items.map(item=>item.str).join(" "));
+ }
+
+ return pages.join("\n");
+}
+
+function suggestValueFromPdf(text,parameterName){
+ const normalizedText=normalizeWaterText(text);
+ const normalizedName=normalizeWaterText(parameterName);
+ const index=normalizedText.indexOf(normalizedName);
+
+ if(index<0)return null;
+
+ const after=normalizedText.slice(index+normalizedName.length,index+normalizedName.length+100);
+ const match=after.match(/[-+]?\d+(?:[.,]\d+)?/);
+
+ return match?parsePtNumber(match[0]):null;
+}
+
+function renderWaterImportReview(refs,text){
+ const box=$("waterImportReview");
+ box.replaceChildren();
+
+ pendingWaterImport=refs.map(ref=>({
+  ref,
+  value:suggestValueFromPdf(text,ref.parameter_name)
+ }));
+
+ pendingWaterImport.forEach(item=>{
+  const row=document.createElement("div");
+  row.className="import-review-row";
+  row.dataset.refId=item.ref.id;
+
+  row.innerHTML=`
+   <div>
+    <label>Parâmetro</label>
+    <strong>${escapeHtml(item.ref.parameter_name)}</strong>
+   </div>
+   <div>
+    <label>Valor extraído</label>
+    <input class="waterImportValue" type="number" step="any" value="${item.value??""}">
+   </div>
+   <div>
+    <label>Unidade</label>
+    <div>${escapeHtml(item.ref.unit||"—")}</div>
+   </div>
+   <div>
+    <label>Referência</label>
+    <div>${item.ref.min_value??"—"} a ${item.ref.max_value??"—"}</div>
+   </div>
+  `;
+
+  box.appendChild(row);
+ });
+}
+
+$("extractWaterPdfButton").onclick=async()=>{
+ const file=$("waterPdfFile").files[0];
+
+ if(!file){
+  message($("waterImportMessage"),"Selecione um PDF.","err");
+  return;
+ }
+
+ const refs=waterReferences.filter(r=>r.water_type===$("waterImportType").value);
+
+ if(!refs.length){
+  message($("waterImportMessage"),"Cadastre primeiro os parâmetros em Referências.","err");
+  return;
+ }
+
+ const btn=$("extractWaterPdfButton");
+ btn.disabled=true;
+ btn.textContent="Lendo PDF...";
+
+ try{
+  const text=await extractPdfText(file);
+
+  if(!text.trim()){
+   message(
+    $("waterImportMessage"),
+    "O PDF não possui texto pesquisável. Será necessário OCR para este formato.",
+    "err"
+   );
+   return;
+  }
+
+  renderWaterImportReview(refs,text);
+
+  const found=pendingWaterImport.filter(x=>x.value!==null).length;
+
+  message(
+   $("waterImportMessage"),
+   `Leitura concluída: ${found} de ${refs.length} parâmetro(s) receberam sugestão. Revise antes de confirmar.`,
+   found?"ok":"info"
+  );
+
+  $("confirmWaterImport").disabled=false;
+
+ }catch(err){
+  console.error(err);
+  message($("waterImportMessage"),"Não foi possível ler este PDF.","err");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Ler PDF e revisar";
+ }
+};
+
+$("waterImportType").addEventListener("change",()=>{
+ pendingWaterImport=[];
+ $("waterImportReview").replaceChildren();
+ $("confirmWaterImport").disabled=true;
+});
+
+$("waterImportForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const file=$("waterPdfFile").files[0];
+ if(!file)return;
+
+ const btn=$("confirmWaterImport");
+ btn.disabled=true;
+ btn.textContent="Importando...";
+
+ let storagePath=null;
+ let reportId=null;
+
+ try{
+  const type=$("waterImportType").value;
+  const id=crypto.randomUUID();
+  const safeName=safeFilename(file.name);
+  storagePath=`${unitId}/${id}/${Date.now()}_${safeName}`;
+
+  const {error:uploadError}=await db.storage
+   .from("water-analysis-pdfs")
+   .upload(storagePath,file,{cacheControl:"3600",upsert:false});
+
+  if(uploadError)throw uploadError;
+
+  const {data:report,error:reportError}=await db
+   .from("water_analysis_reports")
+   .insert({
+    id,
+    unit_id:unitId,
+    water_type:type,
+    sample_date:$("waterImportSampleDate").value,
+    report_date:$("waterImportReportDate").value||null,
+    source:"pdf",
+    laboratory:textOrNull($("waterImportLaboratory").value),
+    filename:file.name,
+    storage_path:storagePath,
+    created_by:session.user.id,
+    updated_by:session.user.id
+   })
+   .select("id")
+   .single();
+
+  if(reportError)throw reportError;
+  reportId=report.id;
+
+  const rows=[...document.querySelectorAll("#waterImportReview .import-review-row")]
+   .map(row=>{
+    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
+    const value=parsePtNumber(row.querySelector(".waterImportValue").value);
+
+    if(value===null)return null;
+
+    return{
+     report_id:reportId,
+     reference_id:ref.id,
+     parameter_name:ref.parameter_name,
+     unit:ref.unit,
+     result_value:value,
+     min_snapshot:ref.min_value,
+     max_snapshot:ref.max_value
+    };
+   })
+   .filter(Boolean);
+
+  if(rows.length){
+   const {error:resultsError}=await db.from("water_analysis_results").insert(rows);
+   if(resultsError)throw resultsError;
+  }
+
+  $("waterImportDialog").close();
+  $("waterTypeFilter").value=type;
+  message($("appMessage"),"PDF importado e análise registrada.","ok");
+  await loadWaterModule();
+
+ }catch(err){
+  console.error(err);
+
+  if(reportId){
+   await db.from("water_analysis_reports").delete().eq("id",reportId);
+  }
+
+  if(storagePath){
+   await db.storage.from("water-analysis-pdfs").remove([storagePath]);
+  }
+
+  message($("appMessage"),"Não foi possível concluir a importação.","err");
+  btn.disabled=false;
+  btn.textContent="Confirmar importação";
+ }
+});
+
+/* REFERÊNCIAS */
+
+async function renderWaterReferenceList(){
+ const refs=await loadWaterReferences();
+ waterReferences=refs;
+
+ const list=$("waterReferenceList");
+ list.replaceChildren();
+
+ if(!refs.length){
+  list.innerHTML='<div class="empty">Nenhum parâmetro cadastrado.</div>';
+  return;
+ }
+
+ refs.forEach(ref=>{
+  const row=document.createElement("div");
+  row.className="water-ref-row";
+
+  row.innerHTML=`
+   <div>
+    <strong>${escapeHtml(ref.parameter_name)}</strong>
+    <div class="muted">${escapeHtml(WATER_LABELS[ref.water_type])}</div>
+   </div>
+   <div>${escapeHtml(ref.unit||"—")}</div>
+   <div>Mín. ${ref.min_value??"—"}</div>
+   <div>Máx. ${ref.max_value??"—"}</div>
+   <div class="actions" style="margin:0">
+    <button class="secondary editWaterRef">Editar</button>
+    <button class="danger deleteWaterRef">Excluir</button>
+   </div>
+  `;
+
+  row.querySelector(".editWaterRef").onclick=()=>editWaterReference(ref);
+  row.querySelector(".deleteWaterRef").onclick=()=>deleteWaterReference(ref);
+
+  list.appendChild(row);
+ });
+}
+
+$("waterReferencesButton").onclick=async()=>{
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ $("waterReferenceType").value=$("waterTypeFilter").value;
+ await renderWaterReferenceList();
+ $("waterReferencesDialog").showModal();
+};
+
+$("closeWaterReferences").onclick=async()=>{
+ $("waterReferencesDialog").close();
+ if(unitId)await loadWaterModule();
+};
+
+$("cancelWaterReferenceEdit").onclick=()=>{
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ $("waterReferenceType").value=$("waterTypeFilter").value;
+};
+
+function editWaterReference(ref){
+ $("waterReferenceId").value=ref.id;
+ $("waterReferenceType").value=ref.water_type;
+ $("waterReferenceName").value=ref.parameter_name;
+ $("waterReferenceUnit").value=ref.unit||"";
+ $("waterReferenceMin").value=ref.min_value??"";
+ $("waterReferenceMax").value=ref.max_value??"";
+}
+
+$("waterReferenceForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const id=$("waterReferenceId").value;
+
+ const payload={
+  water_type:$("waterReferenceType").value,
+  parameter_name:$("waterReferenceName").value.trim(),
+  unit:textOrNull($("waterReferenceUnit").value),
+  min_value:numberOrNull($("waterReferenceMin").value),
+  max_value:numberOrNull($("waterReferenceMax").value),
+  active:true,
+  updated_at:new Date().toISOString(),
+  updated_by:session.user.id
+ };
+
+ let error;
+
+ if(id){
+  ({error}=await db
+   .from("water_reference_parameters")
+   .update(payload)
+   .eq("id",id));
+ }else{
+  ({error}=await db
+   .from("water_reference_parameters")
+   .insert({...payload,created_by:session.user.id}));
+ }
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível salvar a referência.","err");
+  return;
+ }
+
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ await renderWaterReferenceList();
+});
+
+async function deleteWaterReference(ref){
+ if(!confirm(`Excluir o parâmetro "${ref.parameter_name}"?`))return;
+
+ const {error}=await db
+  .from("water_reference_parameters")
+  .delete()
+  .eq("id",ref.id);
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível excluir a referência.","err");
+  return;
+ }
+
+ await renderWaterReferenceList();
+}
+
 
 /* ============================
    RDI
