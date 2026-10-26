@@ -257,36 +257,44 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .module-unit-bar select{min-width:260px}
 .units-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(245px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(285px,1fr));
   gap:14px
 }
 .unit-admin-card{
-  --unit-accent:#17679b;
-  --unit-soft:#edf6fb;
+  --unit-accent:#3c718f;
+  --unit-soft:#eef6fa;
   background:linear-gradient(145deg,#fff 0%,var(--unit-soft) 100%);
   border:1px solid #d6e2ea;
-  border-top:5px solid var(--unit-accent);
-  border-radius:16px;
+  border-top:6px solid var(--unit-accent);
+  border-radius:17px;
   padding:16px;
-  min-height:178px;
+  min-height:265px;
   display:flex;
   flex-direction:column;
   box-shadow:0 5px 16px #123b5c10;
   transition:transform .18s ease,box-shadow .18s ease
 }
+.unit-admin-card.unit-coi{
+  --unit-accent:#7256b5;
+  --unit-soft:#f3f0fb
+}
+.unit-admin-card.unit-hospital{
+  --unit-accent:#55a8d6;
+  --unit-soft:#eef8fd
+}
+.unit-admin-card.unit-default{
+  --unit-accent:#3c718f;
+  --unit-soft:#eef6fa
+}
 .unit-admin-card:hover{
   transform:translateY(-2px);
   box-shadow:0 8px 22px #123b5c18
 }
-.unit-admin-card:nth-child(4n+1){--unit-accent:#17679b;--unit-soft:#edf6fb}
-.unit-admin-card:nth-child(4n+2){--unit-accent:#287b5b;--unit-soft:#eef8f3}
-.unit-admin-card:nth-child(4n+3){--unit-accent:#6d5aa7;--unit-soft:#f3f0fa}
-.unit-admin-card:nth-child(4n+4){--unit-accent:#a86b16;--unit-soft:#fff7e9}
 .unit-card-top{display:flex;gap:12px;align-items:center}
 .unit-card-icon{
-  width:48px;height:48px;border-radius:14px;
+  width:50px;height:50px;border-radius:14px;
   display:grid;place-items:center;
-  flex:0 0 48px;
+  flex:0 0 50px;
   background:var(--unit-accent);color:#fff;
   font-size:20px;font-weight:900
 }
@@ -301,6 +309,63 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .unit-status:before{
   content:"";width:7px;height:7px;border-radius:50%;background:#2c8a5a
 }
+.unit-card-summary{
+  display:grid;
+  gap:9px;
+  margin:15px 0 12px
+}
+.unit-summary-line{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px;
+  border-radius:10px;
+  background:#ffffffb8;
+  border:1px solid #dfe8ee
+}
+.unit-summary-line span{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.25px
+}
+.unit-summary-line strong{
+  text-align:right;
+  font-size:13px
+}
+.unit-function-box{
+  padding:10px;
+  border-radius:10px;
+  background:#ffffffb8;
+  border:1px solid #dfe8ee
+}
+.unit-function-title{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.25px;
+  margin-bottom:7px
+}
+.unit-function-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px
+}
+.unit-function-chip{
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #d8e3ea;
+  font-size:12px;
+  font-weight:700
+}
+.unit-inventory-pending{
+  color:var(--muted);
+  font-style:italic
+}
 .unit-card-footer{
   margin-top:auto;padding-top:14px;
   border-top:1px solid #dbe5eb;
@@ -313,9 +378,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 @media(max-width:700px){
  .module-unit-bar,.module-unit-bar>div,.module-unit-bar select{width:100%;min-width:0}
  .units-grid{grid-template-columns:1fr}
- .unit-admin-card{min-height:160px}
+ .unit-admin-card{min-height:245px}
+ .unit-summary-line{display:grid}
+ .unit-summary-line strong{text-align:left}
 }
-
 
 .access-list{display:grid;gap:10px}
 .access-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
@@ -1620,18 +1686,109 @@ async function loadUnitsAdmin(){
   return;
  }
 
+ const unitIds=data.map(u=>u.id);
+
+ const [{data:links,error:linksError},{data:staff,error:staffError}]=await Promise.all([
+  db.from("employee_units")
+   .select("employee_id,unit_id")
+   .in("unit_id",unitIds),
+  db.from("employees")
+   .select("id,full_name,job_title,org_role,status")
+   .eq("status","ativo")
+ ]);
+
+ if(linksError)console.error(linksError);
+ if(staffError)console.error(staffError);
+
+ const employeeById=new Map((staff||[]).map(e=>[e.id,e]));
+ const summaries=new Map();
+
+ data.forEach(u=>{
+  summaries.set(u.id,{
+   leader:"Não definido",
+   functions:new Map(),
+   totalEmployees:0
+  });
+ });
+
+ (links||[]).forEach(link=>{
+  const employee=employeeById.get(link.employee_id);
+  if(!employee)return;
+
+  const summary=summaries.get(link.unit_id);
+  if(!summary)return;
+
+  summary.totalEmployees++;
+
+  const role=(employee.org_role||"").trim();
+  const job=(employee.job_title||role||"Sem função definida").trim();
+
+  const roleNormalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  if(roleNormalized==="lider" && summary.leader==="Não definido"){
+   summary.leader=employee.full_name||"Não definido";
+  }
+
+  summary.functions.set(job,(summary.functions.get(job)||0)+1);
+ });
+
  data.forEach(u=>{
   const card=document.createElement("article");
-  card.className="unit-admin-card";
 
-  const initial=(u.name||"U").trim().charAt(0).toUpperCase();
+  const name=(u.name||"").trim();
+  const normalized=name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+
+  const typeClass=normalized.startsWith("COI")
+   ?"unit-coi"
+   :normalized.startsWith("HOSPITAL")
+    ?"unit-hospital"
+    :"unit-default";
+
+  card.className=`unit-admin-card ${typeClass}`;
+
+  const initial=name.charAt(0).toUpperCase()||"U";
+  const summary=summaries.get(u.id)||{
+   leader:"Não definido",
+   functions:new Map(),
+   totalEmployees:0
+  };
+
+  const functionEntries=[...summary.functions.entries()]
+   .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
+
+  const functionHtml=functionEntries.length
+   ?functionEntries.map(([role,count])=>
+      `<span class="unit-function-chip">${escapeHtml(role)}: ${count}</span>`
+    ).join("")
+   :'<span class="muted">Nenhum funcionário ativo vinculado.</span>';
 
   card.innerHTML=`
    <div class="unit-card-top">
     <div class="unit-card-icon">${escapeHtml(initial)}</div>
     <div class="unit-admin-info">
-     <h3>${escapeHtml(u.name)}</h3>
+     <h3>${escapeHtml(name)}</h3>
      <span class="unit-status">Ativa</span>
+    </div>
+   </div>
+
+   <div class="unit-card-summary">
+    <div class="unit-summary-line">
+     <span>Líder</span>
+     <strong>${escapeHtml(summary.leader)}</strong>
+    </div>
+
+    <div class="unit-summary-line">
+     <span>Efetivo total</span>
+     <strong>${summary.totalEmployees}</strong>
+    </div>
+
+    <div class="unit-function-box">
+     <div class="unit-function-title">Funcionários por função</div>
+     <div class="unit-function-list">${functionHtml}</div>
+    </div>
+
+    <div class="unit-summary-line">
+     <span>Equipamentos</span>
+     <strong class="unit-inventory-pending">Inventário ainda não ativo</strong>
     </div>
    </div>
 
