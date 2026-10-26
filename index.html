@@ -63,6 +63,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .actions button{width:auto}
 .empty{text-align:center;padding:25px;background:#fff;border:1px dashed #becbd4;border-radius:12px;color:var(--muted)}
+.document-tools{display:flex;gap:8px}
+.document-tools button{width:auto;flex:1}
+.doc-check{width:22px;height:22px;flex:0 0 22px}
+.warning-text{color:#a15b00;font-weight:700}
+.expired-text{color:#a63333;font-weight:700}
 dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
 dialog::backdrop{background:#061b2b99}
 .dialog-body{padding:18px}
@@ -75,16 +80,22 @@ dialog::backdrop{background:#061b2b99}
 .dialog-actions{display:flex;gap:8px;margin-top:18px}
 .dialog-actions button{flex:1}
 hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+
 @media(max-width:700px){
  .form-grid,.gut-grid,.photo-grid,.filters{grid-template-columns:1fr}
  .full{grid-column:auto}
- .toolbar{display:grid}.toolbar select,.toolbar button{width:100%}
- .spacer{display:none}.section-title{display:grid}.section-title button{width:100%}
+ .toolbar{display:grid}
+ .toolbar select,.toolbar button{width:100%}
+ .spacer{display:none}
+ .section-title{display:grid}
+ .section-title button{width:100%}
+ .document-tools{display:grid}
 }
 </style>
 </head>
 
 <body>
+
 <header>
 <small>GRUPO AMÉRICAS • MANUTENÇÃO HOSPITALAR</small>
 <h1>Central de Gestão Manutenção Rede Américas</h1>
@@ -96,56 +107,95 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <section id="loginView" class="card login">
 <h2>Entrar no sistema</h2>
 <p class="muted">Acesso restrito aos usuários autorizados.</p>
+
 <form id="loginForm">
 <label>E-mail</label>
 <input id="email" type="email" required autocomplete="username">
+
 <label>Senha</label>
 <input id="password" type="password" required autocomplete="current-password">
+
 <button class="primary" style="margin-top:15px">Entrar</button>
 </form>
+
 <div id="loginMessage" class="status"></div>
 </section>
 
 <section id="appView" class="hidden">
+
 <div class="toolbar">
-<select id="unitSelect"><option>Carregando unidades...</option></select>
+<select id="unitSelect">
+<option>Carregando unidades...</option>
+</select>
+
 <span class="spacer"></span>
-<div><strong id="userName"></strong><div class="muted" id="userRole"></div></div>
+
+<div>
+<strong id="userName"></strong>
+<div class="muted" id="userRole"></div>
+</div>
+
 <button id="logoutButton" class="ghost">Sair</button>
 </div>
 
 <div id="appMessage" class="status"></div>
 
 <div class="stats">
-<div class="card stat"><span>Unidade</span><strong id="unitStat">—</strong></div>
-<div class="card stat"><span>RDI abertas</span><strong id="openCount">0</strong></div>
-<div class="card stat"><span>Críticas</span><strong id="criticalCount">0</strong></div>
-<div class="card stat"><span>Custo conhecido</span><strong id="costTotal">R$ 0</strong></div>
+<div class="card stat">
+<span>Unidade</span>
+<strong id="unitStat">—</strong>
+</div>
+
+<div class="card stat">
+<span>RDI abertas</span>
+<strong id="openCount">0</strong>
+</div>
+
+<div class="card stat">
+<span>Críticas</span>
+<strong id="criticalCount">0</strong>
+</div>
+
+<div class="card stat">
+<span>Custo conhecido</span>
+<strong id="costTotal">R$ 0</strong>
+</div>
 </div>
 
 <h2>Módulos</h2>
+
 <div class="modules">
-<button class="module active">RDI</button>
+<button id="moduleRdi" class="module active">RDI</button>
 <button class="module" disabled>Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
 <button class="module" disabled>Relatórios</button>
-<button class="module" disabled>Documentos</button>
+<button id="moduleDocuments" class="module">Documentos</button>
 <button class="module" disabled>Inventário</button>
 <button class="module" disabled>Treinamentos</button>
 <button class="module" disabled>Organograma</button>
 <button class="module" disabled>Matriz de Comunicação</button>
 </div>
 
+<!-- RDI -->
+
+<div id="rdiModuleView">
+
 <div class="section-title">
 <div>
 <h2>RDI — Gestão de Criticidade</h2>
 <div id="rdiSubtitle" class="muted">Selecione uma unidade.</div>
 </div>
-<button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
+
+<button id="newRdiButton" class="primary" disabled>
++ Nova demanda
+</button>
 </div>
 
 <div class="filters">
-<input id="searchInput" placeholder="Buscar equipamento, desvio, local...">
+
+<input id="searchInput"
+placeholder="Buscar equipamento, desvio, local...">
+
 <select id="statusFilter">
 <option value="">Todos os status</option>
 <option>EM ABERTO</option>
@@ -156,6 +206,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <option>CONCLUÍDA</option>
 <option>CANCELADA</option>
 </select>
+
 <select id="gutFilter">
 <option value="">Todas as criticidades</option>
 <option value="Crítica">Crítica</option>
@@ -164,20 +215,84 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <option value="Baixa">Baixa</option>
 <option value="Muito baixa">Muito baixa</option>
 </select>
+
 </div>
 
 <div id="rdiList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
+
+</div>
+
+<!-- DOCUMENTOS -->
+
+<div id="documentModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Documentos</h2>
+<div id="documentSubtitle" class="muted">
+Selecione uma unidade.
+</div>
+</div>
+
+<button id="newDocumentButton" class="primary" disabled>
++ Novo documento
+</button>
+</div>
+
+<div class="filters">
+
+<input id="documentSearch"
+placeholder="Buscar documento...">
+
+<select id="documentCategoryFilter">
+<option value="">Todas as categorias</option>
+<option>ART</option>
+<option>PGR</option>
+<option>PCMSO</option>
+<option>PMOC</option>
+<option>NRs</option>
+<option>POPs</option>
+<option>Contrato</option>
+</select>
+
+<div class="document-tools">
+<button id="selectAllDocuments"
+type="button"
+class="secondary">
+Selecionar todos
+</button>
+
+<button id="deleteSelectedDocuments"
+type="button"
+class="danger">
+Excluir selecionados
+</button>
+</div>
+
+</div>
+
+<div id="documentList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
 </section>
 
 </main>
 
+<!-- MODAL RDI -->
+
 <dialog id="rdiDialog">
+
 <div class="dialog-body">
+
 <h2 id="dialogTitle">Nova demanda RDI</h2>
 
 <form id="rdiForm">
+
 <input id="recordId" type="hidden">
 
 <div class="form-grid">
@@ -223,31 +338,50 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <div class="full">
+
 <h3>GUT</h3>
+
 <div class="gut-grid">
+
 <div>
 <label>Gravidade *</label>
 <select id="gravity" required>
-<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
 </select>
 </div>
+
 <div>
 <label>Urgência *</label>
 <select id="urgency" required>
-<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
 </select>
 </div>
+
 <div>
 <label>Tendência *</label>
 <select id="trend" required>
-<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
 </select>
 </div>
+
 <div class="gut-result">
 <div>Pontuação</div>
 <div id="gutScore">1</div>
 <div id="gutClass">Muito baixa</div>
 </div>
+
 </div>
 </div>
 
@@ -263,7 +397,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div>
 <label>Custo estimado (R$)</label>
-<input id="costEstimated" type="number" step="0.01" min="0">
+<input id="costEstimated"
+type="number"
+step="0.01"
+min="0">
 </div>
 
 <div>
@@ -325,12 +462,18 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div>
 <label>Custo aprovado (R$)</label>
-<input id="approvedCost" type="number" step="0.01" min="0">
+<input id="approvedCost"
+type="number"
+step="0.01"
+min="0">
 </div>
 
 <div>
 <label>Custo realizado (R$)</label>
-<input id="actualCost" type="number" step="0.01" min="0">
+<input id="actualCost"
+type="number"
+step="0.01"
+min="0">
 </div>
 
 <div>
@@ -368,38 +511,175 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <div class="full">
+
 <hr>
+
 <h3>Fotos da ocorrência</h3>
-<p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+
+<p class="muted">
+Até 4 imagens. Máximo de 10 MB por arquivo.
+</p>
 
 <div class="photo-grid">
-<div><label>Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
-<div><label>Foto 2</label><input id="photo2" type="file" accept="image/*"></div>
-<div><label>Foto 3</label><input id="photo3" type="file" accept="image/*"></div>
-<div><label>Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
+
+<div>
+<label>Foto 1</label>
+<input id="photo1" type="file" accept="image/*">
 </div>
 
-<div id="currentPhotos" class="photo-grid"></div>
+<div>
+<label>Foto 2</label>
+<input id="photo2" type="file" accept="image/*">
+</div>
+
+<div>
+<label>Foto 3</label>
+<input id="photo3" type="file" accept="image/*">
+</div>
+
+<div>
+<label>Foto 4</label>
+<input id="photo4" type="file" accept="image/*">
+</div>
+
+</div>
+
+<div id="currentPhotos"
+class="photo-grid"></div>
+
 </div>
 
 </div>
 
 <div class="dialog-actions">
-<button id="cancelDialog" type="button" class="ghost">Cancelar</button>
-<button id="saveButton" type="submit" class="primary">Salvar demanda</button>
+
+<button id="cancelDialog"
+type="button"
+class="ghost">
+Cancelar
+</button>
+
+<button id="saveButton"
+type="submit"
+class="primary">
+Salvar demanda
+</button>
+
 </div>
 
 </form>
+
 </div>
+
+</dialog>
+
+<!-- MODAL DOCUMENTOS -->
+
+<dialog id="documentDialog">
+
+<div class="dialog-body">
+
+<h2 id="documentDialogTitle">
+Novo documento
+</h2>
+
+<form id="documentForm">
+
+<input id="documentId" type="hidden">
+
+<div class="form-grid">
+
+<div>
+<label>Categoria *</label>
+
+<select id="documentCategory" required>
+<option>ART</option>
+<option>PGR</option>
+<option>PCMSO</option>
+<option>PMOC</option>
+<option>NRs</option>
+<option>POPs</option>
+<option>Contrato</option>
+</select>
+
+</div>
+
+<div>
+<label>Título *</label>
+<input id="documentTitle" required>
+</div>
+
+<div>
+<label>Data do documento</label>
+<input id="documentDate" type="date">
+</div>
+
+<div>
+<label>Validade</label>
+<input id="documentValidUntil" type="date">
+</div>
+
+<div class="full">
+<label>Descrição</label>
+<textarea id="documentDescription"></textarea>
+</div>
+
+<div class="full">
+<label>Arquivo</label>
+
+<input id="documentFile"
+type="file"
+accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,image/jpeg,image/png,image/webp">
+
+<div id="currentDocumentFile"
+class="muted"
+style="margin-top:6px">
+</div>
+
+</div>
+
+</div>
+
+<div class="dialog-actions">
+
+<button id="cancelDocumentDialog"
+type="button"
+class="ghost">
+Cancelar
+</button>
+
+<button id="saveDocumentButton"
+type="submit"
+class="primary">
+Salvar documento
+</button>
+
+</div>
+
+</form>
+
+</div>
+
 </dialog>
 
 <script>
-const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
-const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
 
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
- auth:{persistSession:true,autoRefreshToken:true}
-});
+const SUPABASE_URL=
+"https://ndvfunasairodldltnmi.supabase.co";
+
+const SUPABASE_KEY=
+"sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
+
+const db=supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY,
+ {
+  auth:{
+   persistSession:true,
+   autoRefreshToken:true
+  }
+ }
+);
 
 let session=null;
 let profile=null;
@@ -407,177 +687,27 @@ let unitId="";
 let records=[];
 let editingRecord=null;
 
+let documents=[];
+let editingDocument=null;
+
+let currentModule="rdi";
+
 const $=id=>document.getElementById(id);
 
 function message(el,text,type="info"){
  el.textContent=text;
- el.className=text?`status show ${type}`:"status";
+ el.className=text
+  ?`status show ${type}`
+  :"status";
 }
 
-function numberOrNull(v){return v===""?null:Number(v)}
-function textOrNull(v){v=v.trim();return v||null}
-
-function gutClass(score){
- if(score>=80)return "Crítica";
- if(score>=60)return "Alta";
- if(score>=40)return "Média";
- if(score>=20)return "Baixa";
- return "Muito baixa";
+function numberOrNull(v){
+ return v===""?null:Number(v);
 }
 
-function gutClassCss(c){
- return "gut-"+c.toLowerCase().replaceAll(" ","-").replace("í","i");
-}
-
-function updateGut(){
- const score=Number($("gravity").value)*Number($("urgency").value)*Number($("trend").value);
- $("gutScore").textContent=score;
- $("gutClass").textContent=gutClass(score);
-}
-
-["gravity","urgency","trend"].forEach(x=>$(x).addEventListener("change",updateGut));
-
-$("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();
- message($("loginMessage"),"Entrando...","info");
- const {data,error}=await db.auth.signInWithPassword({
-  email:$("email").value.trim(),
-  password:$("password").value
- });
- if(error){message($("loginMessage"),"E-mail ou senha inválidos.","err");return}
- session=data.session;
- await enterApp();
-});
-
-$("logoutButton").onclick=async()=>{
- await db.auth.signOut();
- location.reload();
-};
-
-async function start(){
- const {data}=await db.auth.getSession();
- session=data.session;
- if(session)await enterApp();
-}
-
-async function enterApp(){
- $("loginView").classList.add("hidden");
- $("appView").classList.remove("hidden");
- $("headerStatus").textContent="Ambiente autenticado";
-
- const {data,error}=await db.from("profiles")
- .select("display_name,role,active")
- .eq("user_id",session.user.id).single();
-
- if(error||!data?.active){
-  message($("appMessage"),"Perfil sem autorização.","err");
-  return;
- }
-
- profile=data;
- $("userName").textContent=data.display_name||session.user.email;
- $("userRole").textContent=data.role==="admin"?"Administrador Geral":"Usuário";
- await loadUnits();
-}
-
-async function loadUnits(){
- const {data,error}=await db.from("units").select("id,name").eq("active",true).order("name");
- if(error){message($("appMessage"),"Falha ao carregar unidades.","err");return}
- $("unitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
- data.forEach(u=>{
-  const o=document.createElement("option");
-  o.value=u.id;o.textContent=u.name;$("unitSelect").appendChild(o);
- });
-}
-
-$("unitSelect").onchange=async()=>{
- unitId=$("unitSelect").value;
- const opt=$("unitSelect").options[$("unitSelect").selectedIndex];
- $("unitStat").textContent=unitId?opt.textContent:"—";
- $("rdiSubtitle").textContent=unitId?opt.textContent:"Selecione uma unidade.";
- $("newRdiButton").disabled=!unitId;
- if(unitId)await loadRdi();
-};
-
-async function loadRdi(){
- $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
-
- const {data,error}=await db.from("rdi_demands")
- .select("*").eq("unit_id",unitId).eq("archived",false)
- .order("gut_score",{ascending:false})
- .order("recorded_on",{ascending:true});
-
- if(error){
-  console.error(error);
-  message($("appMessage"),"Falha ao carregar RDI.","err");
-  return;
- }
-
- records=data||[];
- renderRecords();
- updateStats();
-}
-
-function updateStats(){
- const open=records.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
- $("openCount").textContent=open.length;
- $("criticalCount").textContent=open.filter(r=>gutClass(r.gut_score)==="Crítica").length;
- const total=open.reduce((s,r)=>s+(r.cost_estimated==null?0:Number(r.cost_estimated)),0);
- $("costTotal").textContent=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-}
-
-function filteredRecords(){
- const q=$("searchInput").value.toLowerCase();
- const sf=$("statusFilter").value;
- const gf=$("gutFilter").value;
-
- return records.filter(r=>{
-  const text=[r.source_id,r.workshop,r.equipment_info,r.location,r.operational_deviation,r.recommended_action]
-  .filter(Boolean).join(" ").toLowerCase();
-
-  return(!q||text.includes(q))&&(!sf||r.status===sf)&&(!gf||gutClass(r.gut_score)===gf);
- });
-}
-
-["searchInput","statusFilter","gutFilter"].forEach(id=>{
- $(id).addEventListener(id==="searchInput"?"input":"change",renderRecords);
-});
-
-function renderRecords(){
- const list=$("rdiList");
- list.replaceChildren();
- const data=filteredRecords();
-
- if(!data.length){
-  list.innerHTML='<div class="empty">Nenhuma demanda encontrada.</div>';
-  return;
- }
-
- data.forEach(r=>{
-  const c=gutClass(r.gut_score);
-  const el=document.createElement("article");
-  el.className="record";
-
-  const cost=r.cost_estimated==null?"Não informado":Number(r.cost_estimated).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-  el.innerHTML=`
-   <div class="record-top">
-    <h3>${escapeHtml(r.source_id||"RDI")} — ${escapeHtml(r.location||"Local não informado")}</h3>
-    <span class="badge ${gutClassCss(c)}">${c} • GUT ${r.gut_score}</span>
-   </div>
-   <p><strong>${escapeHtml(r.operational_deviation)}</strong></p>
-   <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
-   <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
-   <div class="actions">
-    <button class="secondary editBtn">Editar</button>
-    <button class="danger deleteBtn">Excluir</button>
-   </div>
-  `;
-
-  el.querySelector(".editBtn").onclick=()=>openEdit(r);
-  el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
-  list.appendChild(el);
- });
+function textOrNull(v){
+ v=v.trim();
+ return v||null;
 }
 
 function escapeHtml(v){
@@ -586,194 +716,1853 @@ function escapeHtml(v){
  return d.innerHTML;
 }
 
+/* LOGIN */
+
+$("loginForm")
+.addEventListener("submit",async e=>{
+
+ e.preventDefault();
+
+ message(
+  $("loginMessage"),
+  "Entrando...",
+  "info"
+ );
+
+ const {data,error}=
+ await db.auth.signInWithPassword({
+  email:$("email").value.trim(),
+  password:$("password").value
+ });
+
+ if(error){
+  message(
+   $("loginMessage"),
+   "E-mail ou senha inválidos.",
+   "err"
+  );
+  return;
+ }
+
+ session=data.session;
+
+ await enterApp();
+
+});
+
+$("logoutButton").onclick=async()=>{
+ await db.auth.signOut();
+ location.reload();
+};
+
+async function start(){
+
+ const {data}=
+ await db.auth.getSession();
+
+ session=data.session;
+
+ if(session){
+  await enterApp();
+ }
+
+}
+
+async function enterApp(){
+
+ $("loginView").classList.add("hidden");
+ $("appView").classList.remove("hidden");
+
+ $("headerStatus").textContent=
+ "Ambiente autenticado";
+
+ const {data,error}=
+ await db
+ .from("profiles")
+ .select("display_name,role,active")
+ .eq("user_id",session.user.id)
+ .single();
+
+ if(error||!data?.active){
+
+  message(
+   $("appMessage"),
+   "Perfil sem autorização.",
+   "err"
+  );
+
+  return;
+
+ }
+
+ profile=data;
+
+ $("userName").textContent=
+ data.display_name||
+ session.user.email;
+
+ $("userRole").textContent=
+ data.role==="admin"
+ ?"Administrador Geral"
+ :"Usuário";
+
+ await loadUnits();
+
+}
+
+/* UNIDADES */
+
+async function loadUnits(){
+
+ const {data,error}=
+ await db
+ .from("units")
+ .select("id,name")
+ .eq("active",true)
+ .order("name");
+
+ if(error){
+
+  message(
+   $("appMessage"),
+   "Falha ao carregar unidades.",
+   "err"
+  );
+
+  return;
+
+ }
+
+ $("unitSelect").innerHTML=
+ '<option value="">Selecione uma unidade</option>';
+
+ data.forEach(u=>{
+
+  const o=
+  document.createElement("option");
+
+  o.value=u.id;
+  o.textContent=u.name;
+
+  $("unitSelect")
+  .appendChild(o);
+
+ });
+
+}
+
+$("unitSelect").onchange=async()=>{
+
+ unitId=
+ $("unitSelect").value;
+
+ const opt=
+ $("unitSelect")
+ .options[
+  $("unitSelect").selectedIndex
+ ];
+
+ $("unitStat").textContent=
+ unitId
+ ?opt.textContent
+ :"—";
+
+ $("rdiSubtitle").textContent=
+ unitId
+ ?opt.textContent
+ :"Selecione uma unidade.";
+
+ $("documentSubtitle").textContent=
+ unitId
+ ?opt.textContent
+ :"Selecione uma unidade.";
+
+ $("newRdiButton").disabled=
+ !unitId;
+
+ $("newDocumentButton").disabled=
+ !unitId;
+
+ if(!unitId){
+  return;
+ }
+
+ if(currentModule==="rdi"){
+  await loadRdi();
+ }else{
+  await loadDocuments();
+ }
+
+};
+
+/* NAVEGAÇÃO */
+
+function switchModule(name){
+
+ currentModule=name;
+
+ const isRdi=
+ name==="rdi";
+
+ $("rdiModuleView")
+ .classList
+ .toggle("hidden",!isRdi);
+
+ $("documentModuleView")
+ .classList
+ .toggle("hidden",isRdi);
+
+ $("moduleRdi")
+ .classList
+ .toggle("active",isRdi);
+
+ $("moduleDocuments")
+ .classList
+ .toggle("active",!isRdi);
+
+ if(unitId){
+
+  if(isRdi){
+   loadRdi();
+  }else{
+   loadDocuments();
+  }
+
+ }
+
+}
+
+$("moduleRdi").onclick=
+()=>switchModule("rdi");
+
+$("moduleDocuments").onclick=
+()=>switchModule("documents");
+
+/* ============================
+   RDI
+============================ */
+
+function gutClass(score){
+
+ if(score>=80)return "Crítica";
+ if(score>=60)return "Alta";
+ if(score>=40)return "Média";
+ if(score>=20)return "Baixa";
+
+ return "Muito baixa";
+
+}
+
+function gutClassCss(c){
+
+ return "gut-"+
+ c.toLowerCase()
+ .replaceAll(" ","-")
+ .replace("í","i");
+
+}
+
+function updateGut(){
+
+ const score=
+ Number($("gravity").value)*
+ Number($("urgency").value)*
+ Number($("trend").value);
+
+ $("gutScore").textContent=
+ score;
+
+ $("gutClass").textContent=
+ gutClass(score);
+
+}
+
+["gravity","urgency","trend"]
+.forEach(x=>
+ $(x)
+ .addEventListener(
+  "change",
+  updateGut
+ )
+);
+
+async function loadRdi(){
+
+ $("rdiList").innerHTML=
+ '<div class="empty">Carregando...</div>';
+
+ const {data,error}=
+ await db
+ .from("rdi_demands")
+ .select("*")
+ .eq("unit_id",unitId)
+ .eq("archived",false)
+ .order(
+  "gut_score",
+  {ascending:false}
+ )
+ .order(
+  "recorded_on",
+  {ascending:true}
+ );
+
+ if(error){
+
+  console.error(error);
+
+  message(
+   $("appMessage"),
+   "Falha ao carregar RDI.",
+   "err"
+  );
+
+  return;
+
+ }
+
+ records=data||[];
+
+ renderRecords();
+
+ updateStats();
+
+}
+
+function updateStats(){
+
+ const open=
+ records.filter(
+  r=>![
+   "CONCLUÍDA",
+   "CANCELADA"
+  ].includes(r.status)
+ );
+
+ $("openCount").textContent=
+ open.length;
+
+ $("criticalCount").textContent=
+ open.filter(
+  r=>gutClass(r.gut_score)
+  ==="Crítica"
+ ).length;
+
+ const total=
+ open.reduce(
+  (s,r)=>
+  s+
+  (
+   r.cost_estimated==null
+   ?0
+   :Number(r.cost_estimated)
+  ),
+  0
+ );
+
+ $("costTotal").textContent=
+ total.toLocaleString(
+  "pt-BR",
+  {
+   style:"currency",
+   currency:"BRL"
+  }
+ );
+
+}
+
+function filteredRecords(){
+
+ const q=
+ $("searchInput")
+ .value
+ .toLowerCase();
+
+ const sf=
+ $("statusFilter").value;
+
+ const gf=
+ $("gutFilter").value;
+
+ return records.filter(r=>{
+
+  const text=[
+   r.source_id,
+   r.workshop,
+   r.equipment_info,
+   r.location,
+   r.operational_deviation,
+   r.recommended_action
+  ]
+  .filter(Boolean)
+  .join(" ")
+  .toLowerCase();
+
+  return(
+   (!q||text.includes(q))
+   &&
+   (!sf||r.status===sf)
+   &&
+   (!gf||
+    gutClass(r.gut_score)===gf)
+  );
+
+ });
+
+}
+
+[
+ "searchInput",
+ "statusFilter",
+ "gutFilter"
+]
+.forEach(id=>{
+
+ $(id).addEventListener(
+  id==="searchInput"
+  ?"input"
+  :"change",
+  renderRecords
+ );
+
+});
+
+function renderRecords(){
+
+ const list=$("rdiList");
+
+ list.replaceChildren();
+
+ const data=
+ filteredRecords();
+
+ if(!data.length){
+
+  list.innerHTML=
+  '<div class="empty">Nenhuma demanda encontrada.</div>';
+
+  return;
+
+ }
+
+ data.forEach(r=>{
+
+  const c=
+  gutClass(r.gut_score);
+
+  const el=
+  document.createElement("article");
+
+  el.className="record";
+
+  const cost=
+  r.cost_estimated==null
+  ?"Não informado"
+  :Number(r.cost_estimated)
+   .toLocaleString(
+    "pt-BR",
+    {
+     style:"currency",
+     currency:"BRL"
+    }
+   );
+
+  el.innerHTML=`
+
+   <div class="record-top">
+
+    <h3>
+     ${escapeHtml(r.source_id||"RDI")}
+     —
+     ${escapeHtml(r.location||"Local não informado")}
+    </h3>
+
+    <span class="badge ${gutClassCss(c)}">
+     ${c} • GUT ${r.gut_score}
+    </span>
+
+   </div>
+
+   <p>
+    <strong>
+     ${escapeHtml(r.operational_deviation)}
+    </strong>
+   </p>
+
+   <p class="muted">
+    ${escapeHtml(
+     r.equipment_info||
+     "Equipamento não informado"
+    )}
+   </p>
+
+   <p>
+    <strong>Status:</strong>
+    ${escapeHtml(r.status)}
+    •
+    <strong>Custo:</strong>
+    ${escapeHtml(cost)}
+   </p>
+
+   <div class="actions">
+
+    <button class="secondary editBtn">
+     Editar
+    </button>
+
+    <button class="danger deleteBtn">
+     Excluir
+    </button>
+
+   </div>
+
+  `;
+
+  el.querySelector(".editBtn")
+  .onclick=
+  ()=>openEdit(r);
+
+  el.querySelector(".deleteBtn")
+  .onclick=
+  ()=>deleteRecord(r);
+
+  list.appendChild(el);
+
+ });
+
+}
+
 $("newRdiButton").onclick=()=>{
+
  editingRecord=null;
+
  $("rdiForm").reset();
+
  $("recordId").value="";
- $("gravity").value="1";$("urgency").value="1";$("trend").value="1";
+
+ $("gravity").value="1";
+ $("urgency").value="1";
+ $("trend").value="1";
+
  $("status").value="EM ABERTO";
- $("capexOpex").value="Não definido";
- $("redundancy").value="não avaliada";
- $("careImpact").value="não avaliado";
- $("currentPhotos").replaceChildren();
- $("dialogTitle").textContent="Nova demanda RDI";
+
+ $("capexOpex").value=
+ "Não definido";
+
+ $("redundancy").value=
+ "não avaliada";
+
+ $("careImpact").value=
+ "não avaliado";
+
+ $("currentPhotos")
+ .replaceChildren();
+
+ $("dialogTitle").textContent=
+ "Nova demanda RDI";
+
  updateGut();
+
  $("rdiDialog").showModal();
+
 };
 
 function openEdit(r){
+
  editingRecord=r;
+
  $("recordId").value=r.id;
- $("sourceId").value=r.source_id||"";
- $("workshop").value=r.workshop||"";
- $("equipmentInfo").value=r.equipment_info||"";
- $("location").value=r.location||"";
- $("operationalDeviation").value=r.operational_deviation||"";
- $("possibleImpact").value=r.possible_impact||"";
- $("recommendedAction").value=r.recommended_action||"";
+
+ $("sourceId").value=
+ r.source_id||"";
+
+ $("workshop").value=
+ r.workshop||"";
+
+ $("equipmentInfo").value=
+ r.equipment_info||"";
+
+ $("location").value=
+ r.location||"";
+
+ $("operationalDeviation").value=
+ r.operational_deviation||"";
+
+ $("possibleImpact").value=
+ r.possible_impact||"";
+
+ $("recommendedAction").value=
+ r.recommended_action||"";
+
  $("gravity").value=r.gravity;
  $("urgency").value=r.urgency;
  $("trend").value=r.trend;
- $("riskClassificationSource").value=r.risk_classification_source||"";
- $("damage").value=r.damage||"";
- $("recordedOn").value=r.recorded_on||"";
- $("costEstimated").value=r.cost_estimated??"";
- $("budgetReference").value=r.budget_reference||"";
- $("technicalOpinion").value=r.technical_opinion||"";
- $("status").value=r.status;
- $("executionDate").value=r.execution_date||"";
- $("responsible").value=r.responsible||"";
- $("dueDate").value=r.due_date||"";
- $("conclusionDate").value=r.conclusion_date||"";
- $("supplier").value=r.supplier||"";
- $("capexOpex").value=r.capex_opex||"Não definido";
- $("approvedCost").value=r.approved_cost??"";
- $("actualCost").value=r.actual_cost??"";
- $("managementNotes").value=r.management_notes||"";
- $("redundancy").value=r.redundancy||"não avaliada";
- $("careImpact").value=r.care_impact||"não avaliado";
- $("manualPriority").value=r.manual_priority||"";
- $("manualPriorityJustification").value=r.manual_priority_justification||"";
- $("dialogTitle").textContent="Editar demanda RDI";
+
+ $("riskClassificationSource").value=
+ r.risk_classification_source||"";
+
+ $("damage").value=
+ r.damage||"";
+
+ $("recordedOn").value=
+ r.recorded_on||"";
+
+ $("costEstimated").value=
+ r.cost_estimated??"";
+
+ $("budgetReference").value=
+ r.budget_reference||"";
+
+ $("technicalOpinion").value=
+ r.technical_opinion||"";
+
+ $("status").value=
+ r.status;
+
+ $("executionDate").value=
+ r.execution_date||"";
+
+ $("responsible").value=
+ r.responsible||"";
+
+ $("dueDate").value=
+ r.due_date||"";
+
+ $("conclusionDate").value=
+ r.conclusion_date||"";
+
+ $("supplier").value=
+ r.supplier||"";
+
+ $("capexOpex").value=
+ r.capex_opex||
+ "Não definido";
+
+ $("approvedCost").value=
+ r.approved_cost??"";
+
+ $("actualCost").value=
+ r.actual_cost??"";
+
+ $("managementNotes").value=
+ r.management_notes||"";
+
+ $("redundancy").value=
+ r.redundancy||
+ "não avaliada";
+
+ $("careImpact").value=
+ r.care_impact||
+ "não avaliado";
+
+ $("manualPriority").value=
+ r.manual_priority||"";
+
+ $("manualPriorityJustification").value=
+ r.manual_priority_justification||"";
+
+ $("dialogTitle").textContent=
+ "Editar demanda RDI";
+
  updateGut();
+
  showExistingPhotos(r);
+
  $("rdiDialog").showModal();
+
 }
 
 async function showExistingPhotos(r){
- const box=$("currentPhotos");box.replaceChildren();
- const paths=[r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4].filter(Boolean);
+
+ const box=
+ $("currentPhotos");
+
+ box.replaceChildren();
+
+ const paths=[
+  r.source_image_1,
+  r.source_image_2,
+  r.source_image_3,
+  r.source_image_4
+ ]
+ .filter(Boolean);
 
  for(const path of paths){
-  const {data}=await db.storage.from("rdi-photos").createSignedUrl(path,600);
-  if(!data?.signedUrl)continue;
-  const img=document.createElement("img");
-  img.src=data.signedUrl;img.className="photo-preview";
-  box.appendChild(img);
- }
-}
 
-$("cancelDialog").onclick=()=>$("rdiDialog").close();
+  const {data}=
+  await db.storage
+  .from("rdi-photos")
+  .createSignedUrl(
+   path,
+   600
+  );
 
-async function uploadPhotos(demandId){
- const paths=[];
- for(let i=1;i<=4;i++){
-  const input=$("photo"+i);
-  const file=input.files[0];
-  if(!file){
-   paths.push(editingRecord?.["source_image_"+i]||null);
+  if(!data?.signedUrl){
    continue;
   }
 
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
-  const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
+  const img=
+  document.createElement("img");
 
-  const {error}=await db.storage.from("rdi-photos").upload(path,file,{
-   cacheControl:"3600",upsert:false
-  });
+  img.src=
+  data.signedUrl;
 
-  if(error)throw error;
-  paths.push(path);
+  img.className=
+  "photo-preview";
+
+  box.appendChild(img);
+
  }
- return paths;
+
 }
 
-$("rdiForm").addEventListener("submit",async e=>{
- e.preventDefault();
- const btn=$("saveButton");
- btn.disabled=true;btn.textContent="Salvando...";
+$("cancelDialog").onclick=
+()=>$("rdiDialog").close();
 
- try{
-  const payload={
-   source_id:textOrNull($("sourceId").value),
-   unit_id:unitId,
-   workshop:textOrNull($("workshop").value),
-   equipment_info:textOrNull($("equipmentInfo").value),
-   location:textOrNull($("location").value),
-   operational_deviation:$("operationalDeviation").value.trim(),
-   possible_impact:textOrNull($("possibleImpact").value),
-   recommended_action:textOrNull($("recommendedAction").value),
-   gravity:Number($("gravity").value),
-   urgency:Number($("urgency").value),
-   trend:Number($("trend").value),
-   risk_classification_source:textOrNull($("riskClassificationSource").value),
-   damage:textOrNull($("damage").value),
-   recorded_on:$("recordedOn").value||null,
-   cost_estimated:numberOrNull($("costEstimated").value),
-   budget_reference:textOrNull($("budgetReference").value),
-   technical_opinion:textOrNull($("technicalOpinion").value),
-   status:$("status").value,
-   execution_date:$("executionDate").value||null,
-   responsible:textOrNull($("responsible").value),
-   due_date:$("dueDate").value||null,
-   conclusion_date:$("conclusionDate").value||null,
-   supplier:textOrNull($("supplier").value),
-   capex_opex:$("capexOpex").value,
-   approved_cost:numberOrNull($("approvedCost").value),
-   actual_cost:numberOrNull($("actualCost").value),
-   management_notes:textOrNull($("managementNotes").value),
-   redundancy:$("redundancy").value,
-   care_impact:$("careImpact").value,
-   manual_priority:textOrNull($("manualPriority").value),
-   manual_priority_justification:textOrNull($("manualPriorityJustification").value),
-   created_by:session.user.id,
-   updated_by:session.user.id
-  };
+async function uploadPhotos(demandId){
 
-  let id=$("recordId").value;
+ const paths=[];
 
-  if(id){
-   const {error}=await db.from("rdi_demands").update(payload).eq("id",id);
-   if(error)throw error;
-  }else{
-   const {data,error}=await db.from("rdi_demands").insert(payload).select("id").single();
-   if(error)throw error;
-   id=data.id;
+ for(let i=1;i<=4;i++){
+
+  const input=
+  $("photo"+i);
+
+  const file=
+  input.files[0];
+
+  if(!file){
+
+   paths.push(
+    editingRecord?.[
+     "source_image_"+i
+    ]||null
+   );
+
+   continue;
+
   }
 
-  const photos=await uploadPhotos(id);
+  const ext=
+  (
+   file.name
+   .split(".")
+   .pop()||
+   "jpg"
+  )
+  .toLowerCase();
 
-  const {error:photoError}=await db.from("rdi_demands").update({
-   source_image_1:photos[0],
-   source_image_2:photos[1],
-   source_image_3:photos[2],
-   source_image_4:photos[3],
-   updated_by:session.user.id
-  }).eq("id",id);
+  const path=
+  `${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
 
-  if(photoError)throw photoError;
+  const {error}=
+  await db.storage
+  .from("rdi-photos")
+  .upload(
+   path,
+   file,
+   {
+    cacheControl:"3600",
+    upsert:false
+   }
+  );
+
+  if(error){
+   throw error;
+  }
+
+  paths.push(path);
+
+ }
+
+ return paths;
+
+}
+
+$("rdiForm")
+.addEventListener(
+ "submit",
+ async e=>{
+
+ e.preventDefault();
+
+ const btn=
+ $("saveButton");
+
+ btn.disabled=true;
+ btn.textContent=
+ "Salvando...";
+
+ try{
+
+  const payload={
+
+   source_id:
+   textOrNull(
+    $("sourceId").value
+   ),
+
+   unit_id:
+   unitId,
+
+   workshop:
+   textOrNull(
+    $("workshop").value
+   ),
+
+   equipment_info:
+   textOrNull(
+    $("equipmentInfo").value
+   ),
+
+   location:
+   textOrNull(
+    $("location").value
+   ),
+
+   operational_deviation:
+   $("operationalDeviation")
+   .value
+   .trim(),
+
+   possible_impact:
+   textOrNull(
+    $("possibleImpact").value
+   ),
+
+   recommended_action:
+   textOrNull(
+    $("recommendedAction").value
+   ),
+
+   gravity:
+   Number(
+    $("gravity").value
+   ),
+
+   urgency:
+   Number(
+    $("urgency").value
+   ),
+
+   trend:
+   Number(
+    $("trend").value
+   ),
+
+   risk_classification_source:
+   textOrNull(
+    $("riskClassificationSource")
+    .value
+   ),
+
+   damage:
+   textOrNull(
+    $("damage").value
+   ),
+
+   recorded_on:
+   $("recordedOn").value||
+   null,
+
+   cost_estimated:
+   numberOrNull(
+    $("costEstimated").value
+   ),
+
+   budget_reference:
+   textOrNull(
+    $("budgetReference").value
+   ),
+
+   technical_opinion:
+   textOrNull(
+    $("technicalOpinion").value
+   ),
+
+   status:
+   $("status").value,
+
+   execution_date:
+   $("executionDate").value||
+   null,
+
+   responsible:
+   textOrNull(
+    $("responsible").value
+   ),
+
+   due_date:
+   $("dueDate").value||
+   null,
+
+   conclusion_date:
+   $("conclusionDate").value||
+   null,
+
+   supplier:
+   textOrNull(
+    $("supplier").value
+   ),
+
+   capex_opex:
+   $("capexOpex").value,
+
+   approved_cost:
+   numberOrNull(
+    $("approvedCost").value
+   ),
+
+   actual_cost:
+   numberOrNull(
+    $("actualCost").value
+   ),
+
+   management_notes:
+   textOrNull(
+    $("managementNotes").value
+   ),
+
+   redundancy:
+   $("redundancy").value,
+
+   care_impact:
+   $("careImpact").value,
+
+   manual_priority:
+   textOrNull(
+    $("manualPriority").value
+   ),
+
+   manual_priority_justification:
+   textOrNull(
+    $("manualPriorityJustification")
+    .value
+   ),
+
+   created_by:
+   session.user.id,
+
+   updated_by:
+   session.user.id
+
+  };
+
+  let id=
+  $("recordId").value;
+
+  if(id){
+
+   const {error}=
+   await db
+   .from("rdi_demands")
+   .update(payload)
+   .eq("id",id);
+
+   if(error){
+    throw error;
+   }
+
+  }else{
+
+   const {data,error}=
+   await db
+   .from("rdi_demands")
+   .insert(payload)
+   .select("id")
+   .single();
+
+   if(error){
+    throw error;
+   }
+
+   id=data.id;
+
+  }
+
+  const photos=
+  await uploadPhotos(id);
+
+  const {error:photoError}=
+  await db
+  .from("rdi_demands")
+  .update({
+
+   source_image_1:
+   photos[0],
+
+   source_image_2:
+   photos[1],
+
+   source_image_3:
+   photos[2],
+
+   source_image_4:
+   photos[3],
+
+   updated_by:
+   session.user.id
+
+  })
+  .eq("id",id);
+
+  if(photoError){
+   throw photoError;
+  }
 
   $("rdiDialog").close();
-  message($("appMessage"),"Demanda salva com sucesso.","ok");
+
+  message(
+   $("appMessage"),
+   "Demanda salva com sucesso.",
+   "ok"
+  );
+
   await loadRdi();
 
  }catch(err){
+
   console.error(err);
-  message($("appMessage"),"Não foi possível salvar a demanda. Verifique os campos e permissões.","err");
+
+  message(
+   $("appMessage"),
+   "Não foi possível salvar a demanda. Verifique os campos e permissões.",
+   "err"
+  );
+
  }finally{
-  btn.disabled=false;btn.textContent="Salvar demanda";
+
+  btn.disabled=false;
+
+  btn.textContent=
+  "Salvar demanda";
+
  }
+
 });
 
 async function deleteRecord(r){
- if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
 
- const photos=[r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4].filter(Boolean);
+ if(
+  !confirm(
+   `Excluir a demanda ${r.source_id||""}?`
+  )
+ ){
+  return;
+ }
 
- const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+ const photos=[
+  r.source_image_1,
+  r.source_image_2,
+  r.source_image_3,
+  r.source_image_4
+ ]
+ .filter(Boolean);
+
+ const {error}=
+ await db
+ .from("rdi_demands")
+ .delete()
+ .eq("id",r.id);
+
  if(error){
-  message($("appMessage"),"Falha ao excluir a demanda.","err");return;
+
+  message(
+   $("appMessage"),
+   "Falha ao excluir a demanda.",
+   "err"
+  );
+
+  return;
+
  }
 
  if(photos.length){
-  await db.storage.from("rdi-photos").remove(photos);
+
+  await db.storage
+  .from("rdi-photos")
+  .remove(photos);
+
  }
 
- message($("appMessage"),"Demanda excluída.","ok");
+ message(
+  $("appMessage"),
+  "Demanda excluída.",
+  "ok"
+ );
+
  await loadRdi();
+
 }
 
+/* ============================
+   DOCUMENTOS
+============================ */
+
+async function loadDocuments(){
+
+ $("documentList").innerHTML=
+ '<div class="empty">Carregando...</div>';
+
+ const {data,error}=
+ await db
+ .from("documents")
+ .select("*")
+ .eq("unit_id",unitId)
+ .order(
+  "created_at",
+  {ascending:false}
+ );
+
+ if(error){
+
+  console.error(error);
+
+  message(
+   $("appMessage"),
+   "Falha ao carregar documentos.",
+   "err"
+  );
+
+  return;
+
+ }
+
+ documents=data||[];
+
+ renderDocuments();
+
+}
+
+function filteredDocuments(){
+
+ const q=
+ $("documentSearch")
+ .value
+ .trim()
+ .toLowerCase();
+
+ const category=
+ $("documentCategoryFilter")
+ .value;
+
+ return documents.filter(d=>{
+
+  const text=[
+   d.title,
+   d.description,
+   d.filename,
+   d.category
+  ]
+  .filter(Boolean)
+  .join(" ")
+  .toLowerCase();
+
+  return(
+   (!q||text.includes(q))
+   &&
+   (!category||
+    d.category===category)
+  );
+
+ });
+
+}
+
+$("documentSearch")
+.addEventListener(
+ "input",
+ renderDocuments
+);
+
+$("documentCategoryFilter")
+.addEventListener(
+ "change",
+ renderDocuments
+);
+
+function formatDate(value){
+
+ if(!value){
+  return "Não informado";
+ }
+
+ return new Date(
+  value+"T12:00:00"
+ )
+ .toLocaleDateString(
+  "pt-BR"
+ );
+
+}
+
+function validityInfo(d){
+
+ if(!d.valid_until){
+  return "";
+ }
+
+ const today=
+ new Date();
+
+ today.setHours(
+  0,0,0,0
+ );
+
+ const exp=
+ new Date(
+  d.valid_until+
+  "T00:00:00"
+ );
+
+ if(exp<today){
+
+  return `
+   <span class="expired-text">
+    Vencido em
+    ${formatDate(d.valid_until)}
+   </span>
+  `;
+
+ }
+
+ const days=
+ Math.ceil(
+  (exp-today)/
+  86400000
+ );
+
+ if(days<=30){
+
+  return `
+   <span class="warning-text">
+    Vence em ${days} dia(s)
+   </span>
+  `;
+
+ }
+
+ return `
+  Validade:
+  ${formatDate(d.valid_until)}
+ `;
+
+}
+
+function renderDocuments(){
+
+ const list=
+ $("documentList");
+
+ list.replaceChildren();
+
+ const data=
+ filteredDocuments();
+
+ if(!data.length){
+
+  list.innerHTML=
+  '<div class="empty">Nenhum documento encontrado.</div>';
+
+  return;
+
+ }
+
+ data.forEach(d=>{
+
+  const el=
+  document.createElement(
+   "article"
+  );
+
+  el.className="record";
+
+  el.innerHTML=`
+
+   <div class="record-top">
+
+    <input
+     type="checkbox"
+     class="doc-check"
+     data-id="${d.id}"
+    >
+
+    <h3>
+     ${escapeHtml(d.title)}
+    </h3>
+
+    <span class="badge">
+     ${escapeHtml(d.category)}
+    </span>
+
+   </div>
+
+   <p class="muted">
+    ${escapeHtml(
+     d.description||
+     "Sem descrição"
+    )}
+   </p>
+
+   <p>
+    <strong>Arquivo:</strong>
+    ${escapeHtml(d.filename)}
+   </p>
+
+   <p>
+    <strong>Data:</strong>
+    ${formatDate(d.document_date)}
+   </p>
+
+   <p>
+    ${validityInfo(d)}
+   </p>
+
+   <div class="actions">
+
+    <button class="primary openDoc">
+     Abrir
+    </button>
+
+    <button class="secondary editDoc">
+     Editar
+    </button>
+
+    <button class="danger deleteDoc">
+     Excluir
+    </button>
+
+   </div>
+
+  `;
+
+  el.querySelector(".openDoc")
+  .onclick=
+  ()=>openDocument(d);
+
+  el.querySelector(".editDoc")
+  .onclick=
+  ()=>openDocumentEdit(d);
+
+  el.querySelector(".deleteDoc")
+  .onclick=
+  ()=>deleteDocument(d);
+
+  list.appendChild(el);
+
+ });
+
+}
+
+async function openDocument(d){
+
+ const {data,error}=
+ await db.storage
+ .from("documents-private")
+ .createSignedUrl(
+  d.storage_path,
+  600
+ );
+
+ if(
+  error||
+  !data?.signedUrl
+ ){
+
+  message(
+   $("appMessage"),
+   "Não foi possível abrir o arquivo.",
+   "err"
+  );
+
+  return;
+
+ }
+
+ window.open(
+  data.signedUrl,
+  "_blank"
+ );
+
+}
+
+$("newDocumentButton")
+.onclick=()=>{
+
+ editingDocument=null;
+
+ $("documentForm")
+ .reset();
+
+ $("documentId").value="";
+
+ $("currentDocumentFile")
+ .textContent=
+ "Selecione um arquivo para enviar.";
+
+ $("documentDialogTitle")
+ .textContent=
+ "Novo documento";
+
+ $("documentDialog")
+ .showModal();
+
+};
+
+function openDocumentEdit(d){
+
+ editingDocument=d;
+
+ $("documentId").value=
+ d.id;
+
+ $("documentCategory").value=
+ d.category;
+
+ $("documentTitle").value=
+ d.title;
+
+ $("documentDescription").value=
+ d.description||"";
+
+ $("documentDate").value=
+ d.document_date||"";
+
+ $("documentValidUntil").value=
+ d.valid_until||"";
+
+ $("documentFile").value="";
+
+ $("currentDocumentFile")
+ .textContent=
+ "Arquivo atual: "+
+ d.filename+
+ " — escolha outro somente se quiser substituí-lo.";
+
+ $("documentDialogTitle")
+ .textContent=
+ "Editar documento";
+
+ $("documentDialog")
+ .showModal();
+
+}
+
+$("cancelDocumentDialog")
+.onclick=
+()=>$("documentDialog").close();
+
+function safeFilename(name){
+
+ return name
+ .normalize("NFD")
+ .replace(
+  /[\u0300-\u036f]/g,
+  ""
+ )
+ .replace(
+  /[^a-zA-Z0-9._-]+/g,
+  "_"
+ );
+
+}
+
+$("documentForm")
+.addEventListener(
+ "submit",
+ async e=>{
+
+ e.preventDefault();
+
+ const btn=
+ $("saveDocumentButton");
+
+ btn.disabled=true;
+
+ btn.textContent=
+ "Salvando...";
+
+ let uploadedPath=null;
+
+ try{
+
+  const file=
+  $("documentFile")
+  .files[0];
+
+  const id=
+  $("documentId").value||
+  crypto.randomUUID();
+
+  let storagePath=
+  editingDocument
+  ?.storage_path||
+  null;
+
+  let filename=
+  editingDocument
+  ?.filename||
+  null;
+
+  let mimeType=
+  editingDocument
+  ?.mime_type||
+  null;
+
+  let sizeBytes=
+  editingDocument
+  ?.size_bytes||
+  null;
+
+  if(
+   !editingDocument&&
+   !file
+  ){
+
+   throw new Error(
+    "Selecione um arquivo."
+   );
+
+  }
+
+  if(file){
+
+   const path=
+   `${unitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
+
+   const {error:uploadError}=
+   await db.storage
+   .from("documents-private")
+   .upload(
+    path,
+    file,
+    {
+     cacheControl:"3600",
+     upsert:false
+    }
+   );
+
+   if(uploadError){
+    throw uploadError;
+   }
+
+   uploadedPath=
+   path;
+
+   storagePath=
+   path;
+
+   filename=
+   file.name;
+
+   mimeType=
+   file.type||
+   null;
+
+   sizeBytes=
+   file.size;
+
+  }
+
+  const payload={
+
+   unit_id:
+   unitId,
+
+   category:
+   $("documentCategory")
+   .value,
+
+   title:
+   $("documentTitle")
+   .value
+   .trim(),
+
+   description:
+   textOrNull(
+    $("documentDescription")
+    .value
+   ),
+
+   document_date:
+   $("documentDate")
+   .value||
+   null,
+
+   valid_until:
+   $("documentValidUntil")
+   .value||
+   null,
+
+   storage_path:
+   storagePath,
+
+   filename:
+   filename,
+
+   mime_type:
+   mimeType,
+
+   size_bytes:
+   sizeBytes,
+
+   created_by:
+   session.user.id,
+
+   updated_by:
+   session.user.id
+
+  };
+
+  let error;
+
+  if(editingDocument){
+
+   ({error}=
+   await db
+   .from("documents")
+   .update(payload)
+   .eq("id",id));
+
+  }else{
+
+   ({error}=
+   await db
+   .from("documents")
+   .insert({
+    ...payload,
+    id:id
+   }));
+
+  }
+
+  if(error){
+   throw error;
+  }
+
+  if(
+   file&&
+   editingDocument
+   ?.storage_path&&
+   editingDocument
+   .storage_path
+   !==storagePath
+  ){
+
+   await db.storage
+   .from("documents-private")
+   .remove([
+    editingDocument
+    .storage_path
+   ]);
+
+  }
+
+  $("documentDialog")
+  .close();
+
+  message(
+   $("appMessage"),
+   "Documento salvo com sucesso.",
+   "ok"
+  );
+
+  await loadDocuments();
+
+ }catch(err){
+
+  console.error(err);
+
+  if(uploadedPath){
+
+   await db.storage
+   .from("documents-private")
+   .remove([
+    uploadedPath
+   ]);
+
+  }
+
+  message(
+   $("appMessage"),
+   err?.message===
+   "Selecione um arquivo."
+   ?err.message
+   :"Não foi possível salvar o documento.",
+   "err"
+  );
+
+ }finally{
+
+  btn.disabled=false;
+
+  btn.textContent=
+  "Salvar documento";
+
+ }
+
+});
+
+async function deleteDocument(
+ d,
+ ask=true
+){
+
+ if(
+  ask&&
+  !confirm(
+   `Excluir "${d.title}"?`
+  )
+ ){
+
+  return false;
+
+ }
+
+ const {error}=
+ await db
+ .from("documents")
+ .delete()
+ .eq("id",d.id);
+
+ if(error){
+
+  message(
+   $("appMessage"),
+   "Falha ao excluir documento.",
+   "err"
+  );
+
+  return false;
+
+ }
+
+ await db.storage
+ .from("documents-private")
+ .remove([
+  d.storage_path
+ ]);
+
+ if(ask){
+
+  message(
+   $("appMessage"),
+   "Documento excluído.",
+   "ok"
+  );
+
+  await loadDocuments();
+
+ }
+
+ return true;
+
+}
+
+$("selectAllDocuments")
+.onclick=()=>{
+
+ const boxes=[
+  ...document.querySelectorAll(
+   ".doc-check"
+  )
+ ];
+
+ if(!boxes.length){
+  return;
+ }
+
+ const shouldCheck=
+ boxes.some(
+  b=>!b.checked
+ );
+
+ boxes.forEach(
+  b=>b.checked=
+  shouldCheck
+ );
+
+ $("selectAllDocuments")
+ .textContent=
+ shouldCheck
+ ?"Desmarcar todos"
+ :"Selecionar todos";
+
+};
+
+$("deleteSelectedDocuments")
+.onclick=async()=>{
+
+ const ids=[
+  ...document.querySelectorAll(
+   ".doc-check:checked"
+  )
+ ]
+ .map(
+  b=>b.dataset.id
+ );
+
+ if(!ids.length){
+
+  message(
+   $("appMessage"),
+   "Selecione pelo menos um documento.",
+   "info"
+  );
+
+  return;
+
+ }
+
+ if(
+  !confirm(
+   `Excluir ${ids.length} documento(s) selecionado(s)?`
+  )
+ ){
+
+  return;
+
+ }
+
+ const selected=
+ documents.filter(
+  d=>ids.includes(d.id)
+ );
+
+ let failed=0;
+
+ for(const d of selected){
+
+  const ok=
+  await deleteDocument(
+   d,
+   false
+  );
+
+  if(!ok){
+   failed++;
+  }
+
+ }
+
+ message(
+  $("appMessage"),
+  failed
+  ?"Alguns documentos não puderam ser excluídos."
+  :"Documentos excluídos com sucesso.",
+  failed
+  ?"err"
+  :"ok"
+ );
+
+ await loadDocuments();
+
+}
+
+/* INÍCIO */
+
 start();
+
 </script>
+
 </body>
 </html>
