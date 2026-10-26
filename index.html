@@ -268,6 +268,30 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .unit-admin-card{display:grid}
 }
 
+
+.access-list{display:grid;gap:10px}
+.access-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.access-card-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.access-card-head>div:first-child{flex:1}
+.access-card h3{margin:0 0 4px}
+.permission-table{display:grid;gap:7px;margin-top:14px}
+.permission-head,.permission-row{
+ display:grid;grid-template-columns:1.5fr repeat(4,.65fr);gap:8px;align-items:center;
+ padding:8px 10px;border-radius:9px
+}
+.permission-head{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase}
+.permission-row{background:#f8fafc}
+.permission-row input{width:20px;height:20px;margin:auto}
+.access-unit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
+.access-unit-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-weight:600}
+.access-unit-item input{width:20px;height:20px}
+@media(max-width:700px){
+ .permission-head{display:none}
+ .permission-row{grid-template-columns:1fr 1fr}
+ .permission-row .perm-label{grid-column:1/-1;font-weight:800}
+ .access-card-head{display:grid}
+}
+
 </style>
 </head>
 
@@ -312,6 +336,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="modules">
 <button id="moduleOverview" class="module active">Visão Geral</button>
 <button id="moduleUnits" class="module">Unidades</button>
+<button id="moduleAccess" class="module">Usuários e Acessos</button>
 <button id="moduleRdi" class="module">RDI</button>
 <button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
@@ -405,6 +430,24 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div id="unitsList" class="units-grid">
 <div class="empty">Carregando unidades...</div>
+</div>
+
+</div>
+
+
+<!-- USUÁRIOS E ACESSOS -->
+<div id="accessModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Usuários e Acessos</h2>
+<div class="muted">Convites, perfis e permissões por unidade e módulo.</div>
+</div>
+<button id="newAccessUserButton" class="primary">+ Novo usuário</button>
+</div>
+
+<div id="accessUsersList" class="access-list">
+<div class="empty">Carregando usuários...</div>
 </div>
 
 </div>
@@ -596,6 +639,92 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </main>
 
 
+
+
+<!-- MODAL USUÁRIO E ACESSOS -->
+<dialog id="accessUserDialog">
+<div class="dialog-body">
+<h2 id="accessUserDialogTitle">Novo usuário</h2>
+
+<form id="accessUserForm">
+<input id="accessUserId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Nome *</label>
+<input id="accessDisplayName" required maxlength="120">
+</div>
+<div>
+<label>E-mail *</label>
+<input id="accessEmail" type="email" required>
+</div>
+<div>
+<label>Perfil *</label>
+<select id="accessRole" required>
+<option value="team">Equipe</option>
+<option value="client">Cliente</option>
+</select>
+</div>
+<div>
+<label>Status</label>
+<select id="accessActive">
+<option value="true">Ativo</option>
+<option value="false">Inativo</option>
+</select>
+</div>
+</div>
+
+<h3>Unidades permitidas</h3>
+<div id="accessUnits" class="access-unit-grid"></div>
+
+<h3>Permissões</h3>
+<p id="clientReadOnlyNotice" class="muted hidden">Perfil Cliente: somente visualização. Inclusão, edição e exclusão ficam bloqueadas.</p>
+
+<div class="permission-table">
+<div class="permission-head">
+<div>Módulo</div><div>Ver</div><div>Inserir</div><div>Editar</div><div>Excluir</div>
+</div>
+
+<div class="permission-row" data-module="rdi">
+<div class="perm-label">RDI</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="qualidade_agua">
+<div class="perm-label">Qualidade da Água</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="documentos">
+<div class="perm-label">Documentos</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="comunicacao">
+<div class="perm-label">Matriz / Organograma</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+</div>
+
+<div class="dialog-actions">
+<button id="cancelAccessUser" type="button" class="ghost">Cancelar</button>
+<button id="saveAccessUser" type="submit" class="primary">Enviar convite</button>
+</div>
+</form>
+</div>
+</dialog>
 
 <!-- MODAL UNIDADE -->
 <dialog id="unitDialog">
@@ -1145,6 +1274,8 @@ let profile=null;
 let unitId="";
 let allUnits=[];
 let editingUnit=null;
+let accessGrants=[];
+let editingAccessUser=null;
 
 let records=[];
 let editingRecord=null;
@@ -1231,7 +1362,7 @@ async function enterApp(){
 
  const {data,error}=await db
   .from("profiles")
-  .select("display_name,role,active")
+  .select("display_name,email,role,active")
   .eq("user_id",session.user.id)
   .single();
 
@@ -1242,10 +1373,90 @@ async function enterApp(){
 
  profile=data;
  $("userName").textContent=data.display_name||session.user.email;
- $("userRole").textContent=data.role==="admin"?"Administrador Geral":"Usuário";
+ $("userRole").textContent=
+  data.role==="admin"?"Administrador Geral":
+  data.role==="client"?"Cliente":"Equipe";
 
+ await loadAccessGrantsForCurrentUser();
  await loadUnits();
+ configureVisibleModules();
+ $("newUnitButton").classList.toggle("hidden",profile?.role!=="admin");
  await loadOverview();
+}
+
+
+const ACCESS_MODULES=["rdi","qualidade_agua","documentos","comunicacao"];
+
+async function loadAccessGrantsForCurrentUser(){
+ if(profile?.role==="admin"){
+  accessGrants=[];
+  return;
+ }
+
+ const {data,error}=await db
+  .from("access_grants")
+  .select("*")
+  .eq("user_id",session.user.id);
+
+ if(error){
+  console.error(error);
+  accessGrants=[];
+  return;
+ }
+
+ accessGrants=data||[];
+}
+
+function hasAccess(module,action="view",targetUnit=null){
+ if(profile?.role==="admin")return true;
+
+ const key={
+  view:"can_view",
+  insert:"can_insert",
+  edit:"can_edit",
+  delete:"can_delete"
+ }[action]||"can_view";
+
+ return accessGrants.some(g=>
+  g.module===module &&
+  (targetUnit===null || g.unit_id===targetUnit || g.unit_id===null) &&
+  !!g[key]
+ );
+}
+
+function accessibleUnitIds(){
+ if(profile?.role==="admin")return allUnits.map(u=>u.id);
+ return [...new Set(accessGrants.filter(g=>g.can_view&&g.unit_id).map(g=>g.unit_id))];
+}
+
+function configureVisibleModules(){
+ const admin=profile?.role==="admin";
+
+ $("moduleUnits").classList.toggle("hidden",!admin);
+ $("moduleAccess").classList.toggle("hidden",!admin);
+
+ $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
+ $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
+ $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
+
+ const communicationVisible=hasAccess("comunicacao","view");
+ $("moduleCommunication").classList.toggle("hidden",!communicationVisible);
+ $("moduleOrg").classList.toggle("hidden",!communicationVisible);
+
+ // Visão Geral permanece disponível e respeita o RLS das permissões.
+ $("moduleOverview").classList.remove("hidden");
+}
+
+function configureActionButtons(){
+ if(!unitId)return;
+
+ $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
+ $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
+ $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
+ $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
+
+ // Referências de água permanecem administrativas.
+ $("waterReferencesButton").classList.toggle("hidden",profile?.role!=="admin");
 }
 
 /* UNIDADES */
@@ -1290,6 +1501,8 @@ async function loadUnits(){
  if(unitId&&!allUnits.some(u=>u.id===unitId)){
   unitId="";
  }
+
+ configureVisibleModules();
 }
 
 async function applyModuleUnitSelection(){
@@ -1308,6 +1521,7 @@ async function applyModuleUnitSelection(){
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
  $("waterManualButton").disabled=!unitId;
+ configureActionButtons();
 
  if(!unitId){
   $("rdiList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
@@ -1489,6 +1703,7 @@ function switchModule(name){
 
  const isOverview=name==="overview";
  const isUnits=name==="units";
+ const isAccess=name==="access";
  const isRdi=name==="rdi";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
@@ -1497,6 +1712,7 @@ function switchModule(name){
 
  $("overviewModuleView").classList.toggle("hidden",!isOverview);
  $("unitsModuleView").classList.toggle("hidden",!isUnits);
+ $("accessModuleView").classList.toggle("hidden",!isAccess);
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
@@ -1505,13 +1721,14 @@ function switchModule(name){
 
  $("moduleOverview").classList.toggle("active",isOverview);
  $("moduleUnits").classList.toggle("active",isUnits);
+ $("moduleAccess").classList.toggle("active",isAccess);
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
- const needsUnit=!isOverview&&!isUnits;
+ const needsUnit=!isOverview&&!isUnits&&!isAccess;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
 
  if(isOverview){
@@ -1521,6 +1738,11 @@ function switchModule(name){
 
  if(isUnits){
   loadUnitsAdmin();
+  return;
+ }
+
+ if(isAccess){
+  loadAccessUsers();
   return;
  }
 
@@ -1544,12 +1766,318 @@ function switchModule(name){
 
 $("moduleOverview").onclick=()=>switchModule("overview");
 $("moduleUnits").onclick=()=>switchModule("units");
+$("moduleAccess").onclick=()=>switchModule("access");
 $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
 $("moduleWater").onclick=()=>switchModule("water");
 
+
+
+
+/* ============================
+   USUÁRIOS E ACESSOS
+============================ */
+
+function roleLabel(role){
+ return role==="admin"?"Administrador":role==="client"?"Cliente":"Equipe";
+}
+
+async function loadAccessUsers(){
+ if(profile?.role!=="admin")return;
+
+ const list=$("accessUsersList");
+ list.innerHTML='<div class="empty">Carregando usuários...</div>';
+
+ const [{data:profiles,error:pError},{data:grants,error:gError}]=await Promise.all([
+  db.from("profiles").select("user_id,display_name,email,role,active,created_at").order("display_name"),
+  db.from("access_grants").select("*")
+ ]);
+
+ if(pError||gError){
+  console.error(pError||gError);
+  list.innerHTML='<div class="empty">Não foi possível carregar os acessos.</div>';
+  return;
+ }
+
+ const grantsByUser=new Map();
+ (grants||[]).forEach(g=>{
+  if(!grantsByUser.has(g.user_id))grantsByUser.set(g.user_id,[]);
+  grantsByUser.get(g.user_id).push(g);
+ });
+
+ list.replaceChildren();
+
+ (profiles||[]).forEach(p=>{
+  const userGrants=grantsByUser.get(p.user_id)||[];
+  const unitNames=[...new Set(userGrants.map(g=>allUnits.find(u=>u.id===g.unit_id)?.name).filter(Boolean))];
+  const modules=[...new Set(userGrants.filter(g=>g.can_view).map(g=>g.module))];
+
+  const card=document.createElement("article");
+  card.className="access-card";
+  card.innerHTML=`
+   <div class="access-card-head">
+    <div>
+     <h3>${escapeHtml(p.display_name)}</h3>
+     <div>${escapeHtml(p.email||"E-mail não informado")}</div>
+     <div class="muted">${escapeHtml(roleLabel(p.role))} • ${p.active?"Ativo":"Inativo"}</div>
+    </div>
+    ${p.role!=="admin"?`
+    <div class="actions">
+     <button class="secondary editAccessUser">Editar acesso</button>
+     <button class="${p.active?"danger":"primary"} toggleAccessUser">${p.active?"Desativar":"Ativar"}</button>
+    </div>`:""}
+   </div>
+   ${p.role!=="admin"?`
+   <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
+   <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
+     rdi:"RDI",qualidade_agua:"Qualidade da Água",documentos:"Documentos",comunicacao:"Matriz / Organograma"
+   }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
+  `;
+
+  const edit=card.querySelector(".editAccessUser");
+  if(edit)edit.onclick=()=>openAccessUserEdit(p,userGrants);
+
+  const toggle=card.querySelector(".toggleAccessUser");
+  if(toggle)toggle.onclick=()=>toggleAccessUser(p);
+
+  list.appendChild(card);
+ });
+}
+
+function renderAccessUnits(selected=[]){
+ const box=$("accessUnits");
+ box.replaceChildren();
+
+ allUnits.forEach(u=>{
+  const label=document.createElement("label");
+  label.className="access-unit-item";
+
+  const cb=document.createElement("input");
+  cb.type="checkbox";
+  cb.className="accessUnitCheck";
+  cb.value=u.id;
+  cb.checked=selected.includes(u.id);
+
+  label.appendChild(cb);
+  label.appendChild(document.createTextNode(u.name));
+  box.appendChild(label);
+ });
+}
+
+function resetPermissionRows(){
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  row.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.checked=false);
+ });
+}
+
+function applyPermissionTemplate(grants=[]){
+ resetPermissionRows();
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const module=row.dataset.module;
+  const relevant=grants.filter(g=>g.module===module);
+
+  row.querySelector(".perm-view").checked=relevant.some(g=>g.can_view);
+  row.querySelector(".perm-insert").checked=relevant.some(g=>g.can_insert);
+  row.querySelector(".perm-edit").checked=relevant.some(g=>g.can_edit);
+  row.querySelector(".perm-delete").checked=relevant.some(g=>g.can_delete);
+ });
+}
+
+function enforceRolePermissions(){
+ const isClient=$("accessRole").value==="client";
+ $("clientReadOnlyNotice").classList.toggle("hidden",!isClient);
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const view=row.querySelector(".perm-view");
+  const edits=[
+   row.querySelector(".perm-insert"),
+   row.querySelector(".perm-edit"),
+   row.querySelector(".perm-delete")
+  ];
+
+  edits.forEach(cb=>{
+   if(isClient)cb.checked=false;
+   cb.disabled=isClient;
+  });
+
+  if(isClient && view.checked===false){
+   // mantém a escolha do administrador para quais módulos o cliente verá
+  }
+ });
+}
+
+$("accessRole").addEventListener("change",enforceRolePermissions);
+
+$("newAccessUserButton").onclick=()=>{
+ editingAccessUser=null;
+ $("accessUserForm").reset();
+ $("accessUserId").value="";
+ $("accessRole").value="team";
+ $("accessActive").value="true";
+ $("accessEmail").disabled=false;
+ $("accessUserDialogTitle").textContent="Novo usuário";
+ $("saveAccessUser").textContent="Enviar convite";
+ renderAccessUnits([]);
+ resetPermissionRows();
+ enforceRolePermissions();
+ $("accessUserDialog").showModal();
+};
+
+$("cancelAccessUser").onclick=()=>$("accessUserDialog").close();
+
+function openAccessUserEdit(user,grants){
+ editingAccessUser=user;
+ $("accessUserId").value=user.user_id;
+ $("accessDisplayName").value=user.display_name||"";
+ $("accessEmail").value=user.email||"";
+ $("accessEmail").disabled=true;
+ $("accessRole").value=user.role==="client"?"client":"team";
+ $("accessActive").value=String(!!user.active);
+ $("accessUserDialogTitle").textContent="Editar usuário";
+ $("saveAccessUser").textContent="Salvar acesso";
+
+ const selectedUnits=[...new Set(grants.map(g=>g.unit_id).filter(Boolean))];
+ renderAccessUnits(selectedUnits);
+ applyPermissionTemplate(grants);
+ enforceRolePermissions();
+
+ $("accessUserDialog").showModal();
+}
+
+function collectPermissionTemplate(){
+ const rows=[];
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const module=row.dataset.module;
+  const can_view=row.querySelector(".perm-view").checked;
+  const can_insert=row.querySelector(".perm-insert").checked;
+  const can_edit=row.querySelector(".perm-edit").checked;
+  const can_delete=row.querySelector(".perm-delete").checked;
+
+  if(can_view||can_insert||can_edit||can_delete){
+   rows.push({module,can_view,can_insert,can_edit,can_delete});
+  }
+ });
+
+ return rows;
+}
+
+async function saveUserGrants(userId,role){
+ const selectedUnits=[...document.querySelectorAll(".accessUnitCheck:checked")].map(x=>x.value);
+ const template=collectPermissionTemplate();
+
+ if(!selectedUnits.length)throw new Error("Selecione pelo menos uma unidade.");
+ if(!template.some(x=>x.can_view))throw new Error("Libere pelo menos um módulo para visualização.");
+
+ const {error:deleteError}=await db
+  .from("access_grants")
+  .delete()
+  .eq("user_id",userId);
+
+ if(deleteError)throw deleteError;
+
+ const rows=[];
+ selectedUnits.forEach(unit_id=>{
+  template.forEach(p=>{
+   rows.push({
+    user_id:userId,
+    unit_id,
+    module:p.module,
+    can_view:p.can_view,
+    can_insert:role==="client"?false:p.can_insert,
+    can_edit:role==="client"?false:p.can_edit,
+    can_delete:role==="client"?false:p.can_delete
+   });
+  });
+ });
+
+ const {error}=await db.from("access_grants").insert(rows);
+ if(error)throw error;
+}
+
+$("accessUserForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveAccessUser");
+ btn.disabled=true;
+ const originalText=btn.textContent;
+ btn.textContent="Salvando...";
+
+ try{
+  const display_name=$("accessDisplayName").value.trim();
+  const email=$("accessEmail").value.trim().toLowerCase();
+  const role=$("accessRole").value;
+  const active=$("accessActive").value==="true";
+  let userId=$("accessUserId").value;
+
+  if(!userId){
+   const {data,error}=await db.functions.invoke("admin-invite-user",{
+    body:{
+     email,
+     display_name,
+     role,
+     redirect_to:"https://rede-americas-pwa.pages.dev"
+    }
+   });
+
+   if(error)throw error;
+   if(data?.error)throw new Error(data.error);
+   userId=data.user_id;
+  }else{
+   const {error}=await db
+    .from("profiles")
+    .update({display_name,role,active})
+    .eq("user_id",userId);
+
+   if(error)throw error;
+  }
+
+  await saveUserGrants(userId,role);
+
+  $("accessUserDialog").close();
+  message(
+   $("appMessage"),
+   editingAccessUser?"Acesso atualizado com sucesso.":"Convite enviado e acesso configurado.",
+   "ok"
+  );
+  await loadAccessUsers();
+
+ }catch(err){
+  console.error(err);
+  message(
+   $("appMessage"),
+   err?.message==="Selecione pelo menos uma unidade."||err?.message==="Libere pelo menos um módulo para visualização."
+    ?err.message
+    :"Não foi possível salvar o acesso. Verifique se o e-mail já possui usuário no sistema.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent=originalText;
+ }
+});
+
+async function toggleAccessUser(user){
+ const next=!user.active;
+
+ if(!confirm(`${next?"Ativar":"Desativar"} o acesso de ${user.display_name}?`))return;
+
+ const {error}=await db
+  .from("profiles")
+  .update({active:next})
+  .eq("user_id",user.user_id);
+
+ if(error){
+  message($("appMessage"),"Não foi possível alterar o status do usuário.","err");
+  return;
+ }
+
+ message($("appMessage"),`Usuário ${next?"ativado":"desativado"}.`,"ok");
+ await loadAccessUsers();
+}
 
 
 /* ============================
@@ -2028,16 +2556,16 @@ function renderWaterAnalysisList(){
    ${parameterRows}
    <div class="actions">
     ${report.storage_path?'<button class="primary openWaterPdf">Abrir PDF</button>':""}
-    <button class="secondary editWaterReport">Editar</button>
-    <button class="danger deleteWaterReport">Excluir</button>
+    ${hasAccess("qualidade_agua","edit",unitId)?'<button class="secondary editWaterReport">Editar</button>':""}
+    ${hasAccess("qualidade_agua","delete",unitId)?'<button class="danger deleteWaterReport">Excluir</button>':""}
    </div>
   `;
 
   const open=el.querySelector(".openWaterPdf");
   if(open)open.onclick=()=>openWaterPdf(report);
 
-  el.querySelector(".editWaterReport").onclick=()=>openWaterEdit(report);
-  el.querySelector(".deleteWaterReport").onclick=()=>deleteWaterReport(report);
+  const editWaterButton=el.querySelector(".editWaterReport"); if(editWaterButton)editWaterButton.onclick=()=>openWaterEdit(report);
+  const deleteWaterButton=el.querySelector(".deleteWaterReport"); if(deleteWaterButton)deleteWaterButton.onclick=()=>deleteWaterReport(report);
 
   list.appendChild(el);
  });
@@ -3083,6 +3611,7 @@ $("selectAllDocuments").onclick=()=>{
   shouldCheck?"Desmarcar todos":"Selecionar todos";
 };
 
+$("deleteSelectedDocuments").classList.toggle("hidden",!hasAccess("documentos","delete",unitId));
 $("deleteSelectedDocuments").onclick=async()=>{
  const ids=[
   ...document.querySelectorAll(".doc-check:checked")
@@ -3243,13 +3772,13 @@ function renderEmployees(){
    <p><strong>Organograma:</strong> ${escapeHtml(e.org_role||"—")} • <strong>Grupo:</strong> ${escapeHtml(e.org_group||"—")}</p>
    <p><strong>Unidade(s):</strong> ${escapeHtml(employeeUnitNames(e.unit_ids)||"—")}</p>
    <div class="actions">
-    <button class="secondary editEmployee">Editar</button>
-    <button class="danger deleteEmployee">Excluir</button>
+    ${hasAccess("comunicacao","edit",unitId)?'<button class="secondary editEmployee">Editar</button>':""}
+    ${hasAccess("comunicacao","delete",unitId)?'<button class="danger deleteEmployee">Excluir</button>':""}
    </div>
   `;
 
-  el.querySelector(".editEmployee").onclick=()=>openEmployeeEdit(e);
-  el.querySelector(".deleteEmployee").onclick=()=>deleteEmployee(e);
+  const editEmployeeButton=el.querySelector(".editEmployee"); if(editEmployeeButton)editEmployeeButton.onclick=()=>openEmployeeEdit(e);
+  const deleteEmployeeButton=el.querySelector(".deleteEmployee"); if(deleteEmployeeButton)deleteEmployeeButton.onclick=()=>deleteEmployee(e);
 
   if(e.photo_path){
    db.storage.from("employee-photos").createSignedUrl(e.photo_path,600).then(({data})=>{
