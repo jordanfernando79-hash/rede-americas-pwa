@@ -247,6 +247,27 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .exec-chart{height:250px}
 }
 
+
+.module-unit-bar{
+  display:flex;gap:10px;align-items:end;flex-wrap:wrap;
+  background:#eef5fa;border:1px solid #cfe0eb;border-radius:12px;
+  padding:12px;margin:-5px 0 16px
+}
+.module-unit-bar>div{min-width:260px}
+.module-unit-bar select{min-width:260px}
+.units-grid{display:grid;gap:10px}
+.unit-admin-card{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap
+}
+.unit-admin-card .unit-admin-info{flex:1;min-width:200px}
+.unit-admin-card h3{margin:0 0 4px}
+.unit-admin-card .actions{margin-top:0}
+@media(max-width:700px){
+ .module-unit-bar,.module-unit-bar>div,.module-unit-bar select{width:100%;min-width:0}
+ .unit-admin-card{display:grid}
+}
+
 </style>
 </head>
 
@@ -275,7 +296,6 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <section id="appView" class="hidden">
 
 <div class="toolbar">
-<select id="unitSelect"><option>Carregando unidades...</option></select>
 <span class="spacer"></span>
 <div>
 <strong id="userName"></strong>
@@ -286,17 +306,12 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div id="appMessage" class="status"></div>
 
-<div class="stats">
-<div class="card stat"><span>Unidade</span><strong id="unitStat">—</strong></div>
-<div class="card stat"><span>RDI abertas</span><strong id="openCount">0</strong></div>
-<div class="card stat"><span>Críticas</span><strong id="criticalCount">0</strong></div>
-<div class="card stat"><span>Custo conhecido</span><strong id="costTotal">R$ 0</strong></div>
-</div>
 
 <h2>Módulos</h2>
 
 <div class="modules">
 <button id="moduleOverview" class="module active">Visão Geral</button>
+<button id="moduleUnits" class="module">Unidades</button>
 <button id="moduleRdi" class="module">RDI</button>
 <button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
@@ -306,6 +321,15 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button class="module" disabled>Treinamentos</button>
 <button id="moduleOrg" class="module">Organograma</button>
 <button id="moduleCommunication" class="module">Matriz de Comunicação</button>
+</div>
+
+<div id="moduleUnitBar" class="module-unit-bar hidden">
+<div>
+<label>Unidade deste módulo</label>
+<select id="moduleUnitSelect">
+<option value="">Selecione uma unidade</option>
+</select>
+</div>
 </div>
 
 
@@ -363,6 +387,24 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="empty">Carregando indicadores...</div>
 </div>
 </div>
+</div>
+
+</div>
+
+
+<!-- UNIDADES -->
+<div id="unitsModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Unidades</h2>
+<div class="muted">Cadastro das unidades utilizadas em todo o aplicativo.</div>
+</div>
+<button id="newUnitButton" class="primary">+ Nova unidade</button>
+</div>
+
+<div id="unitsList" class="units-grid">
+<div class="empty">Carregando unidades...</div>
 </div>
 
 </div>
@@ -553,6 +595,26 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </section>
 </main>
 
+
+
+<!-- MODAL UNIDADE -->
+<dialog id="unitDialog">
+<div class="dialog-body">
+<h2 id="unitDialogTitle">Nova unidade</h2>
+
+<form id="unitForm">
+<input id="unitIdField" type="hidden">
+
+<label>Nome da unidade *</label>
+<input id="unitNameField" required maxlength="120" placeholder="Ex.: Hospital Pasteur">
+
+<div class="dialog-actions">
+<button id="cancelUnitDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveUnitButton" type="submit" class="primary">Salvar unidade</button>
+</div>
+</form>
+</div>
+</dialog>
 
 <!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
 <dialog id="waterManualDialog">
@@ -1082,6 +1144,7 @@ let session=null;
 let profile=null;
 let unitId="";
 let allUnits=[];
+let editingUnit=null;
 
 let records=[];
 let editingRecord=null;
@@ -1190,7 +1253,7 @@ async function enterApp(){
 async function loadUnits(){
  const {data,error}=await db
   .from("units")
-  .select("id,name")
+  .select("id,name,active,created_at")
   .eq("active",true)
   .order("name");
 
@@ -1201,38 +1264,45 @@ async function loadUnits(){
 
  allUnits=data||[];
 
- $("unitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
+ const selected=unitId;
 
+ $("moduleUnitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
  allUnits.forEach(u=>{
   const option=document.createElement("option");
   option.value=u.id;
   option.textContent=u.name;
-  $("unitSelect").appendChild(option);
+  option.selected=u.id===selected;
+  $("moduleUnitSelect").appendChild(option);
  });
 
  if($("overviewUnitSelect")){
+  const overviewSelected=$("overviewUnitSelect").value;
   $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
   allUnits.forEach(u=>{
    const option=document.createElement("option");
    option.value=u.id;
    option.textContent=u.name;
+   option.selected=u.id===overviewSelected;
    $("overviewUnitSelect").appendChild(option);
   });
  }
+
+ if(unitId&&!allUnits.some(u=>u.id===unitId)){
+  unitId="";
+ }
 }
 
-$("unitSelect").onchange=async()=>{
- unitId=$("unitSelect").value;
+async function applyModuleUnitSelection(){
+ unitId=$("moduleUnitSelect").value;
 
- const option=$("unitSelect").options[$("unitSelect").selectedIndex];
- const unitName=unitId?option.textContent:"—";
+ const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
+ const unitName=unitId?option.textContent:"Selecione uma unidade.";
 
- $("unitStat").textContent=unitName;
- $("rdiSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
- $("documentSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
- $("communicationSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
- $("orgSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
- $("waterSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
+ $("rdiSubtitle").textContent=unitName;
+ $("documentSubtitle").textContent=unitName;
+ $("communicationSubtitle").textContent=unitName;
+ $("orgSubtitle").textContent=unitName;
+ $("waterSubtitle").textContent=unitName;
 
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
@@ -1244,6 +1314,7 @@ $("unitSelect").onchange=async()=>{
   $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
  }
 
@@ -1255,10 +1326,161 @@ $("unitSelect").onchange=async()=>{
   await loadEmployees();
  }else if(currentModule==="org"){
   await loadOrganogram();
- }else{
+ }else if(currentModule==="water"){
   await loadWaterModule();
  }
+}
+
+$("moduleUnitSelect").onchange=applyModuleUnitSelection;
+
+/* ADMINISTRAÇÃO DE UNIDADES */
+
+async function loadUnitsAdmin(){
+ const list=$("unitsList");
+ list.innerHTML='<div class="empty">Carregando unidades...</div>';
+
+ const {data,error}=await db
+  .from("units")
+  .select("id,name,active,created_at")
+  .eq("active",true)
+  .order("name");
+
+ if(error){
+  console.error(error);
+  list.innerHTML='<div class="empty">Não foi possível carregar as unidades.</div>';
+  return;
+ }
+
+ list.replaceChildren();
+
+ if(!data?.length){
+  list.innerHTML='<div class="empty">Nenhuma unidade cadastrada.</div>';
+  return;
+ }
+
+ data.forEach(u=>{
+  const card=document.createElement("article");
+  card.className="unit-admin-card";
+  card.innerHTML=`
+   <div class="unit-admin-info">
+    <h3>${escapeHtml(u.name)}</h3>
+    <div class="muted">Ativa no sistema</div>
+   </div>
+   <div class="actions">
+    <button class="secondary editUnit">Editar</button>
+    <button class="danger deleteUnit">Excluir</button>
+   </div>
+  `;
+
+  card.querySelector(".editUnit").onclick=()=>openUnitEdit(u);
+  card.querySelector(".deleteUnit").onclick=()=>deleteUnit(u);
+
+  list.appendChild(card);
+ });
+}
+
+$("newUnitButton").onclick=()=>{
+ editingUnit=null;
+ $("unitForm").reset();
+ $("unitIdField").value="";
+ $("unitDialogTitle").textContent="Nova unidade";
+ $("unitDialog").showModal();
 };
+
+$("cancelUnitDialog").onclick=()=>$("unitDialog").close();
+
+function openUnitEdit(unit){
+ editingUnit=unit;
+ $("unitIdField").value=unit.id;
+ $("unitNameField").value=unit.name;
+ $("unitDialogTitle").textContent="Editar unidade";
+ $("unitDialog").showModal();
+}
+
+$("unitForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const name=$("unitNameField").value.trim();
+ if(!name)return;
+
+ const btn=$("saveUnitButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const id=$("unitIdField").value;
+  let error;
+
+  if(id){
+   ({error}=await db.from("units").update({name}).eq("id",id));
+  }else{
+   ({error}=await db.from("units").insert({name,active:true}));
+  }
+
+  if(error)throw error;
+
+  $("unitDialog").close();
+  await loadUnits();
+  await loadUnitsAdmin();
+  await loadOverview();
+  message($("appMessage"),"Unidade salva com sucesso.","ok");
+
+ }catch(err){
+  console.error(err);
+  const duplicate=String(err?.message||"").toLowerCase().includes("duplicate");
+  message(
+   $("appMessage"),
+   duplicate?"Já existe uma unidade com esse nome.":"Não foi possível salvar a unidade.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar unidade";
+ }
+});
+
+async function countUnitLinks(unitIdToCheck){
+ const checks=await Promise.all([
+  db.from("rdi_demands").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("documents").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("employee_units").select("employee_id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("water_analysis_reports").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck)
+ ]);
+
+ const labels=["RDI","documentos","profissionais","análises de água"];
+ return checks.map((r,i)=>({label:labels[i],count:r.count||0,error:r.error}))
+  .filter(x=>x.count>0);
+}
+
+async function deleteUnit(unit){
+ const links=await countUnitLinks(unit.id);
+
+ if(links.length){
+  const summary=links.map(x=>`${x.count} ${x.label}`).join(", ");
+  alert(`A unidade "${unit.name}" não pode ser excluída porque possui registros vinculados: ${summary}. Remova ou transfira esses registros antes da exclusão.`);
+  return;
+ }
+
+ if(!confirm(`Excluir definitivamente a unidade "${unit.name}"?`))return;
+
+ const {error}=await db.from("units").delete().eq("id",unit.id);
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível excluir a unidade.","err");
+  return;
+ }
+
+ if(unitId===unit.id){
+  unitId="";
+ }
+
+ await loadUnits();
+ await loadUnitsAdmin();
+ await loadOverview();
+ message($("appMessage"),"Unidade excluída.","ok");
+}
+
 
 /* NAVEGAÇÃO */
 
@@ -1266,6 +1488,7 @@ function switchModule(name){
  currentModule=name;
 
  const isOverview=name==="overview";
+ const isUnits=name==="units";
  const isRdi=name==="rdi";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
@@ -1273,6 +1496,7 @@ function switchModule(name){
  const isWater=name==="water";
 
  $("overviewModuleView").classList.toggle("hidden",!isOverview);
+ $("unitsModuleView").classList.toggle("hidden",!isUnits);
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
@@ -1280,14 +1504,23 @@ function switchModule(name){
  $("waterModuleView").classList.toggle("hidden",!isWater);
 
  $("moduleOverview").classList.toggle("active",isOverview);
+ $("moduleUnits").classList.toggle("active",isUnits);
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
+ const needsUnit=!isOverview&&!isUnits;
+ $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
+
  if(isOverview){
   loadOverview();
+  return;
+ }
+
+ if(isUnits){
+  loadUnitsAdmin();
   return;
  }
 
@@ -1310,6 +1543,7 @@ function switchModule(name){
 }
 
 $("moduleOverview").onclick=()=>switchModule("overview");
+$("moduleUnits").onclick=()=>switchModule("units");
 $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
@@ -1710,7 +1944,7 @@ function updateWaterKpis(){
 
 
 function currentUnitName(){
- const option=$("unitSelect").options[$("unitSelect").selectedIndex];
+ const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
  return unitId&&option?option.textContent:"Unidade";
 }
 
@@ -2294,24 +2528,6 @@ async function loadRdi(){
  records=data||[];
 
  renderRecords();
- updateStats();
-}
-
-function updateStats(){
- const open=records.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
-
- $("openCount").textContent=open.length;
- $("criticalCount").textContent=open.filter(r=>gutClass(r.gut_score)==="Crítica").length;
-
- const total=open.reduce(
-  (sum,r)=>sum+(r.cost_estimated==null?0:Number(r.cost_estimated)),
-  0
- );
-
- $("costTotal").textContent=total.toLocaleString("pt-BR",{
-  style:"currency",
-  currency:"BRL"
- });
 }
 
 function filteredRecords(){
