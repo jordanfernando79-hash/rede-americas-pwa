@@ -174,6 +174,57 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .water-chart-wrap{height:280px}
 }
 
+
+.water-analysis-params{
+  display:grid;
+  gap:6px;
+  margin-top:10px;
+  border-top:1px solid var(--border);
+  padding-top:10px
+}
+.water-analysis-param{
+  display:grid;
+  grid-template-columns:1.5fr .7fr .9fr .8fr;
+  gap:8px;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:8px;
+  background:#f8fafc
+}
+.water-analysis-param-head{
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.3px
+}
+.water-status-ok{
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:7px;
+  background:#e8f7ef;
+  color:#17683f;
+  font-weight:700;
+  font-size:12px
+}
+.water-status-out{
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:7px;
+  background:#fdeaea;
+  color:#8f2525;
+  font-weight:700;
+  font-size:12px
+}
+@media(max-width:700px){
+ .water-analysis-param{
+   grid-template-columns:1fr 1fr;
+ }
+ .water-analysis-param-head{
+   display:none;
+ }
+}
+
 </style>
 </head>
 
@@ -1348,6 +1399,31 @@ function updateWaterKpis(){
   waterResults.filter(isWaterOutOfRange).length;
 }
 
+
+function currentUnitName(){
+ const option=$("unitSelect").options[$("unitSelect").selectedIndex];
+ return unitId&&option?option.textContent:"Unidade";
+}
+
+function waterReferenceText(result){
+ const parts=[];
+ if(result.min_snapshot!==null&&result.min_snapshot!==undefined){
+  parts.push(`≥ ${result.min_snapshot}`);
+ }
+ if(result.max_snapshot!==null&&result.max_snapshot!==undefined){
+  parts.push(`≤ ${result.max_snapshot}`);
+ }
+ return parts.length?parts.join(" e "):"—";
+}
+
+function waterResultDisplay(result){
+ if(result.result_value!==null&&result.result_value!==undefined){
+  const value=Number(result.result_value).toLocaleString("pt-BR",{maximumFractionDigits:4});
+  return `${value}${result.unit?` ${result.unit}`:""}`;
+ }
+ return result.result_text||"—";
+}
+
 function renderWaterAnalysisList(){
  const list=$("waterAnalysisList");
  list.replaceChildren();
@@ -1358,8 +1434,39 @@ function renderWaterAnalysisList(){
  }
 
  waterReports.slice(0,20).forEach(report=>{
-  const results=waterResults.filter(r=>r.report_id===report.id);
+  const results=waterResults
+   .filter(r=>r.report_id===report.id)
+   .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
+
   const outCount=results.filter(isWaterOutOfRange).length;
+
+  const parameterRows=results.length
+   ?`
+    <div class="water-analysis-params">
+     <div class="water-analysis-param water-analysis-param-head">
+      <div>Parâmetro</div>
+      <div>Resultado</div>
+      <div>Referência</div>
+      <div>Situação</div>
+     </div>
+     ${results.map(result=>{
+       const outside=isWaterOutOfRange(result);
+       return `
+        <div class="water-analysis-param">
+         <div><strong>${escapeHtml(result.parameter_name||"—")}</strong></div>
+         <div>${escapeHtml(waterResultDisplay(result))}</div>
+         <div>${escapeHtml(waterReferenceText(result))}</div>
+         <div>
+          <span class="${outside?"water-status-out":"water-status-ok"}">
+           ${outside?"Fora da faixa":"Dentro dos limites"}
+          </span>
+         </div>
+        </div>
+       `;
+     }).join("")}
+    </div>
+   `
+   :'<div class="muted" style="margin-top:10px">Nenhum parâmetro lançado nesta análise.</div>';
 
   const el=document.createElement("article");
   el.className="record "+(outCount?"water-out":"water-ok");
@@ -1369,9 +1476,13 @@ function renderWaterAnalysisList(){
     <h3>${formatDate(report.sample_date)}</h3>
     <span class="badge">${report.source==="pdf"?"PDF":"MANUAL"}</span>
    </div>
-   <p><strong>${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}</strong></p>
+   <p>
+    <strong>${escapeHtml(currentUnitName())}</strong>
+    • ${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}
+   </p>
    <p class="muted">${escapeHtml(report.laboratory||"Laboratório não informado")}</p>
    <p><strong>${results.length}</strong> parâmetro(s) • <strong>${outCount}</strong> fora da faixa</p>
+   ${parameterRows}
    <div class="actions">
     ${report.storage_path?'<button class="primary openWaterPdf">Abrir PDF</button>':""}
     <button class="secondary editWaterReport">Editar</button>
@@ -1455,14 +1566,14 @@ function renderWaterChart(){
   value:values.reduce((a,b)=>a+b,0)/values.length
  }));
 
- $("waterChartTitle").textContent=ref.parameter_name;
+ $("waterChartTitle").textContent=`${currentUnitName()} — ${ref.parameter_name}`;
 
  const limits=[];
  if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
  if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
 
  $("waterChartReference").textContent=
-  `${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
+  `${WATER_LABELS[$("waterTypeFilter").value]} • ${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
 
  const labels=data.map(d=>{
   const [year,month]=d.month.split("-");
