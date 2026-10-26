@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#123b5c">
 <title>Central de Gestão Rede Américas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 <style>
@@ -165,12 +164,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .water-result-row label{margin-top:0}
 .water-out{border-left:5px solid #a63333}
 .water-ok{border-left:5px solid #18794e}
-.import-review{max-height:48vh;overflow:auto;display:grid;gap:8px;margin-top:12px}
-.import-review-row{display:grid;grid-template-columns:1.5fr .7fr .6fr .8fr;gap:8px;align-items:end;padding:9px;border:1px solid var(--border);border-radius:10px}
 @media(max-width:700px){
  .water-actions{display:grid}
  .water-actions button{width:100%}
- .water-ref-row,.water-result-row,.import-review-row{grid-template-columns:1fr}
+ .water-ref-row,.water-result-row{grid-template-columns:1fr}
  .water-chart-wrap{height:280px}
 }
 
@@ -336,7 +333,6 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <div class="water-actions">
-<button id="waterImportButton" class="primary" disabled>Importar PDF</button>
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
 <button id="waterReferencesButton" class="ghost">Referências</button>
 </div>
@@ -517,57 +513,6 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="dialog-actions">
 <button id="cancelWaterManual" type="button" class="ghost">Cancelar</button>
 <button id="saveWaterManual" type="submit" class="primary">Salvar análise</button>
-</div>
-</form>
-</div>
-</dialog>
-
-<!-- MODAL QUALIDADE DA ÁGUA - IMPORTAÇÃO PDF -->
-<dialog id="waterImportDialog">
-<div class="dialog-body">
-<h2>Importar análise por PDF</h2>
-
-<form id="waterImportForm">
-<div class="form-grid">
-<div>
-<label>Tipo de água *</label>
-<select id="waterImportType" required>
-<option value="conforto">Água gelada de conforto</option>
-<option value="processo">Água gelada de processo</option>
-<option value="condensada">Água condensada</option>
-</select>
-</div>
-
-<div>
-<label>Data da coleta *</label>
-<input id="waterImportSampleDate" type="date" required>
-</div>
-
-<div>
-<label>Data do laudo</label>
-<input id="waterImportReportDate" type="date">
-</div>
-
-<div>
-<label>Laboratório</label>
-<input id="waterImportLaboratory">
-</div>
-
-<div class="full">
-<label>Arquivo PDF *</label>
-<input id="waterPdfFile" type="file" accept="application/pdf,.pdf" required>
-<p class="muted">O sistema extrai o texto do PDF e sugere os valores. Você revisa tudo antes de confirmar.</p>
-</div>
-</div>
-
-<button id="extractWaterPdfButton" type="button" class="secondary">Ler PDF e revisar</button>
-
-<div id="waterImportMessage" class="status"></div>
-<div id="waterImportReview" class="import-review"></div>
-
-<div class="dialog-actions">
-<button id="cancelWaterImport" type="button" class="ghost">Cancelar</button>
-<button id="confirmWaterImport" type="submit" class="primary" disabled>Confirmar importação</button>
 </div>
 </form>
 </div>
@@ -1069,7 +1014,6 @@ let waterReports=[];
 let waterResults=[];
 let waterChartInstance=null;
 let editingWaterReport=null;
-let pendingWaterImport=[];
 
 
 const $=id=>document.getElementById(id);
@@ -1194,7 +1138,6 @@ $("unitSelect").onchange=async()=>{
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
- $("waterImportButton").disabled=!unitId;
  $("waterManualButton").disabled=!unitId;
 
  if(!unitId){
@@ -1275,10 +1218,6 @@ const WATER_LABELS={
  condensada:"Água condensada"
 };
 
-if(window.pdfjsLib){
- pdfjsLib.GlobalWorkerOptions.workerSrc=
- "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-}
 
 function normalizeWaterText(value){
  return String(value||"")
@@ -1474,7 +1413,7 @@ function renderWaterAnalysisList(){
   el.innerHTML=`
    <div class="record-top">
     <h3>${formatDate(report.sample_date)}</h3>
-    <span class="badge">${report.source==="pdf"?"PDF":"MANUAL"}</span>
+    <span class="badge">${report.source==="pdf"?"PDF (legado)":"MANUAL"}</span>
    </div>
    <p>
     <strong>${escapeHtml(currentUnitName())}</strong>
@@ -1809,235 +1748,6 @@ async function deleteWaterReport(report){
  message($("appMessage"),"Análise excluída.","ok");
  await loadWaterModule();
 }
-
-/* IMPORTAÇÃO PDF */
-
-$("waterImportButton").onclick=async()=>{
- pendingWaterImport=[];
- $("waterImportForm").reset();
- $("waterImportReview").replaceChildren();
- $("confirmWaterImport").disabled=true;
- message($("waterImportMessage"),"","info");
- $("waterImportType").value=$("waterTypeFilter").value;
- $("waterImportSampleDate").value=new Date().toISOString().slice(0,10);
- $("waterImportDialog").showModal();
-};
-
-$("cancelWaterImport").onclick=()=>$("waterImportDialog").close();
-
-async function extractPdfText(file){
- const buffer=await file.arrayBuffer();
- const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
- const pages=[];
-
- for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
-  const page=await pdf.getPage(pageNo);
-  const content=await page.getTextContent();
-  pages.push(content.items.map(item=>item.str).join(" "));
- }
-
- return pages.join("\n");
-}
-
-function suggestValueFromPdf(text,parameterName){
- const normalizedText=normalizeWaterText(text);
- const normalizedName=normalizeWaterText(parameterName);
- const index=normalizedText.indexOf(normalizedName);
-
- if(index<0)return null;
-
- const after=normalizedText.slice(index+normalizedName.length,index+normalizedName.length+100);
- const match=after.match(/[-+]?\d+(?:[.,]\d+)?/);
-
- return match?parsePtNumber(match[0]):null;
-}
-
-function renderWaterImportReview(refs,text){
- const box=$("waterImportReview");
- box.replaceChildren();
-
- pendingWaterImport=refs.map(ref=>({
-  ref,
-  value:suggestValueFromPdf(text,ref.parameter_name)
- }));
-
- pendingWaterImport.forEach(item=>{
-  const row=document.createElement("div");
-  row.className="import-review-row";
-  row.dataset.refId=item.ref.id;
-
-  row.innerHTML=`
-   <div>
-    <label>Parâmetro</label>
-    <strong>${escapeHtml(item.ref.parameter_name)}</strong>
-   </div>
-   <div>
-    <label>Valor extraído</label>
-    <input class="waterImportValue" type="number" step="any" value="${item.value??""}">
-   </div>
-   <div>
-    <label>Unidade</label>
-    <div>${escapeHtml(item.ref.unit||"—")}</div>
-   </div>
-   <div>
-    <label>Referência</label>
-    <div>${item.ref.min_value??"—"} a ${item.ref.max_value??"—"}</div>
-   </div>
-  `;
-
-  box.appendChild(row);
- });
-}
-
-$("extractWaterPdfButton").onclick=async()=>{
- const file=$("waterPdfFile").files[0];
-
- if(!file){
-  message($("waterImportMessage"),"Selecione um PDF.","err");
-  return;
- }
-
- const refs=waterReferences.filter(r=>r.water_type===$("waterImportType").value);
-
- if(!refs.length){
-  message($("waterImportMessage"),"Cadastre primeiro os parâmetros em Referências.","err");
-  return;
- }
-
- const btn=$("extractWaterPdfButton");
- btn.disabled=true;
- btn.textContent="Lendo PDF...";
-
- try{
-  const text=await extractPdfText(file);
-
-  if(!text.trim()){
-   message(
-    $("waterImportMessage"),
-    "O PDF não possui texto pesquisável. Será necessário OCR para este formato.",
-    "err"
-   );
-   return;
-  }
-
-  renderWaterImportReview(refs,text);
-
-  const found=pendingWaterImport.filter(x=>x.value!==null).length;
-
-  message(
-   $("waterImportMessage"),
-   `Leitura concluída: ${found} de ${refs.length} parâmetro(s) receberam sugestão. Revise antes de confirmar.`,
-   found?"ok":"info"
-  );
-
-  $("confirmWaterImport").disabled=false;
-
- }catch(err){
-  console.error(err);
-  message($("waterImportMessage"),"Não foi possível ler este PDF.","err");
- }finally{
-  btn.disabled=false;
-  btn.textContent="Ler PDF e revisar";
- }
-};
-
-$("waterImportType").addEventListener("change",()=>{
- pendingWaterImport=[];
- $("waterImportReview").replaceChildren();
- $("confirmWaterImport").disabled=true;
-});
-
-$("waterImportForm").addEventListener("submit",async e=>{
- e.preventDefault();
-
- const file=$("waterPdfFile").files[0];
- if(!file)return;
-
- const btn=$("confirmWaterImport");
- btn.disabled=true;
- btn.textContent="Importando...";
-
- let storagePath=null;
- let reportId=null;
-
- try{
-  const type=$("waterImportType").value;
-  const id=crypto.randomUUID();
-  const safeName=safeFilename(file.name);
-  storagePath=`${unitId}/${id}/${Date.now()}_${safeName}`;
-
-  const {error:uploadError}=await db.storage
-   .from("water-analysis-pdfs")
-   .upload(storagePath,file,{cacheControl:"3600",upsert:false});
-
-  if(uploadError)throw uploadError;
-
-  const {data:report,error:reportError}=await db
-   .from("water_analysis_reports")
-   .insert({
-    id,
-    unit_id:unitId,
-    water_type:type,
-    sample_date:$("waterImportSampleDate").value,
-    report_date:$("waterImportReportDate").value||null,
-    source:"pdf",
-    laboratory:textOrNull($("waterImportLaboratory").value),
-    filename:file.name,
-    storage_path:storagePath,
-    created_by:session.user.id,
-    updated_by:session.user.id
-   })
-   .select("id")
-   .single();
-
-  if(reportError)throw reportError;
-  reportId=report.id;
-
-  const rows=[...document.querySelectorAll("#waterImportReview .import-review-row")]
-   .map(row=>{
-    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
-    const value=parsePtNumber(row.querySelector(".waterImportValue").value);
-
-    if(value===null)return null;
-
-    return{
-     report_id:reportId,
-     reference_id:ref.id,
-     parameter_name:ref.parameter_name,
-     unit:ref.unit,
-     result_value:value,
-     min_snapshot:ref.min_value,
-     max_snapshot:ref.max_value
-    };
-   })
-   .filter(Boolean);
-
-  if(rows.length){
-   const {error:resultsError}=await db.from("water_analysis_results").insert(rows);
-   if(resultsError)throw resultsError;
-  }
-
-  $("waterImportDialog").close();
-  $("waterTypeFilter").value=type;
-  message($("appMessage"),"PDF importado e análise registrada.","ok");
-  await loadWaterModule();
-
- }catch(err){
-  console.error(err);
-
-  if(reportId){
-   await db.from("water_analysis_reports").delete().eq("id",reportId);
-  }
-
-  if(storagePath){
-   await db.storage.from("water-analysis-pdfs").remove([storagePath]);
-  }
-
-  message($("appMessage"),"Não foi possível concluir a importação.","err");
-  btn.disabled=false;
-  btn.textContent="Confirmar importação";
- }
-});
 
 /* REFERÊNCIAS */
 
