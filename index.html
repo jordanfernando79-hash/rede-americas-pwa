@@ -222,6 +222,31 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  }
 }
 
+
+.overview-filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.overview-filter>div{min-width:240px}
+.overview-filter select{min-width:240px}
+.exec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.exec-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
+.exec-card span{display:block;color:var(--muted);font-size:13px;font-weight:700}
+.exec-card strong{display:block;font-size:26px;color:var(--primary2);margin-top:5px}
+.exec-card small{display:block;color:var(--muted);margin-top:4px}
+.exec-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.exec-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px}
+.exec-panel h3{margin:0 0 12px}
+.exec-chart{height:280px;position:relative}
+.exec-attention{display:grid;gap:8px}
+.attention-item{padding:11px 12px;border-radius:10px;background:#f8fafc;border-left:5px solid #a96d00}
+.attention-item.critical{border-left-color:#a63333;background:#fff6f6}
+.attention-item.ok{border-left-color:#18794e;background:#f4fbf7}
+.exec-mini-table{display:grid;gap:6px}
+.exec-mini-row{display:grid;grid-template-columns:1.3fr .7fr;gap:8px;padding:8px 10px;border-radius:8px;background:#f8fafc}
+@media(max-width:800px){
+ .exec-sections{grid-template-columns:1fr}
+ .overview-filter,.overview-filter>div,.overview-filter select{width:100%;min-width:0}
+ .exec-chart{height:250px}
+}
+
 </style>
 </head>
 
@@ -271,7 +296,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <h2>Módulos</h2>
 
 <div class="modules">
-<button id="moduleRdi" class="module active">RDI</button>
+<button id="moduleOverview" class="module active">Visão Geral</button>
+<button id="moduleRdi" class="module">RDI</button>
 <button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
 <button class="module" disabled>Relatórios</button>
@@ -282,8 +308,67 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="moduleCommunication" class="module">Matriz de Comunicação</button>
 </div>
 
+
+<!-- VISÃO GERAL -->
+<div id="overviewModuleView">
+
+<div class="section-title">
+<div>
+<h2>Visão Geral</h2>
+<div class="muted">Resumo executivo da manutenção.</div>
+</div>
+</div>
+
+<div class="overview-filter">
+<div>
+<label>Escopo</label>
+<select id="overviewUnitSelect">
+<option value="">Toda a Rede</option>
+</select>
+</div>
+</div>
+
+<div class="exec-grid">
+<div class="exec-card"><span>Unidades</span><strong id="ovUnits">0</strong><small id="ovUnitsNote">Rede ativa</small></div>
+<div class="exec-card"><span>Funcionários ativos</span><strong id="ovEmployees">0</strong><small>Equipe cadastrada</small></div>
+<div class="exec-card"><span>RDI em aberto</span><strong id="ovRdiOpen">0</strong><small id="ovRdiCritical">0 críticas</small></div>
+<div class="exec-card"><span>RDI concluídas</span><strong id="ovRdiDone">0</strong><small id="ovRdiRate">0% de conclusão</small></div>
+<div class="exec-card"><span>Custo estimado RDI</span><strong id="ovCostEstimated" style="font-size:21px">R$ 0</strong><small>Demandas do escopo</small></div>
+<div class="exec-card"><span>Custo realizado RDI</span><strong id="ovCostActual" style="font-size:21px">R$ 0</strong><small>Valor realizado</small></div>
+<div class="exec-card"><span>Documentos</span><strong id="ovDocuments">0</strong><small id="ovDocsAlert">0 vencidos / próximos</small></div>
+<div class="exec-card"><span>Qualidade da Água</span><strong id="ovWaterAnalyses">0</strong><small id="ovWaterOut">0 resultados fora da faixa</small></div>
+</div>
+
+<div class="exec-sections">
+<div class="exec-panel">
+<h3>RDI por status</h3>
+<div class="exec-chart"><canvas id="ovRdiChart"></canvas></div>
+</div>
+
+<div class="exec-panel">
+<h3>Efetivo por função</h3>
+<div class="exec-chart"><canvas id="ovEmployeesChart"></canvas></div>
+</div>
+</div>
+
+<div class="exec-sections">
+<div class="exec-panel">
+<h3>Custos RDI por unidade</h3>
+<div class="exec-chart"><canvas id="ovCostChart"></canvas></div>
+</div>
+
+<div class="exec-panel">
+<h3>Atenções</h3>
+<div id="ovAttention" class="exec-attention">
+<div class="empty">Carregando indicadores...</div>
+</div>
+</div>
+</div>
+
+</div>
+
 <!-- RDI -->
-<div id="rdiModuleView">
+<div id="rdiModuleView" class="hidden">
 
 <div class="section-title">
 <div>
@@ -1007,7 +1092,10 @@ let editingDocument=null;
 let employees=[];
 let editingEmployee=null;
 
-let currentModule="rdi";
+let currentModule="overview";
+let ovRdiChartInstance=null;
+let ovEmployeesChartInstance=null;
+let ovCostChartInstance=null;
 
 let waterReferences=[];
 let waterReports=[];
@@ -1094,6 +1182,7 @@ async function enterApp(){
  $("userRole").textContent=data.role==="admin"?"Administrador Geral":"Usuário";
 
  await loadUnits();
+ await loadOverview();
 }
 
 /* UNIDADES */
@@ -1120,6 +1209,16 @@ async function loadUnits(){
   option.textContent=u.name;
   $("unitSelect").appendChild(option);
  });
+
+ if($("overviewUnitSelect")){
+  $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
+  allUnits.forEach(u=>{
+   const option=document.createElement("option");
+   option.value=u.id;
+   option.textContent=u.name;
+   $("overviewUnitSelect").appendChild(option);
+  });
+ }
 }
 
 $("unitSelect").onchange=async()=>{
@@ -1166,25 +1265,34 @@ $("unitSelect").onchange=async()=>{
 function switchModule(name){
  currentModule=name;
 
+ const isOverview=name==="overview";
  const isRdi=name==="rdi";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
  const isOrg=name==="org";
  const isWater=name==="water";
 
+ $("overviewModuleView").classList.toggle("hidden",!isOverview);
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
  $("waterModuleView").classList.toggle("hidden",!isWater);
 
+ $("moduleOverview").classList.toggle("active",isOverview);
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
+ if(isOverview){
+  loadOverview();
+  return;
+ }
+
  if(!unitId){
+  message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
  }
 
@@ -1201,11 +1309,273 @@ function switchModule(name){
  }
 }
 
+$("moduleOverview").onclick=()=>switchModule("overview");
 $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
 $("moduleWater").onclick=()=>switchModule("water");
+
+
+
+/* ============================
+   VISÃO GERAL
+============================ */
+
+function moneyBr(value){
+ return Number(value||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
+function overviewScopeId(){
+ return $("overviewUnitSelect")?.value||"";
+}
+
+function destroyOverviewCharts(){
+ [ovRdiChartInstance,ovEmployeesChartInstance,ovCostChartInstance].forEach(chart=>{
+  if(chart)chart.destroy();
+ });
+ ovRdiChartInstance=null;
+ ovEmployeesChartInstance=null;
+ ovCostChartInstance=null;
+}
+
+$("overviewUnitSelect").addEventListener("change",loadOverview);
+
+async function loadOverview(){
+ if(!session||!allUnits.length)return;
+
+ const scope=overviewScopeId();
+ const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
+
+ destroyOverviewCharts();
+ $("ovAttention").innerHTML='<div class="empty">Carregando indicadores...</div>';
+
+ try{
+  const [
+   employeeLinksRes,
+   employeesRes,
+   rdiRes,
+   docsRes,
+   waterReportsRes
+  ]=await Promise.all([
+   db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds),
+   db.from("employees").select("id,job_title,org_role,status"),
+   db.from("rdi_demands").select("id,unit_id,status,gut_score,cost_estimated,approved_cost,actual_cost,due_date,archived").in("unit_id",scopedUnitIds).eq("archived",false),
+   db.from("documents").select("id,unit_id,valid_until").in("unit_id",scopedUnitIds),
+   db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds)
+  ]);
+
+  const responses=[employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes];
+  const firstError=responses.find(x=>x.error)?.error;
+  if(firstError)throw firstError;
+
+  const employeeLinks=employeeLinksRes.data||[];
+  const scopedEmployeeIds=new Set(employeeLinks.map(x=>x.employee_id));
+  const employees=(employeesRes.data||[]).filter(e=>scopedEmployeeIds.has(e.id)&&e.status==="ativo");
+  const rdis=rdiRes.data||[];
+  const docs=docsRes.data||[];
+  const waterReports=waterReportsRes.data||[];
+
+  let waterResults=[];
+  const waterIds=waterReports.map(x=>x.id);
+
+  if(waterIds.length){
+   const {data,error}=await db
+    .from("water_analysis_results")
+    .select("id,report_id,result_value,min_snapshot,max_snapshot")
+    .in("report_id",waterIds);
+
+   if(error)throw error;
+   waterResults=data||[];
+  }
+
+  const openRdi=rdis.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
+  const doneRdi=rdis.filter(r=>r.status==="CONCLUÍDA");
+  const critical=openRdi.filter(r=>Number(r.gut_score)>=80);
+  const completionBase=rdis.filter(r=>r.status!=="CANCELADA").length;
+  const completionRate=completionBase?Math.round(doneRdi.length/completionBase*100):0;
+
+  const estimated=rdis.reduce((s,r)=>s+Number(r.cost_estimated||0),0);
+  const actual=rdis.reduce((s,r)=>s+Number(r.actual_cost||0),0);
+
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const thirty=new Date(today);
+  thirty.setDate(thirty.getDate()+30);
+
+  const expiredDocs=docs.filter(d=>d.valid_until&&new Date(d.valid_until+"T00:00:00")<today);
+  const soonDocs=docs.filter(d=>{
+   if(!d.valid_until)return false;
+   const dt=new Date(d.valid_until+"T00:00:00");
+   return dt>=today&&dt<=thirty;
+  });
+
+  const waterOut=waterResults.filter(r=>{
+   if(r.result_value===null||r.result_value===undefined)return false;
+   const v=Number(r.result_value);
+   if(r.min_snapshot!==null&&r.min_snapshot!==undefined&&v<Number(r.min_snapshot))return true;
+   if(r.max_snapshot!==null&&r.max_snapshot!==undefined&&v>Number(r.max_snapshot))return true;
+   return false;
+  });
+
+  $("ovUnits").textContent=scope?1:scopedUnitIds.length;
+  $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede ativa";
+  $("ovEmployees").textContent=employees.length;
+  $("ovRdiOpen").textContent=openRdi.length;
+  $("ovRdiCritical").textContent=`${critical.length} crítica(s)`;
+  $("ovRdiDone").textContent=doneRdi.length;
+  $("ovRdiRate").textContent=`${completionRate}% de conclusão`;
+  $("ovCostEstimated").textContent=moneyBr(estimated);
+  $("ovCostActual").textContent=moneyBr(actual);
+  $("ovDocuments").textContent=docs.length;
+  $("ovDocsAlert").textContent=`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`;
+  $("ovWaterAnalyses").textContent=waterReports.length;
+  $("ovWaterOut").textContent=`${waterOut.length} resultado(s) fora da faixa`;
+
+  renderOverviewRdiChart(rdis);
+  renderOverviewEmployeesChart(employees);
+  renderOverviewCostChart(rdis,scopedUnitIds);
+  renderOverviewAttention({
+   critical,
+   openRdi,
+   expiredDocs,
+   soonDocs,
+   waterOut,
+   employees
+  });
+
+ }catch(err){
+  console.error(err);
+  $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar a Visão Geral.</div>';
+  message($("appMessage"),"Falha ao carregar a Visão Geral.","err");
+ }
+}
+
+function renderOverviewRdiChart(rdis){
+ const counts={};
+ rdis.forEach(r=>{
+  const key=r.status||"SEM STATUS";
+  counts[key]=(counts[key]||0)+1;
+ });
+
+ const labels=Object.keys(counts);
+ const values=labels.map(k=>counts[k]);
+
+ ovRdiChartInstance=new Chart($("ovRdiChart"),{
+  type:"bar",
+  data:{labels,datasets:[{label:"RDI",data:values}]},
+  options:{
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{y:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+}
+
+function renderOverviewEmployeesChart(employees){
+ const counts={};
+
+ employees.forEach(e=>{
+  const key=e.org_role||e.job_title||"Não definido";
+  counts[key]=(counts[key]||0)+1;
+ });
+
+ const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
+ ovEmployeesChartInstance=new Chart($("ovEmployeesChart"),{
+  type:"bar",
+  data:{
+   labels:entries.map(x=>x[0]),
+   datasets:[{label:"Funcionários",data:entries.map(x=>x[1])}]
+  },
+  options:{
+   indexAxis:"y",
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{x:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+}
+
+function renderOverviewCostChart(rdis,unitIds){
+ const sums=new Map(unitIds.map(id=>[id,0]));
+
+ rdis.forEach(r=>{
+  sums.set(r.unit_id,(sums.get(r.unit_id)||0)+Number(r.actual_cost||r.cost_estimated||0));
+ });
+
+ const entries=[...sums.entries()]
+  .map(([id,value])=>({
+   name:allUnits.find(u=>u.id===id)?.name||"Unidade",
+   value
+  }))
+  .filter(x=>x.value>0)
+  .sort((a,b)=>b.value-a.value);
+
+ ovCostChartInstance=new Chart($("ovCostChart"),{
+  type:"bar",
+  data:{
+   labels:entries.map(x=>x.name),
+   datasets:[{label:"Custo RDI",data:entries.map(x=>x.value)}]
+  },
+  options:{
+   indexAxis:"y",
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{x:{beginAtZero:true}}
+  }
+ });
+}
+
+function renderOverviewAttention(data){
+ const box=$("ovAttention");
+ box.replaceChildren();
+
+ const today=new Date();
+ today.setHours(0,0,0,0);
+
+ const overdueRdi=data.openRdi.filter(r=>r.due_date&&new Date(r.due_date+"T00:00:00")<today);
+
+ const alerts=[
+  {
+   count:data.critical.length,
+   text:`RDI crítica(s) em aberto`,
+   cls:"critical"
+  },
+  {
+   count:overdueRdi.length,
+   text:`RDI vencida(s)`,
+   cls:"critical"
+  },
+  {
+   count:data.expiredDocs.length,
+   text:`documento(s) vencido(s)`,
+   cls:"critical"
+  },
+  {
+   count:data.soonDocs.length,
+   text:`documento(s) vencendo em até 30 dias`,
+   cls:""
+  },
+  {
+   count:data.waterOut.length,
+   text:`resultado(s) de qualidade da água fora da faixa`,
+   cls:"critical"
+  }
+ ].filter(x=>x.count>0);
+
+ if(!alerts.length){
+  box.innerHTML='<div class="attention-item ok"><strong>Sem alertas críticos no escopo selecionado.</strong></div>';
+  return;
+ }
+
+ alerts.forEach(a=>{
+  const div=document.createElement("div");
+  div.className=`attention-item ${a.cls}`;
+  div.innerHTML=`<strong>${a.count}</strong> ${escapeHtml(a.text)}`;
+  box.appendChild(div);
+ });
+}
 
 
 /* ============================
