@@ -1,1351 +1,779 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#123b5c">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b5c">
+<title>Central de Gestão Rede Américas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 
-  <title>Central de Gestão Rede Américas</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
-
-  <style>
-    :root{
-      --primary:#123b5c;
-      --primary2:#17679b;
-      --bg:#f2f6fa;
-      --card:#ffffff;
-      --text:#17324c;
-      --muted:#687b8c;
-      --border:#d9e3eb;
-      --danger:#a93333;
-      --success:#18794e;
-      --warning:#a96d00;
-    }
-
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-
-    header{
-      background:var(--primary);
-      color:#fff;
-      padding:22px 18px;
-    }
-
-    header h1{
-      margin:4px 0 6px;
-      font-size:clamp(22px,5vw,34px);
-      line-height:1.1;
-    }
-
-    header small{
-      color:#c5ddec;
-      font-weight:600;
-      letter-spacing:.4px;
-    }
-
-    header p{
-      margin:5px 0 0;
-      color:#d7e7f2;
-    }
-
-    main{
-      width:min(1180px,100%);
-      margin:auto;
-      padding:18px 14px 50px;
-    }
-
-    .hidden{display:none!important}
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:18px;
-      box-shadow:0 3px 14px rgba(18,59,92,.06);
-    }
-
-    .login{
-      max-width:460px;
-      margin:30px auto;
-    }
-
-    h2,h3{
-      margin-top:0;
-    }
-
-    label{
-      display:block;
-      margin:13px 0 5px;
-      font-weight:650;
-      font-size:14px;
-    }
-
-    input,select,textarea,button{
-      width:100%;
-      font:inherit;
-      border-radius:9px;
-    }
-
-    input,select,textarea{
-      padding:12px;
-      border:1px solid #bfd0dc;
-      background:#fff;
-      color:var(--text);
-    }
-
-    textarea{
-      min-height:105px;
-      resize:vertical;
-    }
-
-    button{
-      border:0;
-      padding:12px 15px;
-      cursor:pointer;
-      font-weight:700;
-    }
-
-    button:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
-    .primary{
-      color:white;
-      background:var(--primary2);
-    }
-
-    .secondary{
-      color:var(--primary);
-      background:#e8f1f7;
-    }
-
-    .danger{
-      color:white;
-      background:var(--danger);
-    }
-
-    .ghost{
-      color:var(--primary);
-      background:#fff;
-      border:1px solid var(--border);
-    }
-
-    .toolbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:15px;
-    }
-
-    .toolbar button,
-    .toolbar select{
-      width:auto;
-      min-width:145px;
-    }
-
-    .spacer{
-      flex:1;
-    }
-
-    .modules{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-      gap:11px;
-      margin:16px 0 22px;
-    }
-
-    .module{
-      background:white;
-      border:1px solid var(--border);
-      color:var(--primary);
-      text-align:left;
-      min-height:72px;
-    }
-
-    .module.active{
-      background:var(--primary2);
-      color:#fff;
-    }
-
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-      gap:11px;
-      margin-bottom:20px;
-    }
-
-    .stat strong{
-      display:block;
-      font-size:29px;
-      margin-top:7px;
-      color:var(--primary2);
-    }
-
-    .muted{
-      color:var(--muted);
-    }
-
-    .status{
-      padding:10px 12px;
-      border-radius:8px;
-      margin:12px 0;
-      font-size:14px;
-      display:none;
-    }
-
-    .status.show{display:block}
-    .status.ok{background:#e7f6ee;color:var(--success)}
-    .status.err{background:#fdecec;color:#922}
-    .status.info{background:#eaf3fa;color:#245c7e}
-
-    .section-title{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin:15px 0;
-    }
-
-    .section-title h2{
-      margin:0;
-      flex:1;
-    }
-
-    .section-title button{
-      width:auto;
-    }
-
-    .record-list{
-      display:grid;
-      gap:11px;
-    }
-
-    .record{
-      background:white;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:15px;
-    }
-
-    .record-top{
-      display:flex;
-      gap:8px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-    }
-
-    .record-top h3{
-      margin:0;
-      flex:1;
-    }
-
-    .badge{
-      display:inline-block;
-      padding:5px 9px;
-      border-radius:99px;
-      font-size:12px;
-      font-weight:700;
-      background:#edf3f7;
-    }
-
-    .badge.alta,.badge.critica{
-      color:#942f2f;
-      background:#fdeaea;
-    }
-
-    .badge.media{
-      color:#8b6200;
-      background:#fff4d7;
-    }
-
-    .badge.baixa{
-      color:#237247;
-      background:#e8f6ee;
-    }
-
-    .record-actions{
-      display:flex;
-      gap:7px;
-      flex-wrap:wrap;
-      margin-top:12px;
-    }
-
-    .record-actions button{
-      width:auto;
-      padding:9px 12px;
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-    }
-
-    .full{
-      grid-column:1/-1;
-    }
-
-    dialog{
-      width:min(680px,94vw);
-      border:0;
-      border-radius:15px;
-      padding:0;
-      box-shadow:0 20px 60px rgba(0,0,0,.28);
-    }
-
-    dialog::backdrop{
-      background:rgba(7,27,42,.58);
-    }
-
-    .dialog-body{
-      padding:19px;
-    }
-
-    .dialog-actions{
-      display:flex;
-      gap:9px;
-      margin-top:18px;
-    }
-
-    .dialog-actions button{
-      flex:1;
-    }
-
-    .empty{
-      text-align:center;
-      padding:28px;
-      color:var(--muted);
-      background:#fff;
-      border:1px dashed #bdccd6;
-      border-radius:12px;
-    }
-
-    @media(max-width:650px){
-      .form-grid{
-        grid-template-columns:1fr;
-      }
-
-      .full{
-        grid-column:auto;
-      }
-
-      .toolbar{
-        display:grid;
-        grid-template-columns:1fr;
-      }
-
-      .toolbar button,
-      .toolbar select{
-        width:100%;
-      }
-
-      .spacer{
-        display:none;
-      }
-
-      .section-title{
-        display:grid;
-        grid-template-columns:1fr;
-      }
-
-      .section-title button{
-        width:100%;
-      }
-    }
-  </style>
+<style>
+:root{
+  --primary:#123b5c;--primary2:#17679b;--bg:#f3f6f9;--card:#fff;
+  --text:#17324c;--muted:#66798a;--border:#d8e2e9;
+  --danger:#a63333;--success:#18794e
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--primary);color:#fff;padding:22px 18px}
+header h1{margin:5px 0;font-size:clamp(22px,5vw,34px)}
+header small{color:#c6dcea;font-weight:700}
+main{max-width:1200px;margin:auto;padding:16px 14px 50px}
+.hidden{display:none!important}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:0 3px 12px #123b5c10}
+.login{max-width:450px;margin:30px auto}
+label{display:block;font-weight:700;font-size:13px;margin:11px 0 5px}
+input,select,textarea,button{width:100%;font:inherit;border-radius:9px}
+input,select,textarea{padding:11px;border:1px solid #bdccd7;background:#fff}
+textarea{min-height:90px;resize:vertical}
+button{padding:11px 14px;border:0;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--primary2);color:#fff}
+.secondary{background:#e8f1f7;color:var(--primary)}
+.danger{background:var(--danger);color:#fff}
+.ghost{background:#fff;color:var(--primary);border:1px solid var(--border)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.toolbar select,.toolbar button{width:auto;min-width:150px}
+.spacer{flex:1}
+.muted{color:var(--muted)}
+.status{display:none;margin:12px 0;padding:10px;border-radius:8px}
+.status.show{display:block}
+.status.ok{background:#e8f7ef;color:#17683f}
+.status.err{background:#fdeaea;color:#8f2525}
+.status.info{background:#eaf3fa;color:#245c7e}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:18px}
+.stat strong{display:block;font-size:27px;color:var(--primary2);margin-top:6px}
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin:15px 0 20px}
+.module{text-align:left;background:#fff;border:1px solid var(--border);color:var(--primary)}
+.module.active{background:var(--primary2);color:#fff}
+.section-title{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:15px 0}
+.section-title h2{margin:0;flex:1}
+.section-title button{width:auto}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-bottom:13px}
+.record-list{display:grid;gap:10px}
+.record{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.record-top{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.record-top h3{margin:0;flex:1}
+.badge{padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800;background:#edf2f5}
+.gut-critica{background:#fde5e5;color:#972b2b}
+.gut-alta{background:#ffedd8;color:#9a5600}
+.gut-media{background:#fff4d5;color:#7d6400}
+.gut-baixa{background:#e8f4ea;color:#287044}
+.gut-muito-baixa{background:#e7f2fa;color:#2c6590}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.actions button{width:auto}
+.empty{text-align:center;padding:25px;background:#fff;border:1px dashed #becbd4;border-radius:12px;color:var(--muted)}
+dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
+dialog::backdrop{background:#061b2b99}
+.dialog-body{padding:18px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.full{grid-column:1/-1}
+.gut-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}
+.gut-result{background:#eef5fa;border-radius:9px;padding:11px;font-weight:800;text-align:center}
+.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.photo-preview{display:block;width:100%;max-height:170px;object-fit:cover;border-radius:8px;margin-top:5px}
+.dialog-actions{display:flex;gap:8px;margin-top:18px}
+.dialog-actions button{flex:1}
+hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+@media(max-width:700px){
+ .form-grid,.gut-grid,.photo-grid,.filters{grid-template-columns:1fr}
+ .full{grid-column:auto}
+ .toolbar{display:grid}.toolbar select,.toolbar button{width:100%}
+ .spacer{display:none}.section-title{display:grid}.section-title button{width:100%}
+}
+</style>
 </head>
 
 <body>
-
 <header>
-  <small>GRUPO AMÉRICAS • MANUTENÇÃO HOSPITALAR</small>
-  <h1>Central de Gestão Manutenção Rede Américas</h1>
-  <p id="headerStatus">Acesso controlado</p>
+<small>GRUPO AMÉRICAS • MANUTENÇÃO HOSPITALAR</small>
+<h1>Central de Gestão Manutenção Rede Américas</h1>
+<div id="headerStatus">Acesso controlado</div>
 </header>
 
 <main>
 
-  <!-- LOGIN -->
-  <section id="loginView" class="card login">
-    <h2>Entrar no sistema</h2>
-    <p class="muted">
-      Utilize o usuário cadastrado no ambiente Rede Américas.
-    </p>
+<section id="loginView" class="card login">
+<h2>Entrar no sistema</h2>
+<p class="muted">Acesso restrito aos usuários autorizados.</p>
+<form id="loginForm">
+<label>E-mail</label>
+<input id="email" type="email" required autocomplete="username">
+<label>Senha</label>
+<input id="password" type="password" required autocomplete="current-password">
+<button class="primary" style="margin-top:15px">Entrar</button>
+</form>
+<div id="loginMessage" class="status"></div>
+</section>
 
-    <form id="loginForm">
-      <label for="email">E-mail</label>
-      <input id="email" type="email" autocomplete="username" required>
+<section id="appView" class="hidden">
+<div class="toolbar">
+<select id="unitSelect"><option>Carregando unidades...</option></select>
+<span class="spacer"></span>
+<div><strong id="userName"></strong><div class="muted" id="userRole"></div></div>
+<button id="logoutButton" class="ghost">Sair</button>
+</div>
 
-      <label for="password">Senha</label>
-      <input id="password" type="password" autocomplete="current-password" required>
+<div id="appMessage" class="status"></div>
 
-      <button id="loginButton" class="primary" type="submit" style="margin-top:16px">
-        Entrar
-      </button>
-    </form>
+<div class="stats">
+<div class="card stat"><span>Unidade</span><strong id="unitStat">—</strong></div>
+<div class="card stat"><span>RDI abertas</span><strong id="openCount">0</strong></div>
+<div class="card stat"><span>Críticas</span><strong id="criticalCount">0</strong></div>
+<div class="card stat"><span>Custo conhecido</span><strong id="costTotal">R$ 0</strong></div>
+</div>
 
-    <div id="loginMessage" class="status"></div>
-  </section>
+<h2>Módulos</h2>
+<div class="modules">
+<button class="module active">RDI</button>
+<button class="module" disabled>Qualidade da Água</button>
+<button class="module" disabled>Neovero</button>
+<button class="module" disabled>Relatórios</button>
+<button class="module" disabled>Documentos</button>
+<button class="module" disabled>Inventário</button>
+<button class="module" disabled>Treinamentos</button>
+<button class="module" disabled>Organograma</button>
+<button class="module" disabled>Matriz de Comunicação</button>
+</div>
 
+<div class="section-title">
+<div>
+<h2>RDI — Gestão de Criticidade</h2>
+<div id="rdiSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+<button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
+</div>
 
-  <!-- APP -->
-  <section id="appView" class="hidden">
+<div class="filters">
+<input id="searchInput" placeholder="Buscar equipamento, desvio, local...">
+<select id="statusFilter">
+<option value="">Todos os status</option>
+<option>EM ABERTO</option>
+<option>EM COTAÇÃO</option>
+<option>AGUARDANDO APROVAÇÃO</option>
+<option>APROVADA</option>
+<option>EM EXECUÇÃO</option>
+<option>CONCLUÍDA</option>
+<option>CANCELADA</option>
+</select>
+<select id="gutFilter">
+<option value="">Todas as criticidades</option>
+<option value="Crítica">Crítica</option>
+<option value="Alta">Alta</option>
+<option value="Média">Média</option>
+<option value="Baixa">Baixa</option>
+<option value="Muito baixa">Muito baixa</option>
+</select>
+</div>
 
-    <div class="toolbar">
-      <select id="unitSelect" aria-label="Unidade">
-        <option value="">Carregando unidades...</option>
-      </select>
-
-      <span class="spacer"></span>
-
-      <div>
-        <strong id="userName">Usuário</strong>
-        <div class="muted" id="userRole"></div>
-      </div>
-
-      <button id="logoutButton" class="ghost" type="button">
-        Sair
-      </button>
-    </div>
-
-    <div id="appMessage" class="status"></div>
-
-    <section class="stats">
-      <div class="card stat">
-        <span>Unidade</span>
-        <strong id="unitStat">—</strong>
-      </div>
-
-      <div class="card stat">
-        <span>RDI cadastradas</span>
-        <strong id="rdiCount">0</strong>
-      </div>
-
-      <div class="card stat">
-        <span>Em aberto</span>
-        <strong id="openCount">0</strong>
-      </div>
-
-      <div class="card stat">
-        <span>Críticas</span>
-        <strong id="criticalCount">0</strong>
-      </div>
-    </section>
-
-    <h2>Módulos</h2>
-
-    <section class="modules">
-      <button class="module active" data-module="rdi">RDI</button>
-      <button class="module" disabled>Qualidade da Água</button>
-      <button class="module" disabled>Neovero</button>
-      <button class="module" disabled>Relatórios</button>
-      <button class="module" disabled>Documentos</button>
-      <button class="module" disabled>Inventário</button>
-      <button class="module" disabled>Treinamentos</button>
-      <button class="module" disabled>Organograma</button>
-      <button class="module" disabled>Matriz de Comunicação</button>
-    </section>
-
-    <!-- RDI -->
-    <section id="rdiView">
-
-      <div class="section-title">
-        <div>
-          <h2>RDI — Registro de Demandas</h2>
-          <span class="muted" id="rdiSubtitle">
-            Selecione uma unidade.
-          </span>
-        </div>
-
-        <button id="newRdiButton" class="primary" type="button" disabled>
-          + Nova RDI
-        </button>
-      </div>
-
-      <div id="rdiList" class="record-list">
-        <div class="empty">
-          Selecione uma unidade para carregar os registros.
-        </div>
-      </div>
-
-    </section>
-
-  </section>
+<div id="rdiList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+</section>
 
 </main>
 
-
-<!-- MODAL RDI -->
 <dialog id="rdiDialog">
-  <div class="dialog-body">
+<div class="dialog-body">
+<h2 id="dialogTitle">Nova demanda RDI</h2>
 
-    <h2 id="dialogTitle">Nova RDI</h2>
+<form id="rdiForm">
+<input id="recordId" type="hidden">
 
-    <form id="rdiForm">
+<div class="form-grid">
 
-      <input id="recordId" type="hidden">
+<div>
+<label>ID de origem</label>
+<input id="sourceId" placeholder="Opcional">
+</div>
 
-      <div class="form-grid">
+<div>
+<label>Oficina</label>
+<input id="workshop">
+</div>
 
-        <div class="full">
-          <label for="rdiTitle">Título / ocorrência</label>
-          <input
-            id="rdiTitle"
-            maxlength="150"
-            required
-            placeholder="Ex.: Vazamento na rede de água gelada"
-          >
-        </div>
+<div class="full">
+<label>Informações do equipamento / instalação</label>
+<textarea id="equipmentInfo"></textarea>
+</div>
 
-        <div>
-          <label for="rdiStatus">Status</label>
-          <select id="rdiStatus" required>
-            <option value="aberto">Aberto</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="aguardando">Aguardando</option>
-            <option value="concluido">Concluído</option>
-          </select>
-        </div>
+<div>
+<label>Local</label>
+<input id="location">
+</div>
 
-        <div>
-          <label for="priority">Prioridade</label>
-          <select id="priority">
-            <option value="baixa">Baixa</option>
-            <option value="media" selected>Média</option>
-            <option value="alta">Alta</option>
-            <option value="critica">Crítica</option>
-          </select>
-        </div>
+<div>
+<label>Data do registro</label>
+<input id="recordedOn" type="date">
+</div>
 
-        <div>
-          <label for="location">Local</label>
-          <input id="location" placeholder="Ex.: CAG / UTI / CME">
-        </div>
+<div class="full">
+<label>Desvio operacional *</label>
+<textarea id="operationalDeviation" required></textarea>
+</div>
 
-        <div>
-          <label for="responsible">Responsável</label>
-          <input id="responsible" placeholder="Responsável pela tratativa">
-        </div>
+<div class="full">
+<label>Possível impacto</label>
+<textarea id="possibleImpact"></textarea>
+</div>
 
-        <div>
-          <label for="dueDate">Prazo</label>
-          <input id="dueDate" type="date">
-        </div>
+<div class="full">
+<label>Ação a ser tomada</label>
+<textarea id="recommendedAction"></textarea>
+</div>
 
-        <div>
-          <label for="estimatedCost">Custo estimado (R$)</label>
-          <input
-            id="estimatedCost"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0,00"
-          >
-        </div>
+<div class="full">
+<h3>GUT</h3>
+<div class="gut-grid">
+<div>
+<label>Gravidade *</label>
+<select id="gravity" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+<div>
+<label>Urgência *</label>
+<select id="urgency" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+<div>
+<label>Tendência *</label>
+<select id="trend" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+<div class="gut-result">
+<div>Pontuação</div>
+<div id="gutScore">1</div>
+<div id="gutClass">Muito baixa</div>
+</div>
+</div>
+</div>
 
-        <div class="full">
-          <label for="description">Descrição</label>
-          <textarea
-            id="description"
-            placeholder="Descreva a ocorrência, condição encontrada e demais informações relevantes."
-          ></textarea>
-        </div>
+<div>
+<label>Classificação de risco original</label>
+<input id="riskClassificationSource">
+</div>
 
-      </div>
+<div>
+<label>Dano</label>
+<input id="damage">
+</div>
 
-      <div class="dialog-actions">
-        <button id="cancelDialog" type="button" class="ghost">
-          Cancelar
-        </button>
+<div>
+<label>Custo estimado (R$)</label>
+<input id="costEstimated" type="number" step="0.01" min="0">
+</div>
 
-        <button id="saveRdiButton" type="submit" class="primary">
-          Salvar
-        </button>
-      </div>
+<div>
+<label>Orçamento</label>
+<input id="budgetReference">
+</div>
 
-    </form>
+<div class="full">
+<label>Parecer técnico</label>
+<textarea id="technicalOpinion"></textarea>
+</div>
 
-  </div>
+<div>
+<label>Status</label>
+<select id="status">
+<option>EM ABERTO</option>
+<option>EM COTAÇÃO</option>
+<option>AGUARDANDO APROVAÇÃO</option>
+<option>APROVADA</option>
+<option>EM EXECUÇÃO</option>
+<option>CONCLUÍDA</option>
+<option>CANCELADA</option>
+</select>
+</div>
+
+<div>
+<label>Data de execução</label>
+<input id="executionDate" type="date">
+</div>
+
+<div>
+<label>Responsável</label>
+<input id="responsible">
+</div>
+
+<div>
+<label>Prazo</label>
+<input id="dueDate" type="date">
+</div>
+
+<div>
+<label>Data de conclusão</label>
+<input id="conclusionDate" type="date">
+</div>
+
+<div>
+<label>Fornecedor</label>
+<input id="supplier">
+</div>
+
+<div>
+<label>Categoria</label>
+<select id="capexOpex">
+<option>Não definido</option>
+<option>CAPEX</option>
+<option>OPEX</option>
+</select>
+</div>
+
+<div>
+<label>Custo aprovado (R$)</label>
+<input id="approvedCost" type="number" step="0.01" min="0">
+</div>
+
+<div>
+<label>Custo realizado (R$)</label>
+<input id="actualCost" type="number" step="0.01" min="0">
+</div>
+
+<div>
+<label>Redundância</label>
+<select id="redundancy">
+<option>não avaliada</option>
+<option>sim</option>
+<option>não</option>
+</select>
+</div>
+
+<div>
+<label>Impacto assistencial</label>
+<select id="careImpact">
+<option>não avaliado</option>
+<option>baixo</option>
+<option>médio</option>
+<option>alto</option>
+</select>
+</div>
+
+<div>
+<label>Prioridade manual</label>
+<input id="manualPriority">
+</div>
+
+<div class="full">
+<label>Justificativa da prioridade manual</label>
+<textarea id="manualPriorityJustification"></textarea>
+</div>
+
+<div class="full">
+<label>Observações de gestão</label>
+<textarea id="managementNotes"></textarea>
+</div>
+
+<div class="full">
+<hr>
+<h3>Fotos da ocorrência</h3>
+<p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+
+<div class="photo-grid">
+<div><label>Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
+<div><label>Foto 2</label><input id="photo2" type="file" accept="image/*"></div>
+<div><label>Foto 3</label><input id="photo3" type="file" accept="image/*"></div>
+<div><label>Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
+</div>
+
+<div id="currentPhotos" class="photo-grid"></div>
+</div>
+
+</div>
+
+<div class="dialog-actions">
+<button id="cancelDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveButton" type="submit" class="primary">Salvar demanda</button>
+</div>
+
+</form>
+</div>
 </dialog>
 
-
 <script>
-  const SUPABASE_URL =
-    "https://ndvfunasairodldltnmi.supabase.co";
+const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
+const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
 
-  const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+ auth:{persistSession:true,autoRefreshToken:true}
+});
 
-  const db = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    }
-  );
+let session=null;
+let profile=null;
+let unitId="";
+let records=[];
+let editingRecord=null;
 
+const $=id=>document.getElementById(id);
 
-  let currentSession = null;
-  let currentProfile = null;
-  let currentUnitId = "";
-  let currentRecords = [];
+function message(el,text,type="info"){
+ el.textContent=text;
+ el.className=text?`status show ${type}`:"status";
+}
 
+function numberOrNull(v){return v===""?null:Number(v)}
+function textOrNull(v){v=v.trim();return v||null}
 
-  const loginView = document.getElementById("loginView");
-  const appView = document.getElementById("appView");
+function gutClass(score){
+ if(score>=80)return "Crítica";
+ if(score>=60)return "Alta";
+ if(score>=40)return "Média";
+ if(score>=20)return "Baixa";
+ return "Muito baixa";
+}
 
-  const loginForm = document.getElementById("loginForm");
-  const loginButton = document.getElementById("loginButton");
-  const loginMessage = document.getElementById("loginMessage");
+function gutClassCss(c){
+ return "gut-"+c.toLowerCase().replaceAll(" ","-").replace("í","i");
+}
 
-  const unitSelect = document.getElementById("unitSelect");
-  const userName = document.getElementById("userName");
-  const userRole = document.getElementById("userRole");
+function updateGut(){
+ const score=Number($("gravity").value)*Number($("urgency").value)*Number($("trend").value);
+ $("gutScore").textContent=score;
+ $("gutClass").textContent=gutClass(score);
+}
 
-  const appMessage = document.getElementById("appMessage");
+["gravity","urgency","trend"].forEach(x=>$(x).addEventListener("change",updateGut));
 
-  const unitStat = document.getElementById("unitStat");
-  const rdiCount = document.getElementById("rdiCount");
-  const openCount = document.getElementById("openCount");
-  const criticalCount = document.getElementById("criticalCount");
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ message($("loginMessage"),"Entrando...","info");
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim(),
+  password:$("password").value
+ });
+ if(error){message($("loginMessage"),"E-mail ou senha inválidos.","err");return}
+ session=data.session;
+ await enterApp();
+});
 
-  const newRdiButton = document.getElementById("newRdiButton");
-  const rdiList = document.getElementById("rdiList");
-  const rdiSubtitle = document.getElementById("rdiSubtitle");
+$("logoutButton").onclick=async()=>{
+ await db.auth.signOut();
+ location.reload();
+};
 
-  const rdiDialog = document.getElementById("rdiDialog");
-  const rdiForm = document.getElementById("rdiForm");
+async function start(){
+ const {data}=await db.auth.getSession();
+ session=data.session;
+ if(session)await enterApp();
+}
 
-  const recordId = document.getElementById("recordId");
-  const rdiTitle = document.getElementById("rdiTitle");
-  const rdiStatus = document.getElementById("rdiStatus");
-  const priority = document.getElementById("priority");
-  const locationInput = document.getElementById("location");
-  const responsible = document.getElementById("responsible");
-  const dueDate = document.getElementById("dueDate");
-  const estimatedCost = document.getElementById("estimatedCost");
-  const description = document.getElementById("description");
+async function enterApp(){
+ $("loginView").classList.add("hidden");
+ $("appView").classList.remove("hidden");
+ $("headerStatus").textContent="Ambiente autenticado";
 
+ const {data,error}=await db.from("profiles")
+ .select("display_name,role,active")
+ .eq("user_id",session.user.id).single();
 
+ if(error||!data?.active){
+  message($("appMessage"),"Perfil sem autorização.","err");
+  return;
+ }
 
-  function setMessage(element, text, type = "info") {
-    element.textContent = text;
-    element.className = `status show ${type}`;
+ profile=data;
+ $("userName").textContent=data.display_name||session.user.email;
+ $("userRole").textContent=data.role==="admin"?"Administrador Geral":"Usuário";
+ await loadUnits();
+}
 
-    if (!text) {
-      element.className = "status";
-    }
+async function loadUnits(){
+ const {data,error}=await db.from("units").select("id,name").eq("active",true).order("name");
+ if(error){message($("appMessage"),"Falha ao carregar unidades.","err");return}
+ $("unitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
+ data.forEach(u=>{
+  const o=document.createElement("option");
+  o.value=u.id;o.textContent=u.name;$("unitSelect").appendChild(o);
+ });
+}
+
+$("unitSelect").onchange=async()=>{
+ unitId=$("unitSelect").value;
+ const opt=$("unitSelect").options[$("unitSelect").selectedIndex];
+ $("unitStat").textContent=unitId?opt.textContent:"—";
+ $("rdiSubtitle").textContent=unitId?opt.textContent:"Selecione uma unidade.";
+ $("newRdiButton").disabled=!unitId;
+ if(unitId)await loadRdi();
+};
+
+async function loadRdi(){
+ $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data,error}=await db.from("rdi_demands")
+ .select("*").eq("unit_id",unitId).eq("archived",false)
+ .order("gut_score",{ascending:false})
+ .order("recorded_on",{ascending:true});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar RDI.","err");
+  return;
+ }
+
+ records=data||[];
+ renderRecords();
+ updateStats();
+}
+
+function updateStats(){
+ const open=records.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
+ $("openCount").textContent=open.length;
+ $("criticalCount").textContent=open.filter(r=>gutClass(r.gut_score)==="Crítica").length;
+ const total=open.reduce((s,r)=>s+(r.cost_estimated==null?0:Number(r.cost_estimated)),0);
+ $("costTotal").textContent=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
+function filteredRecords(){
+ const q=$("searchInput").value.toLowerCase();
+ const sf=$("statusFilter").value;
+ const gf=$("gutFilter").value;
+
+ return records.filter(r=>{
+  const text=[r.source_id,r.workshop,r.equipment_info,r.location,r.operational_deviation,r.recommended_action]
+  .filter(Boolean).join(" ").toLowerCase();
+
+  return(!q||text.includes(q))&&(!sf||r.status===sf)&&(!gf||gutClass(r.gut_score)===gf);
+ });
+}
+
+["searchInput","statusFilter","gutFilter"].forEach(id=>{
+ $(id).addEventListener(id==="searchInput"?"input":"change",renderRecords);
+});
+
+function renderRecords(){
+ const list=$("rdiList");
+ list.replaceChildren();
+ const data=filteredRecords();
+
+ if(!data.length){
+  list.innerHTML='<div class="empty">Nenhuma demanda encontrada.</div>';
+  return;
+ }
+
+ data.forEach(r=>{
+  const c=gutClass(r.gut_score);
+  const el=document.createElement("article");
+  el.className="record";
+
+  const cost=r.cost_estimated==null?"Não informado":Number(r.cost_estimated).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+  el.innerHTML=`
+   <div class="record-top">
+    <h3>${escapeHtml(r.source_id||"RDI")} — ${escapeHtml(r.location||"Local não informado")}</h3>
+    <span class="badge ${gutClassCss(c)}">${c} • GUT ${r.gut_score}</span>
+   </div>
+   <p><strong>${escapeHtml(r.operational_deviation)}</strong></p>
+   <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
+   <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
+   <div class="actions">
+    <button class="secondary editBtn">Editar</button>
+    <button class="danger deleteBtn">Excluir</button>
+   </div>
+  `;
+
+  el.querySelector(".editBtn").onclick=()=>openEdit(r);
+  el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
+  list.appendChild(el);
+ });
+}
+
+function escapeHtml(v){
+ const d=document.createElement("div");
+ d.textContent=String(v??"");
+ return d.innerHTML;
+}
+
+$("newRdiButton").onclick=()=>{
+ editingRecord=null;
+ $("rdiForm").reset();
+ $("recordId").value="";
+ $("gravity").value="1";$("urgency").value="1";$("trend").value="1";
+ $("status").value="EM ABERTO";
+ $("capexOpex").value="Não definido";
+ $("redundancy").value="não avaliada";
+ $("careImpact").value="não avaliado";
+ $("currentPhotos").replaceChildren();
+ $("dialogTitle").textContent="Nova demanda RDI";
+ updateGut();
+ $("rdiDialog").showModal();
+};
+
+function openEdit(r){
+ editingRecord=r;
+ $("recordId").value=r.id;
+ $("sourceId").value=r.source_id||"";
+ $("workshop").value=r.workshop||"";
+ $("equipmentInfo").value=r.equipment_info||"";
+ $("location").value=r.location||"";
+ $("operationalDeviation").value=r.operational_deviation||"";
+ $("possibleImpact").value=r.possible_impact||"";
+ $("recommendedAction").value=r.recommended_action||"";
+ $("gravity").value=r.gravity;
+ $("urgency").value=r.urgency;
+ $("trend").value=r.trend;
+ $("riskClassificationSource").value=r.risk_classification_source||"";
+ $("damage").value=r.damage||"";
+ $("recordedOn").value=r.recorded_on||"";
+ $("costEstimated").value=r.cost_estimated??"";
+ $("budgetReference").value=r.budget_reference||"";
+ $("technicalOpinion").value=r.technical_opinion||"";
+ $("status").value=r.status;
+ $("executionDate").value=r.execution_date||"";
+ $("responsible").value=r.responsible||"";
+ $("dueDate").value=r.due_date||"";
+ $("conclusionDate").value=r.conclusion_date||"";
+ $("supplier").value=r.supplier||"";
+ $("capexOpex").value=r.capex_opex||"Não definido";
+ $("approvedCost").value=r.approved_cost??"";
+ $("actualCost").value=r.actual_cost??"";
+ $("managementNotes").value=r.management_notes||"";
+ $("redundancy").value=r.redundancy||"não avaliada";
+ $("careImpact").value=r.care_impact||"não avaliado";
+ $("manualPriority").value=r.manual_priority||"";
+ $("manualPriorityJustification").value=r.manual_priority_justification||"";
+ $("dialogTitle").textContent="Editar demanda RDI";
+ updateGut();
+ showExistingPhotos(r);
+ $("rdiDialog").showModal();
+}
+
+async function showExistingPhotos(r){
+ const box=$("currentPhotos");box.replaceChildren();
+ const paths=[r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4].filter(Boolean);
+
+ for(const path of paths){
+  const {data}=await db.storage.from("rdi-photos").createSignedUrl(path,600);
+  if(!data?.signedUrl)continue;
+  const img=document.createElement("img");
+  img.src=data.signedUrl;img.className="photo-preview";
+  box.appendChild(img);
+ }
+}
+
+$("cancelDialog").onclick=()=>$("rdiDialog").close();
+
+async function uploadPhotos(demandId){
+ const paths=[];
+ for(let i=1;i<=4;i++){
+  const input=$("photo"+i);
+  const file=input.files[0];
+  if(!file){
+   paths.push(editingRecord?.["source_image_"+i]||null);
+   continue;
   }
 
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
 
-  function escapeText(value) {
-    return String(value ?? "");
-  }
-
-
-  async function start() {
-
-    const { data, error } = await db.auth.getSession();
-
-    if (error) {
-      console.error(error);
-    }
-
-    currentSession = data?.session ?? null;
-
-    if (currentSession) {
-      await enterApplication();
-    } else {
-      showLogin();
-    }
-  }
-
-
-  function showLogin() {
-    loginView.classList.remove("hidden");
-    appView.classList.add("hidden");
-
-    document.getElementById("headerStatus").textContent =
-      "Acesso controlado";
-  }
-
-
-  function showApplication() {
-    loginView.classList.add("hidden");
-    appView.classList.remove("hidden");
-
-    document.getElementById("headerStatus").textContent =
-      "Ambiente autenticado";
-  }
-
-
-
-  loginForm.addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    setMessage(loginMessage, "Entrando...", "info");
-
-    loginButton.disabled = true;
-
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
-    const { data, error } =
-      await db.auth.signInWithPassword({
-        email,
-        password
-      });
-
-    loginButton.disabled = false;
-
-    if (error) {
-      console.error(error);
-
-      setMessage(
-        loginMessage,
-        "Não foi possível entrar. Verifique o e-mail e a senha.",
-        "err"
-      );
-
-      return;
-    }
-
-    currentSession = data.session;
-
-    setMessage(loginMessage, "");
-
-    await enterApplication();
+  const {error}=await db.storage.from("rdi-photos").upload(path,file,{
+   cacheControl:"3600",upsert:false
   });
 
+  if(error)throw error;
+  paths.push(path);
+ }
+ return paths;
+}
 
+$("rdiForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const btn=$("saveButton");
+ btn.disabled=true;btn.textContent="Salvando...";
 
-  document
-    .getElementById("logoutButton")
-    .addEventListener("click", async () => {
+ try{
+  const payload={
+   source_id:textOrNull($("sourceId").value),
+   unit_id:unitId,
+   workshop:textOrNull($("workshop").value),
+   equipment_info:textOrNull($("equipmentInfo").value),
+   location:textOrNull($("location").value),
+   operational_deviation:$("operationalDeviation").value.trim(),
+   possible_impact:textOrNull($("possibleImpact").value),
+   recommended_action:textOrNull($("recommendedAction").value),
+   gravity:Number($("gravity").value),
+   urgency:Number($("urgency").value),
+   trend:Number($("trend").value),
+   risk_classification_source:textOrNull($("riskClassificationSource").value),
+   damage:textOrNull($("damage").value),
+   recorded_on:$("recordedOn").value||null,
+   cost_estimated:numberOrNull($("costEstimated").value),
+   budget_reference:textOrNull($("budgetReference").value),
+   technical_opinion:textOrNull($("technicalOpinion").value),
+   status:$("status").value,
+   execution_date:$("executionDate").value||null,
+   responsible:textOrNull($("responsible").value),
+   due_date:$("dueDate").value||null,
+   conclusion_date:$("conclusionDate").value||null,
+   supplier:textOrNull($("supplier").value),
+   capex_opex:$("capexOpex").value,
+   approved_cost:numberOrNull($("approvedCost").value),
+   actual_cost:numberOrNull($("actualCost").value),
+   management_notes:textOrNull($("managementNotes").value),
+   redundancy:$("redundancy").value,
+   care_impact:$("careImpact").value,
+   manual_priority:textOrNull($("manualPriority").value),
+   manual_priority_justification:textOrNull($("manualPriorityJustification").value),
+   created_by:session.user.id,
+   updated_by:session.user.id
+  };
 
-      await db.auth.signOut();
+  let id=$("recordId").value;
 
-      currentSession = null;
-      currentProfile = null;
-      currentUnitId = "";
-      currentRecords = [];
-
-      showLogin();
-    });
-
-
-
-  async function enterApplication() {
-
-    showApplication();
-
-    setMessage(appMessage, "Carregando seu acesso...", "info");
-
-    const userId = currentSession.user.id;
-
-    const { data: profile, error: profileError } =
-      await db
-        .from("profiles")
-        .select("user_id, display_name, role, active")
-        .eq("user_id", userId)
-        .single();
-
-    if (profileError || !profile) {
-
-      console.error(profileError);
-
-      setMessage(
-        appMessage,
-        "Seu usuário não possui perfil autorizado no sistema.",
-        "err"
-      );
-
-      return;
-    }
-
-    if (!profile.active) {
-
-      setMessage(
-        appMessage,
-        "Seu acesso está desativado. Procure o administrador.",
-        "err"
-      );
-
-      return;
-    }
-
-    currentProfile = profile;
-
-    userName.textContent =
-      profile.display_name || currentSession.user.email;
-
-    userRole.textContent =
-      profile.role === "admin"
-        ? "Administrador Geral"
-        : "Usuário";
-
-    await loadUnits();
-
-    setMessage(appMessage, "");
+  if(id){
+   const {error}=await db.from("rdi_demands").update(payload).eq("id",id);
+   if(error)throw error;
+  }else{
+   const {data,error}=await db.from("rdi_demands").insert(payload).select("id").single();
+   if(error)throw error;
+   id=data.id;
   }
 
-
-
-  async function loadUnits() {
-
-    unitSelect.innerHTML =
-      '<option value="">Carregando...</option>';
-
-    const { data, error } =
-      await db
-        .from("units")
-        .select("id, name")
-        .eq("active", true)
-        .order("name");
-
-    if (error) {
-
-      console.error(error);
-
-      unitSelect.innerHTML =
-        '<option value="">Erro ao carregar</option>';
-
-      setMessage(
-        appMessage,
-        "Não foi possível carregar as unidades autorizadas.",
-        "err"
-      );
-
-      return;
-    }
-
-    unitSelect.innerHTML =
-      '<option value="">Selecione uma unidade</option>';
-
-    for (const unit of data) {
-
-      const option = document.createElement("option");
-
-      option.value = unit.id;
-      option.textContent = unit.name;
-
-      unitSelect.appendChild(option);
-    }
-
-    if (data.length === 1) {
-
-      unitSelect.value = data[0].id;
-
-      await selectUnit();
-    }
-  }
-
-
-
-  unitSelect.addEventListener("change", selectUnit);
-
-
-  async function selectUnit() {
-
-    currentUnitId = unitSelect.value;
-
-    const selected =
-      unitSelect.options[unitSelect.selectedIndex];
-
-    if (!currentUnitId) {
-
-      unitStat.textContent = "—";
-
-      newRdiButton.disabled = true;
-
-      rdiSubtitle.textContent =
-        "Selecione uma unidade.";
-
-      rdiList.innerHTML =
-        '<div class="empty">Selecione uma unidade para carregar os registros.</div>';
-
-      updateStats([]);
-
-      return;
-    }
-
-    unitStat.textContent = selected.textContent;
-
-    rdiSubtitle.textContent =
-      selected.textContent;
-
-    newRdiButton.disabled = false;
-
-    await loadRdi();
-  }
-
-
-
-  async function loadRdi() {
-
-    rdiList.innerHTML =
-      '<div class="empty">Carregando registros...</div>';
-
-    const { data, error } =
-      await db
-        .from("records")
-        .select(
-          "id, unit_id, module, category, title, status, data, created_at, updated_at"
-        )
-        .eq("unit_id", currentUnitId)
-        .eq("module", "rdi")
-        .order("created_at", { ascending: false });
-
-    if (error) {
-
-      console.error(error);
-
-      rdiList.innerHTML =
-        '<div class="empty">Não foi possível carregar os registros.</div>';
-
-      setMessage(
-        appMessage,
-        "Falha ao consultar as RDI desta unidade.",
-        "err"
-      );
-
-      return;
-    }
-
-    currentRecords = data || [];
-
-    renderRdi();
-
-    updateStats(currentRecords);
-  }
-
-
-
-  function updateStats(records) {
-
-    rdiCount.textContent =
-      records.length;
-
-    openCount.textContent =
-      records.filter(
-        r => r.status !== "concluido"
-      ).length;
-
-    criticalCount.textContent =
-      records.filter(
-        r => r.data?.priority === "critica"
-      ).length;
-  }
-
-
-
-  function renderRdi() {
-
-    rdiList.replaceChildren();
-
-    if (!currentRecords.length) {
-
-      const empty = document.createElement("div");
-
-      empty.className = "empty";
-      empty.textContent =
-        "Nenhuma RDI cadastrada para esta unidade.";
-
-      rdiList.appendChild(empty);
-
-      return;
-    }
-
-
-    for (const record of currentRecords) {
-
-      const item = document.createElement("article");
-      item.className = "record";
-
-
-      const top = document.createElement("div");
-      top.className = "record-top";
-
-
-      const title = document.createElement("h3");
-      title.textContent = escapeText(record.title);
-
-
-      const badge = document.createElement("span");
-
-      const priorityValue =
-        record.data?.priority || "media";
-
-      badge.className =
-        `badge ${priorityValue}`;
-
-      badge.textContent =
-        priorityLabel(priorityValue);
-
-
-      top.append(title, badge);
-
-
-      const statusLine = document.createElement("p");
-
-      statusLine.innerHTML =
-        `<strong>Status:</strong> ${statusLabel(record.status)}`;
-
-
-      const details = document.createElement("p");
-      details.className = "muted";
-
-      const location =
-        record.data?.location || "Local não informado";
-
-      const responsibleName =
-        record.data?.responsible || "Responsável não informado";
-
-      details.textContent =
-        `${location} • ${responsibleName}`;
-
-
-      const desc = document.createElement("p");
-
-      desc.textContent =
-        record.data?.description || "";
-
-
-      const actions = document.createElement("div");
-      actions.className = "record-actions";
-
-
-      const edit = document.createElement("button");
-
-      edit.className = "secondary";
-      edit.textContent = "Editar";
-
-      edit.addEventListener(
-        "click",
-        () => openEditDialog(record)
-      );
-
-
-      const remove = document.createElement("button");
-
-      remove.className = "danger";
-      remove.textContent = "Excluir";
-
-      remove.addEventListener(
-        "click",
-        () => deleteRdi(record)
-      );
-
-
-      actions.append(edit, remove);
-
-      item.append(
-        top,
-        statusLine,
-        details,
-        desc,
-        actions
-      );
-
-      rdiList.appendChild(item);
-    }
-  }
-
-
-
-  function priorityLabel(value) {
-
-    const labels = {
-      baixa: "Baixa",
-      media: "Média",
-      alta: "Alta",
-      critica: "Crítica"
-    };
-
-    return labels[value] || value;
-  }
-
-
-  function statusLabel(value) {
-
-    const labels = {
-      aberto: "Aberto",
-      em_andamento: "Em andamento",
-      aguardando: "Aguardando",
-      concluido: "Concluído"
-    };
-
-    return labels[value] || value || "—";
-  }
-
-
-
-  newRdiButton.addEventListener(
-    "click",
-    openNewDialog
-  );
-
-
-  function openNewDialog() {
-
-    rdiForm.reset();
-
-    recordId.value = "";
-
-    rdiStatus.value = "aberto";
-    priority.value = "media";
-
-    document.getElementById("dialogTitle")
-      .textContent = "Nova RDI";
-
-    rdiDialog.showModal();
-  }
-
-
-
-  function openEditDialog(record) {
-
-    recordId.value =
-      record.id;
-
-    rdiTitle.value =
-      record.title || "";
-
-    rdiStatus.value =
-      record.status || "aberto";
-
-    priority.value =
-      record.data?.priority || "media";
-
-    locationInput.value =
-      record.data?.location || "";
-
-    responsible.value =
-      record.data?.responsible || "";
-
-    dueDate.value =
-      record.data?.due_date || "";
-
-    estimatedCost.value =
-      record.data?.estimated_cost ?? "";
-
-    description.value =
-      record.data?.description || "";
-
-    document.getElementById("dialogTitle")
-      .textContent = "Editar RDI";
-
-    rdiDialog.showModal();
-  }
-
-
-
-  document
-    .getElementById("cancelDialog")
-    .addEventListener("click", () => {
-      rdiDialog.close();
-    });
-
-
-
-  rdiForm.addEventListener(
-    "submit",
-    async (event) => {
-
-      event.preventDefault();
-
-      if (!currentUnitId) {
-        return;
-      }
-
-      const saveButton =
-        document.getElementById("saveRdiButton");
-
-      saveButton.disabled = true;
-      saveButton.textContent = "Salvando...";
-
-
-      const payloadData = {
-
-        priority:
-          priority.value,
-
-        location:
-          locationInput.value.trim(),
-
-        responsible:
-          responsible.value.trim(),
-
-        due_date:
-          dueDate.value || null,
-
-        estimated_cost:
-          estimatedCost.value
-            ? Number(estimatedCost.value)
-            : null,
-
-        description:
-          description.value.trim()
-      };
-
-
-      let result;
-
-
-      if (recordId.value) {
-
-        result =
-          await db
-            .from("records")
-            .update({
-              title:
-                rdiTitle.value.trim(),
-
-              status:
-                rdiStatus.value,
-
-              category:
-                "demanda",
-
-              data:
-                payloadData
-            })
-            .eq("id", recordId.value);
-
-      } else {
-
-        result =
-          await db
-            .from("records")
-            .insert({
-              unit_id:
-                currentUnitId,
-
-              module:
-                "rdi",
-
-              category:
-                "demanda",
-
-              title:
-                rdiTitle.value.trim(),
-
-              status:
-                rdiStatus.value,
-
-              data:
-                payloadData,
-
-              created_by:
-                currentSession.user.id
-            });
-      }
-
-
-      saveButton.disabled = false;
-      saveButton.textContent = "Salvar";
-
-
-      if (result.error) {
-
-        console.error(result.error);
-
-        setMessage(
-          appMessage,
-          "Não foi possível salvar a RDI. Verifique sua permissão.",
-          "err"
-        );
-
-        return;
-      }
-
-
-      rdiDialog.close();
-
-      setMessage(
-        appMessage,
-        "RDI salva com sucesso.",
-        "ok"
-      );
-
-      await loadRdi();
-    }
-  );
-
-
-
-  async function deleteRdi(record) {
-
-    const confirmed =
-      window.confirm(
-        `Excluir definitivamente a RDI "${record.title}"?`
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-
-    const { error } =
-      await db
-        .from("records")
-        .delete()
-        .eq("id", record.id);
-
-
-    if (error) {
-
-      console.error(error);
-
-      setMessage(
-        appMessage,
-        "Não foi possível excluir. Verifique sua permissão.",
-        "err"
-      );
-
-      return;
-    }
-
-
-    setMessage(
-      appMessage,
-      "RDI excluída.",
-      "ok"
-    );
-
-    await loadRdi();
-  }
-
-
-
-  db.auth.onAuthStateChange(
-    async (event, session) => {
-
-      currentSession = session;
-
-      if (event === "SIGNED_OUT") {
-        showLogin();
-      }
-    }
-  );
-
-
-  start();
+  const photos=await uploadPhotos(id);
+
+  const {error:photoError}=await db.from("rdi_demands").update({
+   source_image_1:photos[0],
+   source_image_2:photos[1],
+   source_image_3:photos[2],
+   source_image_4:photos[3],
+   updated_by:session.user.id
+  }).eq("id",id);
+
+  if(photoError)throw photoError;
+
+  $("rdiDialog").close();
+  message($("appMessage"),"Demanda salva com sucesso.","ok");
+  await loadRdi();
+
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível salvar a demanda. Verifique os campos e permissões.","err");
+ }finally{
+  btn.disabled=false;btn.textContent="Salvar demanda";
+ }
+});
+
+async function deleteRecord(r){
+ if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
+
+ const photos=[r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4].filter(Boolean);
+
+ const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+ if(error){
+  message($("appMessage"),"Falha ao excluir a demanda.","err");return;
+ }
+
+ if(photos.length){
+  await db.storage.from("rdi-photos").remove(photos);
+ }
+
+ message($("appMessage"),"Demanda excluída.","ok");
+ await loadRdi();
+}
+
+start();
 </script>
-
 </body>
 </html>
