@@ -2014,7 +2014,7 @@ $("accessUserForm").addEventListener("submit",async e=>{
   let userId=$("accessUserId").value;
 
   if(!userId){
-   const {data,error}=await db.functions.invoke("admin-invite-user",{
+   const {data,error}=await db.functions.invoke("admin-invite-user-v2",{
     body:{
      email,
      display_name,
