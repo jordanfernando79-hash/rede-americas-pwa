@@ -71,6 +71,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .unit-checks{box-shadow:none;padding:12px;display:grid;gap:8px}
 .unit-check-row{display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
 .unit-check-row input{width:auto}
+
+.org-chart{display:grid;gap:14px}
+.org-level{display:grid;gap:8px}
+.org-level-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.org-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.org-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.org-card strong{display:block;font-size:17px;margin-bottom:4px}
+.org-group-card{background:#eef5fa;border:1px solid #c7dce9;border-radius:14px;padding:16px}
+.org-group-card h3{margin:0 0 10px}
+
 dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
 dialog::backdrop{background:#061b2b99}
 .dialog-body{padding:18px}
@@ -149,7 +159,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="moduleDocuments" class="module">Documentos</button>
 <button class="module" disabled>Inventário</button>
 <button class="module" disabled>Treinamentos</button>
-<button class="module" disabled>Organograma</button>
+<button id="moduleOrg" class="module">Organograma</button>
 <button id="moduleCommunication" class="module">Matriz de Comunicação</button>
 </div>
 
@@ -255,6 +265,23 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <div id="employeeList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+
+<!-- ORGANOGRAMA -->
+<div id="orgModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Organograma</h2>
+<div id="orgSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+</div>
+
+<div id="orgContent">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
@@ -623,6 +650,25 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+<div>
+<label>Posição no organograma</label>
+<select id="employeeOrgRole">
+<option value="">Não definido</option>
+<option>Líder</option>
+<option>Eletromecânico V</option>
+<option>Eletromecânico IV</option>
+<option>Eletromecânico III</option>
+<option>Oficial</option>
+<option>Ajudante</option>
+</select>
+</div>
+
+<div>
+<label>Grupo</label>
+<input id="employeeOrgGroup" placeholder="Ex.: Equipe volante">
+</div>
+
+
 <div class="full">
 <label>Unidade(s) *</label>
 <div id="employeeUnits" class="card unit-checks"></div>
@@ -780,6 +826,7 @@ $("unitSelect").onchange=async()=>{
  $("rdiSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
  $("documentSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
  $("communicationSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
+ $("orgSubtitle").textContent=unitId?unitName:"Selecione uma unidade.";
 
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
@@ -796,8 +843,10 @@ $("unitSelect").onchange=async()=>{
   await loadRdi();
  }else if(currentModule==="documents"){
   await loadDocuments();
- }else{
+ }else if(currentModule==="communication"){
   await loadEmployees();
+ }else{
+  await loadOrganogram();
  }
 };
 
@@ -809,14 +858,17 @@ function switchModule(name){
  const isRdi=name==="rdi";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
+ const isOrg=name==="org";
 
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
+ $("orgModuleView").classList.toggle("hidden",!isOrg);
 
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
+ $("moduleOrg").classList.toggle("active",isOrg);
 
  if(!unitId){
   return;
@@ -826,14 +878,17 @@ function switchModule(name){
   loadRdi();
  }else if(isDocuments){
   loadDocuments();
- }else{
+ }else if(isCommunication){
   loadEmployees();
+ }else{
+  loadOrganogram();
  }
 }
 
 $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
+$("moduleOrg").onclick=()=>switchModule("org");
 
 /* ============================
    RDI
@@ -1608,6 +1663,7 @@ function renderEmployees(){
    </p>
    <p><strong>Adicional:</strong> ${escapeHtml(e.additional_info||"—")}</p>
    <p><strong>Centro de custo:</strong> ${escapeHtml(e.cost_center||"—")}</p>
+   <p><strong>Organograma:</strong> ${escapeHtml(e.org_role||"—")} • <strong>Grupo:</strong> ${escapeHtml(e.org_group||"—")}</p>
    <p><strong>Unidade(s):</strong> ${escapeHtml(employeeUnitNames(e.unit_ids)||"—")}</p>
    <div class="actions">
     <button class="secondary editEmployee">Editar</button>
@@ -1649,6 +1705,8 @@ $("newEmployeeButton").onclick=()=>{
  $("employeeForm").reset();
  $("employeeId").value="";
  $("employeeStatus").value="ativo";
+ $("employeeOrgRole").value="";
+ $("employeeOrgGroup").value="";
 
  renderEmployeeUnitChecks(unitId?[unitId]:[]);
 
@@ -1671,6 +1729,8 @@ function openEmployeeEdit(e){
  $("employeeNumber").value=e.employee_number||"";
  $("employeeCostCenter").value=e.cost_center||"";
  $("employeeStatus").value=e.status||"ativo";
+ $("employeeOrgRole").value=e.org_role||"";
+ $("employeeOrgGroup").value=e.org_group||"";
 
  renderEmployeeUnitChecks(e.unit_ids||[]);
 
@@ -1708,6 +1768,8 @@ $("employeeForm").addEventListener("submit",async e=>{
    employee_number:textOrNull($("employeeNumber").value),
    cost_center:textOrNull($("employeeCostCenter").value),
    status:$("employeeStatus").value,
+   org_role:$("employeeOrgRole").value||null,
+   org_group:textOrNull($("employeeOrgGroup").value),
    updated_by:session.user.id
   };
 
@@ -1802,6 +1864,196 @@ async function deleteEmployee(e){
  message($("appMessage"),"Profissional excluído.","ok");
  await loadEmployees();
 }
+
+
+/* ============================
+   ORGANOGRAMA
+============================ */
+
+const ORG_ORDER=[
+ "Líder",
+ "Eletromecânico V",
+ "Eletromecânico IV",
+ "Eletromecânico III",
+ "Oficial",
+ "Ajudante"
+];
+
+async function loadOrganogram(){
+ const box=$("orgContent");
+ box.innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data:links,error:linkError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .eq("unit_id",unitId);
+
+ if(linkError){
+  console.error(linkError);
+  message($("appMessage"),"Falha ao carregar vínculos do organograma.","err");
+  return;
+ }
+
+ const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
+ if(!ids.length){
+  box.innerHTML='<div class="empty">Nenhum profissional vinculado a esta unidade.</div>';
+  return;
+ }
+
+ const {data,error}=await db
+  .from("employees")
+  .select("*")
+  .in("id",ids)
+  .eq("status","ativo")
+  .order("full_name");
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar organograma.","err");
+  return;
+ }
+
+ const {data:allLinks,error:allLinksError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .in("employee_id",ids);
+
+ if(allLinksError){
+  console.error(allLinksError);
+  message($("appMessage"),"Falha ao carregar unidades do organograma.","err");
+  return;
+ }
+
+ const enriched=(data||[]).map(emp=>({
+  ...emp,
+  unit_ids:(allLinks||[])
+   .filter(link=>link.employee_id===emp.id)
+   .map(link=>link.unit_id)
+ }));
+
+ renderOrganogram(enriched);
+}
+
+function renderOrganogram(data){
+ const box=$("orgContent");
+ box.replaceChildren();
+
+ if(!data.length){
+  box.innerHTML='<div class="empty">Nenhum profissional ativo nesta unidade.</div>';
+  return;
+ }
+
+ const groups=new Map();
+
+ data.forEach(e=>{
+  const group=(e.org_group||"").trim();
+  if(!group)return;
+  if(!groups.has(group))groups.set(group,[]);
+  groups.get(group).push(e);
+ });
+
+ const groupedIds=new Set(
+  [...groups.values()].flat().map(e=>e.id)
+ );
+
+ const normal=data.filter(e=>!groupedIds.has(e.id));
+
+ if(normal.length){
+  const chart=document.createElement("div");
+  chart.className="org-chart";
+
+  ORG_ORDER.forEach(role=>{
+   const people=normal.filter(e=>e.org_role===role);
+   if(!people.length)return;
+
+   const level=document.createElement("section");
+   level.className="org-level";
+
+   const title=document.createElement("div");
+   title.className="org-level-title";
+   title.textContent=role;
+
+   const row=document.createElement("div");
+   row.className="org-row";
+
+   people.forEach(e=>{
+    const card=document.createElement("div");
+    card.className="org-card";
+    card.innerHTML=`
+     <strong>${escapeHtml(e.full_name)}</strong>
+     <div>${escapeHtml(e.job_title||role)}</div>
+     <div class="muted">${escapeHtml(e.shift||"")} ${e.day_night?"• "+escapeHtml(e.day_night):""}</div>
+    `;
+    row.appendChild(card);
+   });
+
+   level.appendChild(title);
+   level.appendChild(row);
+   chart.appendChild(level);
+  });
+
+  const undefinedPeople=normal.filter(e=>!e.org_role);
+  if(undefinedPeople.length){
+   const level=document.createElement("section");
+   level.className="org-level";
+
+   const title=document.createElement("div");
+   title.className="org-level-title";
+   title.textContent="Sem posição definida";
+
+   const row=document.createElement("div");
+   row.className="org-row";
+
+   undefinedPeople.forEach(e=>{
+    const card=document.createElement("div");
+    card.className="org-card";
+    card.innerHTML=`
+     <strong>${escapeHtml(e.full_name)}</strong>
+     <div>${escapeHtml(e.job_title||"Função não informada")}</div>
+    `;
+    row.appendChild(card);
+   });
+
+   level.appendChild(title);
+   level.appendChild(row);
+   chart.appendChild(level);
+  }
+
+  box.appendChild(chart);
+ }
+
+ for(const [group,people] of groups){
+  const section=document.createElement("section");
+  section.className="org-group-card";
+
+  const title=document.createElement("h3");
+  title.textContent=group;
+
+  const row=document.createElement("div");
+  row.className="org-row";
+
+  people.forEach(e=>{
+   const card=document.createElement("div");
+   card.className="org-card";
+   card.innerHTML=`
+    <strong>${escapeHtml(e.full_name)}</strong>
+    <div>${escapeHtml(e.org_role||e.job_title||"Função não informada")}</div>
+    <div class="muted">${escapeHtml(employeeUnitNames(e.unit_ids||[]))}</div>
+   `;
+   row.appendChild(card);
+  });
+
+  section.appendChild(title);
+  section.appendChild(row);
+  box.appendChild(section);
+ }
+
+ if(!box.children.length){
+  box.innerHTML='<div class="empty">Defina a posição no organograma dos profissionais na Matriz de Comunicação.</div>';
+ }
+}
+
 
 /* INÍCIO */
 
