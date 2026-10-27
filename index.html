@@ -420,28 +420,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <section id="loginView" class="card login">
 <h2>Entrar no sistema</h2>
-<p class="muted">Acesso restrito aos usuários autorizados.</p>
+<p class="muted">Informe seu e-mail cadastrado para receber um link de acesso.</p>
 <form id="loginForm">
 <label>E-mail</label>
-<input id="email" type="email" required autocomplete="username">
-<label>Senha</label>
-<input id="password" type="password" required autocomplete="current-password">
-<button class="primary" style="margin-top:15px">Entrar</button>
+<input id="email" type="email" required autocomplete="email">
+<button id="magicLinkButton" class="primary" style="margin-top:15px">Enviar link de acesso</button>
 </form>
 <div id="loginMessage" class="status"></div>
-</section>
-
-<section id="resetPasswordView" class="card login hidden">
-<h2>Definir nova senha</h2>
-<p class="muted">Crie uma nova senha para acessar a Central de Gestão Rede Américas.</p>
-<form id="resetPasswordForm">
-<label>Nova senha</label>
-<input id="newPassword" type="password" required minlength="8" autocomplete="new-password">
-<label>Confirmar nova senha</label>
-<input id="confirmNewPassword" type="password" required minlength="8" autocomplete="new-password">
-<button id="saveNewPasswordButton" class="primary" style="margin-top:15px">Salvar nova senha</button>
-</form>
-<div id="resetPasswordMessage" class="status"></div>
 </section>
 
 <section id="appView" class="hidden">
@@ -1452,20 +1437,39 @@ function escapeHtml(v){
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
- message($("loginMessage"),"Entrando...","info");
+ const email=$("email").value.trim().toLowerCase();
+ const btn=$("magicLinkButton");
 
- const {data,error}=await db.auth.signInWithPassword({
-  email:$("email").value.trim(),
-  password:$("password").value
+ message($("loginMessage"),"Enviando link de acesso...","info");
+ btn.disabled=true;
+ btn.textContent="Enviando...";
+
+ const {error}=await db.auth.signInWithOtp({
+  email,
+  options:{
+   shouldCreateUser:false,
+   emailRedirectTo:"https://rede-americas-pwa.pages.dev"
+  }
  });
 
  if(error){
-  message($("loginMessage"),"E-mail ou senha inválidos.","err");
+  console.error(error);
+  const msg=(error.message||"").toLowerCase();
+
+  if(msg.includes("rate limit")){
+   message($("loginMessage"),"Limite temporário de envio de e-mails atingido. Tente novamente mais tarde.","err");
+  }else{
+   message($("loginMessage"),"Não foi possível enviar o link. Confirme se este e-mail está cadastrado e autorizado.","err");
+  }
+
+  btn.disabled=false;
+  btn.textContent="Enviar link de acesso";
   return;
  }
 
- session=data.session;
- await enterApp();
+ message($("loginMessage"),"Link enviado. Verifique seu e-mail e clique para acessar.","ok");
+ btn.disabled=false;
+ btn.textContent="Reenviar link de acesso";
 });
 
 $("logoutButton").onclick=async()=>{
@@ -1473,93 +1477,25 @@ $("logoutButton").onclick=async()=>{
  location.reload();
 };
 
-let recoveryMode=false;
-
-function showResetPasswordView(){
- recoveryMode=true;
- $("loginView").classList.add("hidden");
- $("appView").classList.add("hidden");
- $("resetPasswordView").classList.remove("hidden");
- $("headerStatus").textContent="Definição de nova senha";
-}
-
-$("resetPasswordForm").addEventListener("submit",async e=>{
- e.preventDefault();
-
- const password=$("newPassword").value;
- const confirm=$("confirmNewPassword").value;
-
- if(password.length<8){
-  message($("resetPasswordMessage"),"A senha deve ter pelo menos 8 caracteres.","err");
-  return;
- }
-
- if(password!==confirm){
-  message($("resetPasswordMessage"),"As senhas não coincidem.","err");
-  return;
- }
-
- const btn=$("saveNewPasswordButton");
- btn.disabled=true;
- btn.textContent="Salvando...";
-
- const {error}=await db.auth.updateUser({password});
-
- if(error){
-  console.error(error);
-  message($("resetPasswordMessage"),"Não foi possível salvar a nova senha.","err");
-  btn.disabled=false;
-  btn.textContent="Salvar nova senha";
-  return;
- }
-
- message($("resetPasswordMessage"),"Senha criada com sucesso. Entrando no sistema...","ok");
-
- const {data}=await db.auth.getSession();
- session=data.session;
- recoveryMode=false;
-
- setTimeout(async()=>{
-  $("resetPasswordView").classList.add("hidden");
-  if(session)await enterApp();
-  else{
-   $("loginView").classList.remove("hidden");
-   $("headerStatus").textContent="Acesso controlado";
-  }
- },500);
-});
-
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
 
- if(event==="PASSWORD_RECOVERY"){
-  showResetPasswordView();
+ if((event==="SIGNED_IN"||event==="INITIAL_SESSION")&&newSession){
+  await enterApp();
  }
 });
 
 async function start(){
- const hash=new URLSearchParams(window.location.hash.replace(/^#/,""));
- const query=new URLSearchParams(window.location.search);
- const type=hash.get("type")||query.get("type");
-
- if(type==="recovery"){
-  const {data}=await db.auth.getSession();
-  session=data.session;
-  showResetPasswordView();
-  return;
- }
-
  const {data}=await db.auth.getSession();
  session=data.session;
 
- if(session&&!recoveryMode){
+ if(session){
   await enterApp();
  }
 }
 
 async function enterApp(){
  $("loginView").classList.add("hidden");
- $("resetPasswordView").classList.add("hidden");
  $("appView").classList.remove("hidden");
  $("headerStatus").textContent="Ambiente autenticado";
 
