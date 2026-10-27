@@ -4516,10 +4516,41 @@ async function loadOrganogram(){
   return;
  }
 
+ let orgPeople=data||[];
+
+ // Inclui líderes/superiores compartilhados que não estejam
+ // diretamente vinculados à unidade selecionada.
+ const localIds=new Set(orgPeople.map(e=>e.id));
+ const missingSupervisorIds=[...new Set(
+  orgPeople
+   .map(e=>e.supervisor_id)
+   .filter(id=>id&&!localIds.has(id))
+ )];
+
+ if(missingSupervisorIds.length){
+  const {data:supervisors,error:supervisorError}=await db
+   .from("employees")
+   .select("*")
+   .in("id",missingSupervisorIds)
+   .eq("status","ativo");
+
+  if(supervisorError){
+   console.warn("Não foi possível carregar líderes compartilhados.",supervisorError);
+  }else{
+   const sharedLeaders=(supervisors||[]).filter(e=>{
+    const role=(e.org_role||"").trim().toLowerCase();
+    return role==="líder"||role==="lider";
+   });
+   orgPeople=[...sharedLeaders,...orgPeople];
+  }
+ }
+
+ const orgIds=[...new Set(orgPeople.map(e=>e.id))];
+
  const {data:allLinks,error:allLinksError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
-  .in("employee_id",ids);
+  .in("employee_id",orgIds);
 
  if(allLinksError){
   console.error(allLinksError);
@@ -4527,7 +4558,7 @@ async function loadOrganogram(){
   return;
  }
 
- const enriched=(data||[]).map(emp=>({
+ const enriched=orgPeople.map(emp=>({
   ...emp,
   unit_ids:(allLinks||[])
    .filter(link=>link.employee_id===emp.id)
