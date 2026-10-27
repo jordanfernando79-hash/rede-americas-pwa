@@ -53,6 +53,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-bottom:13px}
 .record-list{display:grid;gap:10px}
 .record{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.rdi-card-layout{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
+.rdi-card-photo{width:150px;height:115px;border-radius:11px;object-fit:cover;border:1px solid var(--border);background:#eef3f6}
+.rdi-card-photo-wrap{min-height:115px}
+@media(max-width:700px){
+ .rdi-card-layout{grid-template-columns:1fr}
+ .rdi-card-photo{width:100%;height:190px}
+}
 .record-top{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
 .record-top h3{margin:0;flex:1}
 .badge{padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800;background:#edf2f5}
@@ -3477,21 +3484,42 @@ function renderRecords(){
   el.className="record";
 
   el.innerHTML=`
-   <div class="record-top">
-    <h3>${escapeHtml(r.source_id||"RDI")} — ${escapeHtml(r.location||"Local não informado")}</h3>
-    <span class="badge ${gutClassCss(c)}">${c} • GUT ${r.gut_score}</span>
-   </div>
-   <p><strong>${escapeHtml(r.operational_deviation)}</strong></p>
-   <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
-   <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
-   <div class="actions">
-    <button class="secondary editBtn">Editar</button>
-    <button class="danger deleteBtn">Excluir</button>
+   <div class="rdi-card-layout">
+    <div class="rdi-card-photo-wrap"></div>
+    <div>
+     <div class="record-top">
+      <h3>${escapeHtml(r.source_id||"RDI")} — ${escapeHtml(r.location||"Local não informado")}</h3>
+      <span class="badge ${gutClassCss(c)}">${c} • GUT ${r.gut_score}</span>
+     </div>
+     <p><strong>${escapeHtml(r.operational_deviation)}</strong></p>
+     <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
+     <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
+     <div class="actions">
+      <button class="secondary editBtn">Editar</button>
+      <button class="danger deleteBtn">Excluir</button>
+     </div>
+    </div>
    </div>
   `;
 
   el.querySelector(".editBtn").onclick=()=>openEdit(r);
   el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
+
+  const photoWrap=el.querySelector(".rdi-card-photo-wrap");
+  const photo2=r.source_image_2||"";
+
+  // Foto 2 = Equipamento/Instalação. Só renderiza quando já estiver
+  // armazenada no bucket interno rdi-photos.
+  if(photo2 && !photo2.startsWith("Demandas Reforma_Images/")){
+   db.storage.from("rdi-photos").createSignedUrl(photo2,600).then(({data})=>{
+    if(!data?.signedUrl)return;
+    const img=document.createElement("img");
+    img.src=data.signedUrl;
+    img.alt="Equipamento ou instalação";
+    img.className="rdi-card-photo";
+    photoWrap.replaceChildren(img);
+   });
+  }
 
   list.appendChild(el);
  });
@@ -3560,21 +3588,41 @@ async function showExistingPhotos(r){
  const box=$("currentPhotos");
  box.replaceChildren();
 
+ const labels=[
+  "Foto 1 — Placa de identificação",
+  "Foto 2 — Equipamento ou instalação",
+  "Foto 3 — Detalhe do problema 1",
+  "Foto 4 — Detalhe do problema 2"
+ ];
+
  const paths=[
   r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
- ].filter(Boolean);
+ ];
 
- for(const path of paths){
+ for(let i=0;i<paths.length;i++){
+  const path=paths[i];
+  if(!path || path.startsWith("Demandas Reforma_Images/"))continue;
+
   const {data}=await db.storage
    .from("rdi-photos")
    .createSignedUrl(path,600);
 
   if(!data?.signedUrl)continue;
 
+  const wrap=document.createElement("div");
+  const title=document.createElement("strong");
+  title.textContent=labels[i];
+  title.style.display="block";
+  title.style.margin="8px 0 5px";
+
   const img=document.createElement("img");
   img.src=data.signedUrl;
   img.className="photo-preview";
-  box.appendChild(img);
+  img.alt=labels[i];
+
+  wrap.appendChild(title);
+  wrap.appendChild(img);
+  box.appendChild(wrap);
  }
 }
 
