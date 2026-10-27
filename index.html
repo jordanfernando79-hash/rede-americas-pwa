@@ -399,6 +399,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .access-unit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
 .access-unit-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-weight:600}
 .access-unit-item input{width:20px;height:20px}
+
+.org-leader-row{display:flex;justify-content:center;margin-bottom:26px;position:relative}
+.org-leader-row:after{content:"";position:absolute;left:50%;bottom:-20px;width:2px;height:20px;background:#b8c9d5}
+.org-team-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start;position:relative;padding-top:18px}
+.org-team-row:before{content:"";position:absolute;top:0;left:12%;right:12%;height:2px;background:#b8c9d5}
+.org-team-row>.org-node-wrap:before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:#b8c9d5}
+
 @media(max-width:700px){
  .permission-head{display:none}
  .permission-row{grid-template-columns:1fr 1fr}
@@ -2075,8 +2082,10 @@ async function loadAccessUsers(){
     </div>
     ${p.role!=="admin"?`
     <div class="actions">
+     <button class="primary sendAccessLink">${p.active?"Enviar link de acesso":"Acesso revogado"}</button>
      <button class="secondary editAccessUser">Editar acesso</button>
      <button class="${p.active?"danger":"primary"} toggleAccessUser">${p.active?"Desativar":"Ativar"}</button>
+     <button class="danger revokeAccessUser">Excluir acesso</button>
     </div>`:""}
    </div>
    ${p.role!=="admin"?`
@@ -2089,8 +2098,17 @@ async function loadAccessUsers(){
   const edit=card.querySelector(".editAccessUser");
   if(edit)edit.onclick=()=>openAccessUserEdit(p,userGrants);
 
+  const sendLink=card.querySelector(".sendAccessLink");
+  if(sendLink){
+   sendLink.disabled=!p.active;
+   sendLink.onclick=()=>sendAccessLink(p,sendLink);
+  }
+
   const toggle=card.querySelector(".toggleAccessUser");
   if(toggle)toggle.onclick=()=>toggleAccessUser(p);
+
+  const revoke=card.querySelector(".revokeAccessUser");
+  if(revoke)revoke.onclick=()=>revokeAccessUser(p);
 
   list.appendChild(card);
  });
@@ -2169,7 +2187,7 @@ $("newAccessUserButton").onclick=()=>{
  $("accessActive").value="true";
  $("accessEmail").disabled=false;
  $("accessUserDialogTitle").textContent="Novo usuário";
- $("saveAccessUser").textContent="Enviar convite";
+ $("saveAccessUser").textContent="Criar e enviar acesso";
  renderAccessUnits([]);
  resetPermissionRows();
  enforceRolePermissions();
@@ -2290,7 +2308,7 @@ $("accessUserForm").addEventListener("submit",async e=>{
   $("accessUserDialog").close();
   message(
    $("appMessage"),
-   editingAccessUser?"Acesso atualizado com sucesso.":"Convite enviado e acesso configurado.",
+   editingAccessUser?"Acesso atualizado com sucesso.":"Usuário criado e link de acesso enviado.",
    "ok"
   );
   await loadAccessUsers();
@@ -2309,6 +2327,65 @@ $("accessUserForm").addEventListener("submit",async e=>{
   btn.textContent=originalText;
  }
 });
+
+async function sendAccessLink(user,button){
+ if(!user?.email||!user?.active)return;
+
+ const original=button.textContent;
+ button.disabled=true;
+ button.textContent="Enviando...";
+
+ try{
+  const {data,error}=await db.functions.invoke("admin-send-access-link",{
+   body:{email:user.email}
+  });
+
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+
+  message($("appMessage"),`Link de acesso enviado para ${user.email}.`,"ok");
+  button.textContent="Reenviar link de acesso";
+ }catch(err){
+  console.error(err);
+  const msg=(err?.message||"").toLowerCase();
+  message(
+   $("appMessage"),
+   msg.includes("rate limit")
+    ?"Limite temporário de envio de e-mails atingido. Tente novamente mais tarde."
+    :"Não foi possível enviar o link de acesso.",
+   "err"
+  );
+  button.textContent=original;
+ }finally{
+  button.disabled=false;
+ }
+}
+
+async function revokeAccessUser(user){
+ if(!confirm(`Excluir o acesso de ${user.display_name}? O usuário será bloqueado imediatamente e perderá todas as permissões.`))return;
+
+ try{
+  const {error:profileError}=await db
+   .from("profiles")
+   .update({active:false})
+   .eq("user_id",user.user_id);
+
+  if(profileError)throw profileError;
+
+  const {error:grantError}=await db
+   .from("access_grants")
+   .delete()
+   .eq("user_id",user.user_id);
+
+  if(grantError)throw grantError;
+
+  message($("appMessage"),`Acesso de ${user.display_name} excluído e revogado.`,"ok");
+  await loadAccessUsers();
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível excluir o acesso do usuário.","err");
+ }
+}
 
 async function toggleAccessUser(user){
  const next=!user.active;
@@ -4536,26 +4613,54 @@ async function renderOrganogram(data){
  );
  const normal=data.filter(e=>!volante.includes(e));
 
- const ids=new Set(normal.map(e=>e.id));
- const bySupervisor=new Map();
-
- normal.forEach(e=>{
-  if(e.supervisor_id&&ids.has(e.supervisor_id)){
-   if(!bySupervisor.has(e.supervisor_id)){
-    bySupervisor.set(e.supervisor_id,[]);
-   }
-   bySupervisor.get(e.supervisor_id).push(e);
-  }
- });
-
- const roots=normal.filter(
-  e=>!e.supervisor_id||!ids.has(e.supervisor_id)
+ const leaders=normal.filter(e=>
+  (e.org_role||"").trim().toLowerCase()==="líder" ||
+  (e.org_role||"").trim().toLowerCase()==="lider"
  );
+ const nonLeaders=normal.filter(e=>!leaders.includes(e));
 
  const tree=document.createElement("div");
  tree.className="org-tree";
 
- if(roots.length){
+ if(leaders.length){
+  const leaderRow=document.createElement("div");
+  leaderRow.className="org-leader-row";
+
+  for(const leader of leaders){
+   const node=await buildOrgNode(leader,new Map());
+   if(node)leaderRow.appendChild(node);
+  }
+  tree.appendChild(leaderRow);
+
+  if(nonLeaders.length){
+   const teamRow=document.createElement("div");
+   teamRow.className="org-team-row";
+
+   const orderMap=new Map(ORG_ORDER.map((role,index)=>[role.toLowerCase(),index]));
+   nonLeaders.sort((a,b)=>{
+    const ar=(a.org_role||a.job_title||"").toLowerCase();
+    const br=(b.org_role||b.job_title||"").toLowerCase();
+    return (orderMap.get(ar)??99)-(orderMap.get(br)??99) || (a.full_name||"").localeCompare(b.full_name||"");
+   });
+
+   for(const person of nonLeaders){
+    const node=await buildOrgNode(person,new Map());
+    if(node)teamRow.appendChild(node);
+   }
+   tree.appendChild(teamRow);
+  }
+ }else{
+  const ids=new Set(normal.map(e=>e.id));
+  const bySupervisor=new Map();
+
+  normal.forEach(e=>{
+   if(e.supervisor_id&&ids.has(e.supervisor_id)){
+    if(!bySupervisor.has(e.supervisor_id))bySupervisor.set(e.supervisor_id,[]);
+    bySupervisor.get(e.supervisor_id).push(e);
+   }
+  });
+
+  const roots=normal.filter(e=>!e.supervisor_id||!ids.has(e.supervisor_id));
   const row=document.createElement("div");
   row.className="org-tree-row";
 
@@ -4563,14 +4668,7 @@ async function renderOrganogram(data){
    const node=await buildOrgNode(root,bySupervisor);
    if(node)row.appendChild(node);
   }
-
   tree.appendChild(row);
- }else if(normal.length){
-  const warning=document.createElement("div");
-  warning.className="empty";
-  warning.textContent=
-   "Não foi possível determinar a raiz da hierarquia. Revise o campo Superior imediato.";
-  tree.appendChild(warning);
  }
 
  box.appendChild(tree);
