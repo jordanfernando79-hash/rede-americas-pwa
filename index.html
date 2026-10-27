@@ -1394,6 +1394,8 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
 
 let session=null;
 let profile=null;
+let enteringApp=false;
+let overviewLoading=false;
 let unitId="";
 let allUnits=[];
 let editingUnit=null;
@@ -1515,6 +1517,9 @@ async function start(){
 }
 
 async function enterApp(){
+ if(enteringApp)return;
+ enteringApp=true;
+
  $("loginView").classList.add("hidden");
  $("appView").classList.remove("hidden");
  $("headerStatus").textContent="Ambiente autenticado";
@@ -1527,6 +1532,7 @@ async function enterApp(){
 
  if(error||!data?.active){
   message($("appMessage"),"Perfil sem autorização.","err");
+  enteringApp=false;
   return;
  }
 
@@ -1541,6 +1547,7 @@ async function enterApp(){
  configureVisibleModules();
  $("newUnitButton").classList.toggle("hidden",profile?.role!=="admin");
  await loadOverview();
+ enteringApp=false;
 }
 
 
@@ -2431,7 +2438,8 @@ function destroyOverviewCharts(){
 $("overviewUnitSelect").addEventListener("change",loadOverview);
 
 async function loadOverview(){
- if(!session||!allUnits.length)return;
+ if(!session||!allUnits.length||overviewLoading)return;
+ overviewLoading=true;
 
  const scope=overviewScopeId();
  const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
@@ -2577,6 +2585,8 @@ async function loadOverview(){
   console.error(err);
   $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar os indicadores disponíveis.</div>';
   message($("appMessage"),"Falha ao carregar a Visão Geral.","err");
+ }finally{
+  overviewLoading=false;
  }
 }
 
