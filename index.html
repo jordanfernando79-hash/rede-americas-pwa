@@ -419,14 +419,18 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <main>
 
 <section id="loginView" class="card login">
-<h2>Entrar no sistema</h2>
-<p class="muted">Informe seu e-mail cadastrado para receber um link de acesso.</p>
+<h2>Administrador</h2>
+<p class="muted">Acesso administrativo com e-mail e senha.</p>
 <form id="loginForm">
 <label>E-mail</label>
-<input id="email" type="email" required autocomplete="email">
-<button id="magicLinkButton" class="primary" style="margin-top:15px">Enviar link de acesso</button>
+<input id="email" type="email" required autocomplete="username">
+<label>Senha</label>
+<input id="password" type="password" required autocomplete="current-password">
+<button id="adminLoginButton" class="primary" style="margin-top:15px">Entrar como administrador</button>
 </form>
 <div id="loginMessage" class="status"></div>
+<hr>
+<p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
 </section>
 
 <section id="appView" class="hidden">
@@ -1437,39 +1441,47 @@ function escapeHtml(v){
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
- const email=$("email").value.trim().toLowerCase();
- const btn=$("magicLinkButton");
-
- message($("loginMessage"),"Enviando link de acesso...","info");
+ const btn=$("adminLoginButton");
  btn.disabled=true;
- btn.textContent="Enviando...";
+ btn.textContent="Entrando...";
+ message($("loginMessage"),"Validando acesso administrativo...","info");
 
- const {error}=await db.auth.signInWithOtp({
-  email,
-  options:{
-   shouldCreateUser:false,
-   emailRedirectTo:"https://rede-americas-pwa.pages.dev"
-  }
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim().toLowerCase(),
+  password:$("password").value
  });
 
- if(error){
-  console.error(error);
-  const msg=(error.message||"").toLowerCase();
-
-  if(msg.includes("rate limit")){
-   message($("loginMessage"),"Limite temporário de envio de e-mails atingido. Tente novamente mais tarde.","err");
-  }else{
-   message($("loginMessage"),"Não foi possível enviar o link. Confirme se este e-mail está cadastrado e autorizado.","err");
-  }
-
+ if(error||!data?.session){
+  message($("loginMessage"),"E-mail ou senha inválidos.","err");
   btn.disabled=false;
-  btn.textContent="Enviar link de acesso";
+  btn.textContent="Entrar como administrador";
   return;
  }
 
- message($("loginMessage"),"Link enviado. Verifique seu e-mail e clique para acessar.","ok");
+ const {data:adminProfile,error:profileError}=await db
+  .from("profiles")
+  .select("role,active")
+  .eq("user_id",data.session.user.id)
+  .single();
+
+ if(profileError||!adminProfile?.active||adminProfile.role!=="admin"){
+  await db.auth.signOut();
+  session=null;
+  message(
+   $("loginMessage"),
+   "Esta tela é exclusiva do Administrador. Equipe e Cliente devem acessar pelo link enviado pelo Administrador.",
+   "err"
+  );
+  btn.disabled=false;
+  btn.textContent="Entrar como administrador";
+  return;
+ }
+
+ session=data.session;
+ await enterApp();
+
  btn.disabled=false;
- btn.textContent="Reenviar link de acesso";
+ btn.textContent="Entrar como administrador";
 });
 
 $("logoutButton").onclick=async()=>{
@@ -1480,8 +1492,9 @@ $("logoutButton").onclick=async()=>{
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
 
- if((event==="SIGNED_IN"||event==="INITIAL_SESSION")&&newSession){
-  await enterApp();
+ if(event==="SIGNED_IN"&&newSession){
+  const appHidden=$("appView").classList.contains("hidden");
+  if(appHidden)await enterApp();
  }
 });
 
@@ -2348,6 +2361,27 @@ async function loadOverview(){
 
  destroyOverviewCharts();
  $("ovAttention").innerHTML='<div class="empty">Carregando indicadores...</div>';
+ message($("appMessage"),"","info");
+
+ const canCommunication=profile?.role==="admin"||hasAccess("comunicacao","view");
+ const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
+ const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
+ const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
+
+ const safe=async(label,enabled,request)=>{
+  if(!enabled)return {data:[],error:null,skipped:true};
+  try{
+   const res=await request;
+   if(res?.error){
+    console.warn("Visão Geral -",label,res.error);
+    return {data:[],error:res.error,skipped:false};
+   }
+   return {data:res?.data||[],error:null,skipped:false};
+  }catch(err){
+   console.warn("Visão Geral -",label,err);
+   return {data:[],error:err,skipped:false};
+  }
+ };
 
  try{
   const [
@@ -2357,16 +2391,21 @@ async function loadOverview(){
    docsRes,
    waterReportsRes
   ]=await Promise.all([
-   db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds),
-   db.from("employees").select("id,job_title,org_role,status"),
-   db.from("rdi_demands").select("id,unit_id,status,gut_score,cost_estimated,approved_cost,actual_cost,due_date,archived").in("unit_id",scopedUnitIds).eq("archived",false),
-   db.from("documents").select("id,unit_id,valid_until").in("unit_id",scopedUnitIds),
-   db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds)
+   safe("vínculos da equipe",canCommunication,
+    db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds)),
+   safe("funcionários",canCommunication,
+    db.from("employees").select("id,job_title,org_role,status")),
+   safe("RDI",canRdi,
+    db.from("rdi_demands").select("id,unit_id,status,gut_score,cost_estimated,approved_cost,actual_cost,due_date,archived").in("unit_id",scopedUnitIds).eq("archived",false)),
+   safe("documentos",canDocuments,
+    db.from("documents").select("id,unit_id,valid_until").in("unit_id",scopedUnitIds)),
+   safe("qualidade da água",canWater,
+    db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds))
   ]);
 
-  const responses=[employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes];
-  const firstError=responses.find(x=>x.error)?.error;
-  if(firstError)throw firstError;
+  let partialErrors=[
+   employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes
+  ].filter(x=>x.error).length;
 
   const employeeLinks=employeeLinksRes.data||[];
   const scopedEmployeeIds=new Set(employeeLinks.map(x=>x.employee_id));
@@ -2378,14 +2417,16 @@ async function loadOverview(){
   let waterResults=[];
   const waterIds=waterReports.map(x=>x.id);
 
-  if(waterIds.length){
-   const {data,error}=await db
-    .from("water_analysis_results")
-    .select("id,report_id,result_value,min_snapshot,max_snapshot")
-    .in("report_id",waterIds);
-
-   if(error)throw error;
-   waterResults=data||[];
+  if(canWater&&waterIds.length){
+   const resultRes=await safe(
+    "resultados da qualidade da água",
+    true,
+    db.from("water_analysis_results")
+      .select("id,report_id,result_value,min_snapshot,max_snapshot")
+      .in("report_id",waterIds)
+   );
+   waterResults=resultRes.data||[];
+   if(resultRes.error)partialErrors++;
   }
 
   const openRdi=rdis.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
@@ -2418,34 +2459,46 @@ async function loadOverview(){
   });
 
   $("ovUnits").textContent=scope?1:scopedUnitIds.length;
-  $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede ativa";
-  $("ovEmployees").textContent=employees.length;
-  $("ovRdiOpen").textContent=openRdi.length;
-  $("ovRdiCritical").textContent=`${critical.length} crítica(s)`;
-  $("ovRdiDone").textContent=doneRdi.length;
-  $("ovRdiRate").textContent=`${completionRate}% de conclusão`;
-  $("ovCostEstimated").textContent=moneyBr(estimated);
-  $("ovCostActual").textContent=moneyBr(actual);
-  $("ovDocuments").textContent=docs.length;
-  $("ovDocsAlert").textContent=`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`;
-  $("ovWaterAnalyses").textContent=waterReports.length;
-  $("ovWaterOut").textContent=`${waterOut.length} resultado(s) fora da faixa`;
+  $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede disponível";
 
-  renderOverviewRdiChart(rdis);
-  renderOverviewEmployeesChart(employees);
-  renderOverviewCostChart(rdis,scopedUnitIds);
+  $("ovEmployees").textContent=canCommunication?employees.length:"—";
+
+  $("ovRdiOpen").textContent=canRdi?openRdi.length:"—";
+  $("ovRdiCritical").textContent=canRdi?`${critical.length} crítica(s)`:"Sem acesso ao módulo";
+  $("ovRdiDone").textContent=canRdi?doneRdi.length:"—";
+  $("ovRdiRate").textContent=canRdi?`${completionRate}% de conclusão`:"Sem acesso ao módulo";
+  $("ovCostEstimated").textContent=canRdi?moneyBr(estimated):"—";
+  $("ovCostActual").textContent=canRdi?moneyBr(actual):"—";
+
+  $("ovDocuments").textContent=canDocuments?docs.length:"—";
+  $("ovDocsAlert").textContent=canDocuments?`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`:"Sem acesso ao módulo";
+
+  $("ovWaterAnalyses").textContent=canWater?waterReports.length:"—";
+  $("ovWaterOut").textContent=canWater?`${waterOut.length} resultado(s) fora da faixa`:"Sem acesso ao módulo";
+
+  renderOverviewRdiChart(canRdi?rdis:[]);
+  renderOverviewEmployeesChart(canCommunication?employees:[]);
+  renderOverviewCostChart(canRdi?rdis:[],scopedUnitIds);
   renderOverviewAttention({
-   critical,
-   openRdi,
-   expiredDocs,
-   soonDocs,
-   waterOut,
-   employees
+   critical:canRdi?critical:[],
+   openRdi:canRdi?openRdi:[],
+   expiredDocs:canDocuments?expiredDocs:[],
+   soonDocs:canDocuments?soonDocs:[],
+   waterOut:canWater?waterOut:[],
+   employees:canCommunication?employees:[]
   });
+
+  if(partialErrors){
+   message(
+    $("appMessage"),
+    "A Visão Geral foi carregada parcialmente. Alguns indicadores não estavam disponíveis para este perfil.",
+    "info"
+   );
+  }
 
  }catch(err){
   console.error(err);
-  $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar a Visão Geral.</div>';
+  $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar os indicadores disponíveis.</div>';
   message($("appMessage"),"Falha ao carregar a Visão Geral.","err");
  }
 }
