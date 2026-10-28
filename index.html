@@ -24,6 +24,22 @@ main{max-width:1200px;margin:auto;padding:16px 14px 50px}
 .hidden{display:none!important}
 .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:0 3px 12px #123b5c10}
 .login{max-width:450px;margin:30px auto}
+.login-link{
+ background:transparent;
+ color:var(--primary2);
+ padding:9px 4px;
+ margin-top:7px;
+ text-decoration:underline;
+ font-weight:700
+}
+.recovery-box{
+ margin-top:14px;
+ padding:14px;
+ border:1px solid var(--border);
+ border-radius:12px;
+ background:#f8fbfd
+}
+.recovery-box h3{margin:0 0 6px}
 label{display:block;font-weight:700;font-size:13px;margin:11px 0 5px}
 input,select,textarea,button{width:100%;font:inherit;border-radius:9px}
 input,select,textarea{padding:11px;border:1px solid #bdccd7;background:#fff;color:var(--text)}
@@ -541,7 +557,21 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <label>Senha</label>
 <input id="password" type="password" required autocomplete="current-password">
 <button id="adminLoginButton" class="primary" style="margin-top:15px">Entrar como administrador</button>
+<button id="forgotPasswordButton" type="button" class="login-link">Esqueci minha senha</button>
 </form>
+
+<div id="recoveryBox" class="recovery-box hidden">
+<h3>Definir nova senha</h3>
+<p class="muted">Informe e confirme sua nova senha de acesso.</p>
+<form id="recoveryForm">
+<label>Nova senha</label>
+<input id="newPassword" type="password" required minlength="8" autocomplete="new-password">
+<label>Confirmar nova senha</label>
+<input id="confirmNewPassword" type="password" required minlength="8" autocomplete="new-password">
+<button id="saveNewPasswordButton" class="primary" style="margin-top:15px">Salvar nova senha</button>
+</form>
+</div>
+
 <div id="loginMessage" class="status"></div>
 <hr>
 <p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
@@ -1729,6 +1759,8 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
 
 let session=null;
 let profile=null;
+let recoveryMode=false;
+const AUTH_REDIRECT_URL="https://rede-americas-pwa.pages.dev/";
 let enteringApp=false;
 let overviewLoading=false;
 let unitId="";
@@ -1794,6 +1826,115 @@ function escapeHtml(v){
 
 /* LOGIN */
 
+function showRecoveryMode(){
+ recoveryMode=true;
+ $("appView").classList.add("hidden");
+ $("loginView").classList.remove("hidden");
+ $("loginForm").classList.add("hidden");
+ $("recoveryBox").classList.remove("hidden");
+ $("headerStatus").textContent="Redefinição segura de senha";
+ message($("loginMessage"),"Crie uma nova senha para concluir a recuperação.","info");
+}
+
+function finishRecoveryMode(){
+ recoveryMode=false;
+ $("recoveryBox").classList.add("hidden");
+ $("loginForm").classList.remove("hidden");
+ $("newPassword").value="";
+ $("confirmNewPassword").value="";
+ $("password").value="";
+ $("headerStatus").textContent="Acesso controlado";
+}
+
+$("forgotPasswordButton").onclick=async()=>{
+ const email=$("email").value.trim().toLowerCase();
+
+ if(!email){
+  message($("loginMessage"),"Informe primeiro o e-mail do administrador.","info");
+  $("email").focus();
+  return;
+ }
+
+ const btn=$("forgotPasswordButton");
+ const original=btn.textContent;
+ btn.disabled=true;
+ btn.textContent="Enviando...";
+
+ try{
+  const {error}=await db.auth.resetPasswordForEmail(email,{
+   redirectTo:AUTH_REDIRECT_URL
+  });
+
+  if(error)throw error;
+
+  message(
+   $("loginMessage"),
+   "Enviamos um link de recuperação para o e-mail informado. Abra o e-mail e toque no link para definir uma nova senha.",
+   "ok"
+  );
+ }catch(err){
+  console.error(err);
+  message(
+   $("loginMessage"),
+   "Não foi possível enviar o link agora. Verifique o e-mail e tente novamente.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent=original;
+ }
+};
+
+$("recoveryForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const password=$("newPassword").value;
+ const confirmPassword=$("confirmNewPassword").value;
+
+ if(password.length<8){
+  message($("loginMessage"),"A nova senha deve ter pelo menos 8 caracteres.","err");
+  return;
+ }
+
+ if(password!==confirmPassword){
+  message($("loginMessage"),"As duas senhas não são iguais.","err");
+  return;
+ }
+
+ const btn=$("saveNewPasswordButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const {error}=await db.auth.updateUser({password});
+  if(error)throw error;
+
+  await db.auth.signOut();
+  session=null;
+  finishRecoveryMode();
+
+  if(history.replaceState){
+   history.replaceState({},document.title,location.pathname);
+  }
+
+  message(
+   $("loginMessage"),
+   "Senha alterada com sucesso. Entre novamente com sua nova senha.",
+   "ok"
+  );
+ }catch(err){
+  console.error(err);
+  message(
+   $("loginMessage"),
+   "Não foi possível alterar a senha. O link pode ter expirado; solicite um novo link.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar nova senha";
+ }
+});
+
 
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -1858,8 +1999,12 @@ $("logoutButton").onclick=async()=>{
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
 
+ if(event==="PASSWORD_RECOVERY"){
+  showRecoveryMode();
+  return;
+ }
 
- if(event==="SIGNED_IN"&&newSession){
+ if(event==="SIGNED_IN"&&newSession&&!recoveryMode){
   const appHidden=$("appView").classList.contains("hidden");
   if(appHidden)await enterApp();
  }
@@ -1867,11 +2012,19 @@ db.auth.onAuthStateChange(async(event,newSession)=>{
 
 
 async function start(){
+ const recoveryInUrl=
+  location.hash.includes("type=recovery") ||
+  location.search.includes("type=recovery");
+
  const {data}=await db.auth.getSession();
  session=data.session;
 
+ if(recoveryInUrl){
+  showRecoveryMode();
+  return;
+ }
 
- if(session){
+ if(session&&!recoveryMode){
   await enterApp();
  }
 }
@@ -5831,4 +5984,103 @@ async function renderOrganogram(data){
   }
  }else{
   const ids=new Set(normal.map(e=>e.id));
-  const by
+  const bySupervisor=new Map();
+
+
+  normal.forEach(e=>{
+   if(e.supervisor_id&&ids.has(e.supervisor_id)){
+    if(!bySupervisor.has(e.supervisor_id))bySupervisor.set(e.supervisor_id,[]);
+    bySupervisor.get(e.supervisor_id).push(e);
+   }
+  });
+
+
+  const roots=normal.filter(e=>!e.supervisor_id||!ids.has(e.supervisor_id));
+  const row=document.createElement("div");
+  row.className="org-tree-row";
+
+
+  for(const root of roots){
+   const node=await buildOrgNode(root,bySupervisor);
+   if(node)row.appendChild(node);
+  }
+  tree.appendChild(row);
+ }
+
+
+ box.appendChild(tree);
+
+
+ if(volante.length){
+  const section=document.createElement("section");
+  section.className="org-group-card";
+
+
+  const title=document.createElement("h3");
+  title.textContent="Equipe volante";
+  section.appendChild(title);
+
+
+  const row=document.createElement("div");
+  row.className="org-row";
+
+
+  for(const e of volante){
+   const card=document.createElement("div");
+   card.className="org-node";
+
+
+   const photoUrl=await signedEmployeePhoto(e.photo_path);
+
+
+   if(photoUrl){
+    const img=document.createElement("img");
+    img.src=photoUrl;
+    img.alt=e.full_name;
+    card.appendChild(img);
+   }else{
+    const ph=document.createElement("div");
+    ph.className="avatar-placeholder";
+    ph.textContent=(e.full_name||"?")
+     .split(/\s+/)
+     .slice(0,2)
+     .map(x=>x[0]||"")
+     .join("")
+     .toUpperCase();
+    card.appendChild(ph);
+   }
+
+
+   const name=document.createElement("strong");
+   name.textContent=e.full_name;
+   card.appendChild(name);
+
+
+   const role=document.createElement("div");
+   role.textContent=e.org_role||e.job_title||"Função não definida";
+   card.appendChild(role);
+
+
+   const units=document.createElement("div");
+   units.className="muted";
+   units.textContent=employeeUnitNames(e.unit_ids||[]);
+   card.appendChild(units);
+
+
+   row.appendChild(card);
+  }
+
+
+  section.appendChild(row);
+  box.appendChild(section);
+ }
+}
+
+
+/* INÍCIO */
+
+
+start();
+</script>
+</body>
+</html>
