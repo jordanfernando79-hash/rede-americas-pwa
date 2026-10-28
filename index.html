@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
+
 <style>
 :root{
   --primary:#123b5c;--primary2:#17679b;--bg:#f3f6f9;--card:#fff;
@@ -80,6 +81,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .unit-check-row{display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
 .unit-check-row input{width:auto}
 
+
 .org-chart{display:grid;gap:14px}
 .org-level{display:grid;gap:8px}
 .org-level-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
@@ -88,6 +90,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .org-card strong{display:block;font-size:17px;margin-bottom:4px}
 .org-group-card{background:#eef5fa;border:1px solid #c7dce9;border-radius:14px;padding:16px}
 .org-group-card h3{margin:0 0 10px}
+
+
 
 
 .employee-photo-preview{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid #e3edf4;margin-top:8px}
@@ -101,6 +105,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .org-children:before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:#b8c9d5}
 .org-node-wrap>.org-children:after{content:"";position:absolute;top:18px;left:12%;right:12%;height:2px;background:#b8c9d5}
 .org-node-wrap>.org-children>.org-node-wrap:before{content:"";position:absolute;top:-6px;left:50%;width:2px;height:12px;background:#b8c9d5}
+
 
 dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
 dialog::backdrop{background:#061b2b99}
@@ -124,6 +129,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .section-title button{width:100%}
  .document-tools{display:grid}
 }
+
 
 .employee-photo-box{
   display:grid;
@@ -157,6 +163,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+
+
 .water-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
 .water-actions button{width:auto}
 .water-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
@@ -177,6 +185,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .water-ref-row,.water-result-row{grid-template-columns:1fr}
  .water-chart-wrap{height:280px}
 }
+
+
 
 
 .water-analysis-params{
@@ -230,6 +240,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+
+
 .overview-filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
 .overview-filter>div{min-width:240px}
 .overview-filter select{min-width:240px}
@@ -253,6 +265,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .overview-filter,.overview-filter>div,.overview-filter select{width:100%;min-width:0}
  .exec-chart{height:250px}
 }
+
+
 
 
 .module-unit-bar{
@@ -390,6 +404,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .unit-summary-line strong{text-align:left}
 }
 
+
 .access-list{display:grid;gap:10px}
 .access-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
 .access-card-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
@@ -407,11 +422,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .access-unit-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-weight:600}
 .access-unit-item input{width:20px;height:20px}
 
+
 .org-leader-row{display:flex;justify-content:center;margin-bottom:26px;position:relative}
 .org-leader-row:after{content:"";position:absolute;left:50%;bottom:-20px;width:2px;height:20px;background:#b8c9d5}
 .org-team-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start;position:relative;padding-top:18px}
 .org-team-row:before{content:"";position:absolute;top:0;left:12%;right:12%;height:2px;background:#b8c9d5}
 .org-team-row>.org-node-wrap:before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:#b8c9d5}
+
 
 @media(max-width:700px){
  .permission-head{display:none}
@@ -420,8 +437,89 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .access-card-head{display:grid}
 }
 
+
+
+
+/* RDI — visão executiva */
+.rdi-exec-grid{
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:10px;
+ margin:4px 0 14px
+}
+.rdi-exec-card{
+ background:#fff;
+ border:1px solid var(--border);
+ border-radius:14px;
+ padding:15px;
+ box-shadow:0 2px 8px #123b5c0d
+}
+.rdi-exec-card span{
+ display:block;
+ color:var(--muted);
+ font-size:13px;
+ font-weight:700
+}
+.rdi-exec-card strong{
+ display:block;
+ font-size:25px;
+ line-height:1.15;
+ color:var(--primary2);
+ margin-top:5px
+}
+.rdi-exec-card small{
+ display:block;
+ color:var(--muted);
+ margin-top:5px
+}
+.rdi-analysis-title{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ align-items:end;
+ margin:18px 0 10px
+}
+.rdi-analysis-title h3{margin:0}
+.rdi-analysis-grid{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;
+ margin-bottom:16px
+}
+.rdi-analysis-panel{
+ background:#fff;
+ border:1px solid var(--border);
+ border-radius:14px;
+ padding:14px;
+ min-width:0
+}
+.rdi-analysis-panel h4{
+ margin:0 0 3px;
+ font-size:15px
+}
+.rdi-analysis-panel .muted{
+ font-size:12px;
+ min-height:34px
+}
+.rdi-chart-wrap{
+ height:230px;
+ position:relative;
+ margin-top:8px
+}
+@media(max-width:900px){
+ .rdi-exec-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .rdi-analysis-grid{grid-template-columns:1fr}
+ .rdi-chart-wrap{height:245px}
+}
+@media(max-width:480px){
+ .rdi-exec-card{padding:13px}
+ .rdi-exec-card strong{font-size:22px}
+}
+
+
 </style>
 </head>
+
 
 <body>
 <header>
@@ -430,7 +528,9 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div id="headerStatus">Acesso controlado</div>
 </header>
 
+
 <main>
+
 
 <section id="loginView" class="card login">
 <h2>Administrador</h2>
@@ -447,7 +547,9 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
 </section>
 
+
 <section id="appView" class="hidden">
+
 
 <div class="toolbar">
 <span class="spacer"></span>
@@ -458,10 +560,14 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="logoutButton" class="ghost">Sair</button>
 </div>
 
+
 <div id="appMessage" class="status"></div>
 
 
+
+
 <h2>Módulos</h2>
+
 
 <div class="modules">
 <button id="moduleOverview" class="module active">Visão Geral</button>
@@ -478,6 +584,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="moduleCommunication" class="module">Matriz de Comunicação</button>
 </div>
 
+
 <div id="moduleUnitBar" class="module-unit-bar hidden">
 <div>
 <label>Unidade deste módulo</label>
@@ -488,8 +595,11 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 
+
+
 <!-- VISÃO GERAL -->
 <div id="overviewModuleView">
+
 
 <div class="section-title">
 <div>
@@ -497,6 +607,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="muted">Resumo executivo da manutenção.</div>
 </div>
 </div>
+
 
 <div class="overview-filter">
 <div>
@@ -506,6 +617,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 </div>
+
 
 <div class="exec-grid">
 <div class="exec-card"><span>Unidades</span><strong id="ovUnits">0</strong><small id="ovUnitsNote">Rede ativa</small></div>
@@ -518,11 +630,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="exec-card"><span>Qualidade da Água</span><strong id="ovWaterAnalyses">0</strong><small id="ovWaterOut">0 resultados fora da faixa</small></div>
 </div>
 
+
 <div class="exec-sections">
 <div class="exec-panel">
 <h3>RDI por status</h3>
 <div class="exec-chart"><canvas id="ovRdiChart"></canvas></div>
 </div>
+
 
 <div class="exec-panel">
 <h3>Efetivo por função</h3>
@@ -530,11 +644,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div class="exec-sections">
 <div class="exec-panel">
 <h3>Custos RDI por unidade</h3>
 <div class="exec-chart"><canvas id="ovCostChart"></canvas></div>
 </div>
+
 
 <div class="exec-panel">
 <h3>Atenções</h3>
@@ -544,11 +660,15 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 </div>
+
+
 
 
 <!-- UNIDADES -->
 <div id="unitsModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -558,15 +678,20 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="newUnitButton" class="primary">+ Nova unidade</button>
 </div>
 
+
 <div id="unitsList" class="units-grid">
 <div class="empty">Carregando unidades...</div>
 </div>
 
+
 </div>
+
+
 
 
 <!-- USUÁRIOS E ACESSOS -->
 <div id="accessModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -576,14 +701,18 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="newAccessUserButton" class="primary">+ Novo usuário</button>
 </div>
 
+
 <div id="accessUsersList" class="access-list">
 <div class="empty">Carregando usuários...</div>
 </div>
 
+
 </div>
+
 
 <!-- RDI -->
 <div id="rdiModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -592,6 +721,60 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 <button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
 </div>
+
+
+<div id="rdiExecutive">
+ <div class="rdi-exec-grid">
+  <div class="rdi-exec-card">
+   <span>Demandas</span>
+   <strong id="rdiKpiTotal">0</strong>
+   <small id="rdiKpiTotalNote">No escopo atual</small>
+  </div>
+  <div class="rdi-exec-card">
+   <span>Críticas</span>
+   <strong id="rdiKpiCritical">0</strong>
+   <small id="rdiKpiCriticalNote">0% das demandas</small>
+  </div>
+  <div class="rdi-exec-card">
+   <span>Valor total orçado</span>
+   <strong id="rdiKpiBudget" style="font-size:21px">R$ 0</strong>
+   <small id="rdiKpiCriticalBudget">Críticas: R$ 0</small>
+  </div>
+  <div class="rdi-exec-card">
+   <span>Valor aprovado</span>
+   <strong id="rdiKpiApproved" style="font-size:21px">R$ 0</strong>
+   <small id="rdiKpiApprovedNote">0 demandas concluídas</small>
+  </div>
+ </div>
+
+
+ <div class="rdi-analysis-title">
+  <div>
+   <h3>Análise executiva</h3>
+   <div class="muted">Indicadores da unidade e dos filtros selecionados.</div>
+  </div>
+ </div>
+
+
+ <div class="rdi-analysis-grid">
+  <div class="rdi-analysis-panel">
+   <h4>Demandas por criticidade</h4>
+   <div class="muted">Distribuição do volume por classificação GUT.</div>
+   <div class="rdi-chart-wrap"><canvas id="rdiCriticalityChart"></canvas></div>
+  </div>
+  <div class="rdi-analysis-panel">
+   <h4>Valor orçado por criticidade</h4>
+   <div class="muted">Concentração financeira das demandas do escopo.</div>
+   <div class="rdi-chart-wrap"><canvas id="rdiBudgetChart"></canvas></div>
+  </div>
+  <div class="rdi-analysis-panel">
+   <h4>Distribuição por status</h4>
+   <div class="muted">Leitura rápida do estágio das demandas.</div>
+   <div class="rdi-chart-wrap"><canvas id="rdiStatusChart"></canvas></div>
+  </div>
+ </div>
+</div>
+
 
 <div class="filters">
 <input id="searchInput" placeholder="Buscar equipamento, desvio, local...">
@@ -615,15 +798,20 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div id="rdiList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
+
 </div>
+
+
 
 
 <!-- QUALIDADE DA ÁGUA -->
 <div id="waterModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -632,10 +820,12 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div class="water-actions">
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
 <button id="waterReferencesButton" class="ghost">Referências</button>
 </div>
+
 
 <div class="filters">
 <select id="waterTypeFilter">
@@ -644,9 +834,11 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <option value="condensada">Água condensada</option>
 </select>
 
+
 <select id="waterParameterFilter">
 <option value="">Selecione um parâmetro</option>
 </select>
+
 
 <select id="waterPeriodFilter">
 <option value="12">Últimos 12 meses</option>
@@ -655,11 +847,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div class="water-kpis">
 <div class="water-kpi"><span>Análises</span><strong id="waterAnalysisCount">0</strong></div>
 <div class="water-kpi"><span>Última análise</span><strong id="waterLastDate" style="font-size:18px">—</strong></div>
 <div class="water-kpi"><span>Resultados fora da faixa</span><strong id="waterOutCount">0</strong></div>
 </div>
+
 
 <div class="water-chart-card">
 <div class="section-title" style="margin-top:0">
@@ -673,15 +867,19 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <h3>Últimas análises</h3>
 <div id="waterAnalysisList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
+
 </div>
+
 
 <!-- DOCUMENTOS -->
 <div id="documentModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -690,6 +888,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 <button id="newDocumentButton" class="primary" disabled>+ Novo documento</button>
 </div>
+
 
 <div class="filters">
 <input id="documentSearch" placeholder="Buscar documento...">
@@ -709,14 +908,18 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div id="documentList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
+
 </div>
+
 
 <!-- MATRIZ DE COMUNICAÇÃO -->
 <div id="communicationModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -725,6 +928,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 <button id="newEmployeeButton" class="primary" disabled>+ Novo profissional</button>
 </div>
+
 
 <div class="filters">
 <input id="employeeSearch" placeholder="Buscar nome, função, matrícula...">
@@ -742,15 +946,20 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div id="employeeList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
+
 </div>
+
+
 
 
 <!-- ORGANOGRAMA -->
 <div id="orgModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -759,14 +968,21 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div id="orgContent">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
+
 </div>
+
 
 </section>
 </main>
+
+
+
+
 
 
 
@@ -776,8 +992,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="dialog-body">
 <h2 id="accessUserDialogTitle">Novo usuário</h2>
 
+
 <form id="accessUserForm">
 <input id="accessUserId" type="hidden">
+
 
 <div class="form-grid">
 <div>
@@ -804,16 +1022,20 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <h3>Unidades permitidas</h3>
 <div id="accessUnits" class="access-unit-grid"></div>
 
+
 <h3>Permissões</h3>
 <p id="clientReadOnlyNotice" class="muted hidden">Perfil Cliente: somente visualização. Inclusão, edição e exclusão ficam bloqueadas.</p>
+
 
 <div class="permission-table">
 <div class="permission-head">
 <div>Módulo</div><div>Ver</div><div>Inserir</div><div>Editar</div><div>Excluir</div>
 </div>
+
 
 <div class="permission-row" data-module="rdi">
 <div class="perm-label">RDI</div>
@@ -823,6 +1045,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <input class="perm-delete" type="checkbox">
 </div>
 
+
 <div class="permission-row" data-module="qualidade_agua">
 <div class="perm-label">Qualidade da Água</div>
 <input class="perm-view" type="checkbox">
@@ -831,6 +1054,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <input class="perm-delete" type="checkbox">
 </div>
 
+
 <div class="permission-row" data-module="documentos">
 <div class="perm-label">Documentos</div>
 <input class="perm-view" type="checkbox">
@@ -838,6 +1062,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <input class="perm-edit" type="checkbox">
 <input class="perm-delete" type="checkbox">
 </div>
+
 
 <div class="permission-row" data-module="comunicacao">
 <div class="perm-label">Matriz / Organograma</div>
@@ -848,6 +1073,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div class="dialog-actions">
 <button id="cancelAccessUser" type="button" class="ghost">Cancelar</button>
 <button id="saveAccessUser" type="submit" class="primary">Enviar convite</button>
@@ -856,16 +1082,20 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </dialog>
 
+
 <!-- MODAL UNIDADE -->
 <dialog id="unitDialog">
 <div class="dialog-body">
 <h2 id="unitDialogTitle">Nova unidade</h2>
 
+
 <form id="unitForm">
 <input id="unitIdField" type="hidden">
 
+
 <label>Nome da unidade *</label>
 <input id="unitNameField" required maxlength="120" placeholder="Ex.: Hospital Pasteur">
+
 
 <div class="dialog-actions">
 <button id="cancelUnitDialog" type="button" class="ghost">Cancelar</button>
@@ -875,12 +1105,14 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </dialog>
 
+
 <!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
 <dialog id="waterManualDialog">
 <div class="dialog-body">
 <h2 id="waterManualDialogTitle">Lançamento manual</h2>
 <form id="waterManualForm">
 <input id="waterReportId" type="hidden">
+
 
 <div class="form-grid">
 <div>
@@ -892,20 +1124,24 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Data da coleta *</label>
 <input id="waterSampleDate" type="date" required>
 </div>
+
 
 <div>
 <label>Data do laudo</label>
 <input id="waterReportDate" type="date">
 </div>
 
+
 <div>
 <label>Laboratório</label>
 <input id="waterLaboratory">
 </div>
+
 
 <div class="full">
 <label>Observações</label>
@@ -913,8 +1149,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <h3>Resultados</h3>
 <div id="waterManualResults" class="water-result-grid"></div>
+
 
 <div class="dialog-actions">
 <button id="cancelWaterManual" type="button" class="ghost">Cancelar</button>
@@ -924,14 +1162,17 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </dialog>
 
+
 <!-- MODAL QUALIDADE DA ÁGUA - REFERÊNCIAS -->
 <dialog id="waterReferencesDialog">
 <div class="dialog-body">
 <h2>Parâmetros de referência</h2>
 <p class="muted">Cadastre apenas os parâmetros realmente acompanhados. Mínimo e máximo podem ficar em branco quando não se aplicarem.</p>
 
+
 <form id="waterReferenceForm">
 <input id="waterReferenceId" type="hidden">
+
 
 <div class="form-grid">
 <div>
@@ -943,20 +1184,24 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Parâmetro *</label>
 <input id="waterReferenceName" required placeholder="Ex.: pH">
 </div>
+
 
 <div>
 <label>Unidade</label>
 <input id="waterReferenceUnit" placeholder="Ex.: mg/L">
 </div>
 
+
 <div>
 <label>Mínimo desejado</label>
 <input id="waterReferenceMin" type="number" step="any">
 </div>
+
 
 <div>
 <label>Máximo desejado</label>
@@ -964,13 +1209,16 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
+
 <div class="dialog-actions">
 <button id="cancelWaterReferenceEdit" type="button" class="ghost">Limpar</button>
 <button id="saveWaterReference" type="submit" class="primary">Salvar parâmetro</button>
 </div>
 </form>
 
+
 <div id="waterReferenceList" class="water-ref-list"></div>
+
 
 <div class="dialog-actions">
 <button id="closeWaterReferences" type="button" class="ghost">Fechar</button>
@@ -978,59 +1226,72 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </dialog>
 
+
 <!-- MODAL RDI -->
 <dialog id="rdiDialog">
 <div class="dialog-body">
 <h2 id="dialogTitle">Nova demanda RDI</h2>
 
+
 <form id="rdiForm">
 <input id="recordId" type="hidden">
 
+
 <div class="form-grid">
+
 
 <div>
 <label>ID de origem</label>
 <input id="sourceId" placeholder="Opcional">
 </div>
 
+
 <div>
 <label>Oficina</label>
 <input id="workshop">
 </div>
+
 
 <div class="full">
 <label>Informações do equipamento / instalação</label>
 <textarea id="equipmentInfo"></textarea>
 </div>
 
+
 <div>
 <label>Local</label>
 <input id="location">
 </div>
+
 
 <div>
 <label>Data do registro</label>
 <input id="recordedOn" type="date">
 </div>
 
+
 <div class="full">
 <label>Desvio operacional *</label>
 <textarea id="operationalDeviation" required></textarea>
 </div>
+
 
 <div class="full">
 <label>Possível impacto</label>
 <textarea id="possibleImpact"></textarea>
 </div>
 
+
 <div class="full">
 <label>Ação a ser tomada</label>
 <textarea id="recommendedAction"></textarea>
 </div>
 
+
 <div class="full">
 <h3>GUT</h3>
 <div class="gut-grid">
+
 
 <div>
 <label>Gravidade *</label>
@@ -1039,12 +1300,14 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Urgência *</label>
 <select id="urgency" required>
 <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
 </select>
 </div>
+
 
 <div>
 <label>Tendência *</label>
@@ -1053,39 +1316,47 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div class="gut-result">
 <div>Pontuação</div>
 <div id="gutScore">1</div>
 <div id="gutClass">Muito baixa</div>
 </div>
 
+
 </div>
 </div>
+
 
 <div>
 <label>Classificação de risco original</label>
 <input id="riskClassificationSource">
 </div>
 
+
 <div>
 <label>Dano</label>
 <input id="damage">
 </div>
+
 
 <div>
 <label>Custo estimado (R$)</label>
 <input id="costEstimated" type="number" step="0.01" min="0">
 </div>
 
+
 <div>
 <label>Orçamento</label>
 <input id="budgetReference">
 </div>
 
+
 <div class="full">
 <label>Parecer técnico</label>
 <textarea id="technicalOpinion"></textarea>
 </div>
+
 
 <div>
 <label>Status</label>
@@ -1100,30 +1371,36 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Data de execução</label>
 <input id="executionDate" type="date">
 </div>
+
 
 <div>
 <label>Responsável</label>
 <input id="responsible">
 </div>
 
+
 <div>
 <label>Prazo</label>
 <input id="dueDate" type="date">
 </div>
+
 
 <div>
 <label>Data de conclusão</label>
 <input id="conclusionDate" type="date">
 </div>
 
+
 <div>
 <label>Fornecedor</label>
 <input id="supplier">
 </div>
+
 
 <div>
 <label>Categoria</label>
@@ -1134,15 +1411,18 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Custo aprovado (R$)</label>
 <input id="approvedCost" type="number" step="0.01" min="0">
 </div>
 
+
 <div>
 <label>Custo realizado (R$)</label>
 <input id="actualCost" type="number" step="0.01" min="0">
 </div>
+
 
 <div>
 <label>Redundância</label>
@@ -1152,6 +1432,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <option>não</option>
 </select>
 </div>
+
 
 <div>
 <label>Impacto assistencial</label>
@@ -1163,25 +1444,30 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Prioridade manual</label>
 <input id="manualPriority">
 </div>
+
 
 <div class="full">
 <label>Justificativa da prioridade manual</label>
 <textarea id="manualPriorityJustification"></textarea>
 </div>
 
+
 <div class="full">
 <label>Observações de gestão</label>
 <textarea id="managementNotes"></textarea>
 </div>
 
+
 <div class="full">
 <hr>
 <h3>Fotos da ocorrência</h3>
 <p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+
 
 <div class="photo-grid">
 <div><label>Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
@@ -1190,29 +1476,37 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div><label>Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
 </div>
 
+
 <div id="currentPhotos" class="photo-grid"></div>
 </div>
 
+
 </div>
+
 
 <div class="dialog-actions">
 <button id="cancelDialog" type="button" class="ghost">Cancelar</button>
 <button id="saveButton" type="submit" class="primary">Salvar demanda</button>
 </div>
 
+
 </form>
 </div>
 </dialog>
+
 
 <!-- MODAL DOCUMENTOS -->
 <dialog id="documentDialog">
 <div class="dialog-body">
 <h2 id="documentDialogTitle">Novo documento</h2>
 
+
 <form id="documentForm">
 <input id="documentId" type="hidden">
 
+
 <div class="form-grid">
+
 
 <div>
 <label>Categoria *</label>
@@ -1227,25 +1521,30 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Título *</label>
 <input id="documentTitle" required>
 </div>
+
 
 <div>
 <label>Data do documento</label>
 <input id="documentDate" type="date">
 </div>
 
+
 <div>
 <label>Validade</label>
 <input id="documentValidUntil" type="date">
 </div>
 
+
 <div class="full">
 <label>Descrição</label>
 <textarea id="documentDescription"></textarea>
 </div>
+
 
 <div class="full">
 <label>Arquivo</label>
@@ -1253,24 +1552,30 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div id="currentDocumentFile" class="muted" style="margin-top:6px"></div>
 </div>
 
+
 </div>
+
 
 <div class="dialog-actions">
 <button id="cancelDocumentDialog" type="button" class="ghost">Cancelar</button>
 <button id="saveDocumentButton" type="submit" class="primary">Salvar documento</button>
 </div>
 
+
 </form>
 </div>
 </dialog>
+
 
 <!-- MODAL MATRIZ DE COMUNICAÇÃO -->
 <dialog id="employeeDialog">
 <div class="dialog-body">
 <h2 id="employeeDialogTitle">Novo profissional</h2>
 
+
 <form id="employeeForm">
 <input id="employeeId" type="hidden">
+
 
 <div class="employee-photo-box">
   <div id="employeePhotoPreview" class="employee-photo-circle">Foto</div>
@@ -1282,27 +1587,33 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
   </div>
 </div>
 
+
 <div class="form-grid">
+
 
 <div class="full">
 <label>Nome *</label>
 <input id="employeeName" required>
 </div>
 
+
 <div>
 <label>Função</label>
 <input id="employeeJobTitle">
 </div>
+
 
 <div>
 <label>Escala</label>
 <input id="employeeScale" placeholder="Ex.: 12x36">
 </div>
 
+
 <div>
 <label>Horário</label>
 <input id="employeeWorkHours" placeholder="Ex.: 07:00 às 19:00">
 </div>
+
 
 <div>
 <label>Turno</label>
@@ -1313,30 +1624,36 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Celular</label>
 <input id="employeePhone" type="tel">
 </div>
+
 
 <div>
 <label>Data de admissão</label>
 <input id="employeeHiredOn" type="date">
 </div>
 
+
 <div>
 <label>Adicional</label>
 <input id="employeeAdditionalInfo" placeholder="Ex.: Periculosidade">
 </div>
+
 
 <div>
 <label>Matrícula</label>
 <input id="employeeNumber">
 </div>
 
+
 <div>
 <label>Centro de custo</label>
 <input id="employeeCostCenter">
 </div>
+
 
 <div>
 <label>Status</label>
@@ -1347,6 +1664,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <option value="desligado">Desligado</option>
 </select>
 </div>
+
 
 <div>
 <label>Posição no organograma</label>
@@ -1361,10 +1679,12 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 </div>
 
+
 <div>
 <label>Grupo</label>
 <input id="employeeOrgGroup" placeholder="Ex.: Equipe volante">
 </div>
+
 
 <div>
 <label>Superior imediato</label>
@@ -1374,30 +1694,38 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 
+
+
 <div class="full">
 <label>Unidade(s) *</label>
 <div id="employeeUnits" class="card unit-checks"></div>
 <p class="muted">O profissional pode pertencer a uma ou mais unidades.</p>
 </div>
 
+
 </div>
+
 
 <div class="dialog-actions">
 <button id="cancelEmployeeDialog" type="button" class="ghost">Cancelar</button>
 <button id="saveEmployeeButton" type="submit" class="primary">Salvar profissional</button>
 </div>
 
+
 </form>
 </div>
 </dialog>
+
 
 <script>
 const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
 
+
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
  auth:{persistSession:true,autoRefreshToken:true}
 });
+
 
 let session=null;
 let profile=null;
@@ -1409,19 +1737,24 @@ let editingUnit=null;
 let accessGrants=[];
 let editingAccessUser=null;
 
+
 let records=[];
 let editingRecord=null;
+
 
 let documents=[];
 let editingDocument=null;
 
+
 let employees=[];
 let editingEmployee=null;
+
 
 let currentModule="overview";
 let ovRdiChartInstance=null;
 let ovEmployeesChartInstance=null;
 let ovCostChartInstance=null;
+
 
 let waterReferences=[];
 let waterReports=[];
@@ -1430,21 +1763,27 @@ let waterChartInstance=null;
 let editingWaterReport=null;
 
 
+
+
 const $=id=>document.getElementById(id);
+
 
 function message(el,text,type="info"){
  el.textContent=text;
  el.className=text?`status show ${type}`:"status";
 }
 
+
 function numberOrNull(v){
  return v===""?null:Number(v);
 }
+
 
 function textOrNull(v){
  v=v.trim();
  return v||null;
 }
+
 
 function escapeHtml(v){
  const d=document.createElement("div");
@@ -1452,20 +1791,25 @@ function escapeHtml(v){
  return d.innerHTML;
 }
 
+
 /* LOGIN */
+
 
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("adminLoginButton");
  btn.disabled=true;
  btn.textContent="Entrando...";
  message($("loginMessage"),"Validando acesso administrativo...","info");
 
+
  const {data,error}=await db.auth.signInWithPassword({
   email:$("email").value.trim().toLowerCase(),
   password:$("password").value
  });
+
 
  if(error||!data?.session){
   message($("loginMessage"),"E-mail ou senha inválidos.","err");
@@ -1474,11 +1818,13 @@ $("loginForm").addEventListener("submit",async e=>{
   return;
  }
 
+
  const {data:adminProfile,error:profileError}=await db
   .from("profiles")
   .select("role,active")
   .eq("user_id",data.session.user.id)
   .single();
+
 
  if(profileError||!adminProfile?.active||adminProfile.role!=="admin"){
   await db.auth.signOut();
@@ -1493,20 +1839,25 @@ $("loginForm").addEventListener("submit",async e=>{
   return;
  }
 
+
  session=data.session;
  await enterApp();
+
 
  btn.disabled=false;
  btn.textContent="Entrar como administrador";
 });
+
 
 $("logoutButton").onclick=async()=>{
  await db.auth.signOut();
  location.reload();
 };
 
+
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
+
 
  if(event==="SIGNED_IN"&&newSession){
   const appHidden=$("appView").classList.contains("hidden");
@@ -1514,22 +1865,27 @@ db.auth.onAuthStateChange(async(event,newSession)=>{
  }
 });
 
+
 async function start(){
  const {data}=await db.auth.getSession();
  session=data.session;
+
 
  if(session){
   await enterApp();
  }
 }
 
+
 async function enterApp(){
  if(enteringApp)return;
  enteringApp=true;
 
+
  $("loginView").classList.add("hidden");
  $("appView").classList.remove("hidden");
  $("headerStatus").textContent="Ambiente autenticado";
+
 
  const {data,error}=await db
   .from("profiles")
@@ -1537,17 +1893,20 @@ async function enterApp(){
   .eq("user_id",session.user.id)
   .single();
 
+
  if(error||!data?.active){
   message($("appMessage"),"Perfil sem autorização.","err");
   enteringApp=false;
   return;
  }
 
+
  profile=data;
  $("userName").textContent=data.display_name||session.user.email;
  $("userRole").textContent=
   data.role==="admin"?"Administrador Geral":
   data.role==="client"?"Cliente":"Equipe";
+
 
  await loadAccessGrantsForCurrentUser();
  await loadUnits();
@@ -1558,7 +1917,10 @@ async function enterApp(){
 }
 
 
+
+
 const ACCESS_MODULES=["rdi","qualidade_agua","documentos","comunicacao"];
+
 
 async function loadAccessGrantsForCurrentUser(){
  if(profile?.role==="admin"){
@@ -1566,10 +1928,12 @@ async function loadAccessGrantsForCurrentUser(){
   return;
  }
 
+
  const {data,error}=await db
   .from("access_grants")
   .select("*")
   .eq("user_id",session.user.id);
+
 
  if(error){
   console.error(error);
@@ -1577,11 +1941,14 @@ async function loadAccessGrantsForCurrentUser(){
   return;
  }
 
+
  accessGrants=data||[];
 }
 
+
 function hasAccess(module,action="view",targetUnit=null){
  if(profile?.role==="admin")return true;
+
 
  const key={
   view:"can_view",
@@ -1590,6 +1957,7 @@ function hasAccess(module,action="view",targetUnit=null){
   delete:"can_delete"
  }[action]||"can_view";
 
+
  return accessGrants.some(g=>
   g.module===module &&
   (targetUnit===null || g.unit_id===targetUnit || g.unit_id===null) &&
@@ -1597,42 +1965,53 @@ function hasAccess(module,action="view",targetUnit=null){
  );
 }
 
+
 function accessibleUnitIds(){
  if(profile?.role==="admin")return allUnits.map(u=>u.id);
  return [...new Set(accessGrants.filter(g=>g.can_view&&g.unit_id).map(g=>g.unit_id))];
 }
 
+
 function configureVisibleModules(){
  const admin=profile?.role==="admin";
 
+
  $("moduleUnits").classList.toggle("hidden",!admin);
  $("moduleAccess").classList.toggle("hidden",!admin);
+
 
  $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
  $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
+
  const communicationVisible=hasAccess("comunicacao","view");
  $("moduleCommunication").classList.toggle("hidden",!communicationVisible);
  $("moduleOrg").classList.toggle("hidden",!communicationVisible);
+
 
  // Visão Geral permanece disponível e respeita o RLS das permissões.
  $("moduleOverview").classList.remove("hidden");
 }
 
+
 function configureActionButtons(){
  if(!unitId)return;
+
 
  $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
  $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
  $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
  $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
 
+
  // Referências de água permanecem administrativas.
  $("waterReferencesButton").classList.toggle("hidden",profile?.role!=="admin");
 }
 
+
 /* UNIDADES */
+
 
 async function loadUnits(){
  const {data,error}=await db
@@ -1641,14 +2020,18 @@ async function loadUnits(){
   .eq("active",true)
   .order("name");
 
+
  if(error){
   message($("appMessage"),"Falha ao carregar unidades.","err");
   return;
  }
 
+
  allUnits=data||[];
 
+
  const selected=unitId;
+
 
  $("moduleUnitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
  allUnits.forEach(u=>{
@@ -1658,6 +2041,7 @@ async function loadUnits(){
   option.selected=u.id===selected;
   $("moduleUnitSelect").appendChild(option);
  });
+
 
  if($("overviewUnitSelect")){
   const overviewSelected=$("overviewUnitSelect").value;
@@ -1671,18 +2055,23 @@ async function loadUnits(){
   });
  }
 
+
  if(unitId&&!allUnits.some(u=>u.id===unitId)){
   unitId="";
  }
 
+
  configureVisibleModules();
 }
+
 
 async function applyModuleUnitSelection(){
  unitId=$("moduleUnitSelect").value;
 
+
  const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
  const unitName=unitId?option.textContent:"Selecione uma unidade.";
+
 
  $("rdiSubtitle").textContent=unitName;
  $("documentSubtitle").textContent=unitName;
@@ -1690,13 +2079,17 @@ async function applyModuleUnitSelection(){
  $("orgSubtitle").textContent=unitName;
  $("waterSubtitle").textContent=unitName;
 
+
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
  $("waterManualButton").disabled=!unitId;
  configureActionButtons();
 
+
  if(!unitId){
+  records=[];
+  if($("rdiExecutive"))renderRdiExecutive([]);
   $("rdiList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
@@ -1704,6 +2097,7 @@ async function applyModuleUnitSelection(){
   $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
  }
+
 
  if(currentModule==="rdi"){
   await loadRdi();
@@ -1718,13 +2112,17 @@ async function applyModuleUnitSelection(){
  }
 }
 
+
 $("moduleUnitSelect").onchange=applyModuleUnitSelection;
 
+
 /* ADMINISTRAÇÃO DE UNIDADES */
+
 
 async function loadUnitsAdmin(){
  const list=$("unitsList");
  list.innerHTML='<div class="empty">Carregando unidades...</div>';
+
 
  const {data,error}=await db
   .from("units")
@@ -1732,20 +2130,25 @@ async function loadUnitsAdmin(){
   .eq("active",true)
   .order("name");
 
+
  if(error){
   console.error(error);
   list.innerHTML='<div class="empty">Não foi possível carregar as unidades.</div>';
   return;
  }
 
+
  list.replaceChildren();
+
 
  if(!data?.length){
   list.innerHTML='<div class="empty">Nenhuma unidade cadastrada.</div>';
   return;
  }
 
+
  const unitIds=data.map(u=>u.id);
+
 
  const [{data:links,error:linksError},{data:staff,error:staffError}]=await Promise.all([
   db.from("employee_units")
@@ -1756,11 +2159,14 @@ async function loadUnitsAdmin(){
    .eq("status","ativo")
  ]);
 
+
  if(linksError)console.error(linksError);
  if(staffError)console.error(staffError);
 
+
  const employeeById=new Map((staff||[]).map(e=>[e.id,e]));
  const summaries=new Map();
+
 
  data.forEach(u=>{
   summaries.set(u.id,{
@@ -1770,31 +2176,40 @@ async function loadUnitsAdmin(){
   });
  });
 
+
  (links||[]).forEach(link=>{
   const employee=employeeById.get(link.employee_id);
   if(!employee)return;
 
+
   const summary=summaries.get(link.unit_id);
   if(!summary)return;
 
+
   summary.totalEmployees++;
+
 
   const role=(employee.org_role||"").trim();
   const job=(employee.job_title||role||"Sem função definida").trim();
+
 
   const roleNormalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
   if(roleNormalized==="lider" && summary.leader==="Não definido"){
    summary.leader=employee.full_name||"Não definido";
   }
 
+
   summary.functions.set(job,(summary.functions.get(job)||0)+1);
  });
+
 
  data.forEach(u=>{
   const card=document.createElement("article");
 
+
   const name=(u.name||"").trim();
   const normalized=name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+
 
   const typeClass=normalized.startsWith("COI")
    ?"unit-coi"
@@ -1802,7 +2217,9 @@ async function loadUnitsAdmin(){
     ?"unit-hospital"
     :"unit-default";
 
+
   card.className=`unit-admin-card ${typeClass}`;
+
 
   const initial=name.charAt(0).toUpperCase()||"U";
   const summary=summaries.get(u.id)||{
@@ -1811,14 +2228,17 @@ async function loadUnitsAdmin(){
    totalEmployees:0
   };
 
+
   const functionEntries=[...summary.functions.entries()]
    .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
+
 
   const functionHtml=functionEntries.length
    ?functionEntries.map(([role,count])=>
       `<span class="unit-function-chip">${escapeHtml(role)}: ${count}</span>`
     ).join("")
    :'<span class="muted">Nenhum funcionário ativo vinculado.</span>';
+
 
   card.innerHTML=`
    <div class="unit-card-top">
@@ -1829,21 +2249,25 @@ async function loadUnitsAdmin(){
     </div>
    </div>
 
+
    <div class="unit-card-summary">
     <div class="unit-summary-line">
      <span>Líder</span>
      <strong>${escapeHtml(summary.leader)}</strong>
     </div>
 
+
     <div class="unit-summary-line">
      <span>Efetivo total</span>
      <strong>${summary.totalEmployees}</strong>
     </div>
 
+
     <div class="unit-function-box">
      <div class="unit-function-title">Funcionários por função</div>
      <div class="unit-function-list">${functionHtml}</div>
     </div>
+
 
     <div class="unit-summary-line">
      <span>Equipamentos</span>
@@ -1851,18 +2275,22 @@ async function loadUnitsAdmin(){
     </div>
    </div>
 
+
    <div class="unit-card-footer">
     <button class="unit-edit-btn editUnit">Editar</button>
     <button class="unit-delete-btn deleteUnit">Excluir</button>
    </div>
   `;
 
+
   card.querySelector(".editUnit").onclick=()=>openUnitEdit(u);
   card.querySelector(".deleteUnit").onclick=()=>deleteUnit(u);
+
 
   list.appendChild(card);
  });
 }
+
 
 $("newUnitButton").onclick=()=>{
  editingUnit=null;
@@ -1872,7 +2300,9 @@ $("newUnitButton").onclick=()=>{
  $("unitDialog").showModal();
 };
 
+
 $("cancelUnitDialog").onclick=()=>$("unitDialog").close();
+
 
 function openUnitEdit(unit){
  editingUnit=unit;
@@ -1882,19 +2312,24 @@ function openUnitEdit(unit){
  $("unitDialog").showModal();
 }
 
+
 $("unitForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
+
  const name=$("unitNameField").value.trim();
  if(!name)return;
+
 
  const btn=$("saveUnitButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
 
+
  try{
   const id=$("unitIdField").value;
   let error;
+
 
   if(id){
    ({error}=await db.from("units").update({name}).eq("id",id));
@@ -1902,13 +2337,16 @@ $("unitForm").addEventListener("submit",async e=>{
    ({error}=await db.from("units").insert({name,active:true}));
   }
 
+
   if(error)throw error;
+
 
   $("unitDialog").close();
   await loadUnits();
   await loadUnitsAdmin();
   await loadOverview();
   message($("appMessage"),"Unidade salva com sucesso.","ok");
+
 
  }catch(err){
   console.error(err);
@@ -1924,6 +2362,7 @@ $("unitForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function countUnitLinks(unitIdToCheck){
  const checks=await Promise.all([
   db.from("rdi_demands").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
@@ -1932,13 +2371,16 @@ async function countUnitLinks(unitIdToCheck){
   db.from("water_analysis_reports").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck)
  ]);
 
+
  const labels=["RDI","documentos","profissionais","análises de água"];
  return checks.map((r,i)=>({label:labels[i],count:r.count||0,error:r.error}))
   .filter(x=>x.count>0);
 }
 
+
 async function deleteUnit(unit){
  const links=await countUnitLinks(unit.id);
+
 
  if(links.length){
   const summary=links.map(x=>`${x.count} ${x.label}`).join(", ");
@@ -1946,9 +2388,12 @@ async function deleteUnit(unit){
   return;
  }
 
+
  if(!confirm(`Excluir definitivamente a unidade "${unit.name}"?`))return;
 
+
  const {error}=await db.from("units").delete().eq("id",unit.id);
+
 
  if(error){
   console.error(error);
@@ -1956,9 +2401,11 @@ async function deleteUnit(unit){
   return;
  }
 
+
  if(unitId===unit.id){
   unitId="";
  }
+
 
  await loadUnits();
  await loadUnitsAdmin();
@@ -1967,10 +2414,14 @@ async function deleteUnit(unit){
 }
 
 
+
+
 /* NAVEGAÇÃO */
+
 
 function switchModule(name){
  currentModule=name;
+
 
  const isOverview=name==="overview";
  const isUnits=name==="units";
@@ -1981,6 +2432,7 @@ function switchModule(name){
  const isOrg=name==="org";
  const isWater=name==="water";
 
+
  $("overviewModuleView").classList.toggle("hidden",!isOverview);
  $("unitsModuleView").classList.toggle("hidden",!isUnits);
  $("accessModuleView").classList.toggle("hidden",!isAccess);
@@ -1989,6 +2441,7 @@ function switchModule(name){
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
  $("waterModuleView").classList.toggle("hidden",!isWater);
+
 
  $("moduleOverview").classList.toggle("active",isOverview);
  $("moduleUnits").classList.toggle("active",isUnits);
@@ -1999,28 +2452,34 @@ function switchModule(name){
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
+
  const needsUnit=!isOverview&&!isUnits&&!isAccess;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
+
 
  if(isOverview){
   loadOverview();
   return;
  }
 
+
  if(isUnits){
   loadUnitsAdmin();
   return;
  }
+
 
  if(isAccess){
   loadAccessUsers();
   return;
  }
 
+
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
  }
+
 
  if(isRdi){
   loadRdi();
@@ -2035,6 +2494,7 @@ function switchModule(name){
  }
 }
 
+
 $("moduleOverview").onclick=()=>switchModule("overview");
 $("moduleUnits").onclick=()=>switchModule("units");
 $("moduleAccess").onclick=()=>switchModule("access");
@@ -2047,24 +2507,33 @@ $("moduleWater").onclick=()=>switchModule("water");
 
 
 
+
+
+
+
 /* ============================
    USUÁRIOS E ACESSOS
 ============================ */
+
 
 function roleLabel(role){
  return role==="admin"?"Administrador":role==="client"?"Cliente":"Equipe";
 }
 
+
 async function loadAccessUsers(){
  if(profile?.role!=="admin")return;
 
+
  const list=$("accessUsersList");
  list.innerHTML='<div class="empty">Carregando usuários...</div>';
+
 
  const [{data:profiles,error:pError},{data:grants,error:gError}]=await Promise.all([
   db.from("profiles").select("user_id,display_name,email,role,active,created_at").order("display_name"),
   db.from("access_grants").select("*")
  ]);
+
 
  if(pError||gError){
   console.error(pError||gError);
@@ -2072,18 +2541,22 @@ async function loadAccessUsers(){
   return;
  }
 
+
  const grantsByUser=new Map();
  (grants||[]).forEach(g=>{
   if(!grantsByUser.has(g.user_id))grantsByUser.set(g.user_id,[]);
   grantsByUser.get(g.user_id).push(g);
  });
 
+
  list.replaceChildren();
+
 
  (profiles||[]).forEach(p=>{
   const userGrants=grantsByUser.get(p.user_id)||[];
   const unitNames=[...new Set(userGrants.map(g=>allUnits.find(u=>u.id===g.unit_id)?.name).filter(Boolean))];
   const modules=[...new Set(userGrants.filter(g=>g.can_view).map(g=>g.module))];
+
 
   const card=document.createElement("article");
   card.className="access-card";
@@ -2109,8 +2582,10 @@ async function loadAccessUsers(){
    }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
   `;
 
+
   const edit=card.querySelector(".editAccessUser");
   if(edit)edit.onclick=()=>openAccessUserEdit(p,userGrants);
+
 
   const sendLink=card.querySelector(".sendAccessLink");
   if(sendLink){
@@ -2118,23 +2593,29 @@ async function loadAccessUsers(){
    sendLink.onclick=()=>sendAccessLink(p,sendLink);
   }
 
+
   const toggle=card.querySelector(".toggleAccessUser");
   if(toggle)toggle.onclick=()=>toggleAccessUser(p);
 
+
   const revoke=card.querySelector(".revokeAccessUser");
   if(revoke)revoke.onclick=()=>revokeAccessUser(p);
+
 
   list.appendChild(card);
  });
 }
 
+
 function renderAccessUnits(selected=[]){
  const box=$("accessUnits");
  box.replaceChildren();
 
+
  allUnits.forEach(u=>{
   const label=document.createElement("label");
   label.className="access-unit-item";
+
 
   const cb=document.createElement("input");
   cb.type="checkbox";
@@ -2142,11 +2623,13 @@ function renderAccessUnits(selected=[]){
   cb.value=u.id;
   cb.checked=selected.includes(u.id);
 
+
   label.appendChild(cb);
   label.appendChild(document.createTextNode(u.name));
   box.appendChild(label);
  });
 }
+
 
 function resetPermissionRows(){
  document.querySelectorAll(".permission-row").forEach(row=>{
@@ -2154,12 +2637,15 @@ function resetPermissionRows(){
  });
 }
 
+
 function applyPermissionTemplate(grants=[]){
  resetPermissionRows();
+
 
  document.querySelectorAll(".permission-row").forEach(row=>{
   const module=row.dataset.module;
   const relevant=grants.filter(g=>g.module===module);
+
 
   row.querySelector(".perm-view").checked=relevant.some(g=>g.can_view);
   row.querySelector(".perm-insert").checked=relevant.some(g=>g.can_insert);
@@ -2168,9 +2654,11 @@ function applyPermissionTemplate(grants=[]){
  });
 }
 
+
 function enforceRolePermissions(){
  const isClient=$("accessRole").value==="client";
  $("clientReadOnlyNotice").classList.toggle("hidden",!isClient);
+
 
  document.querySelectorAll(".permission-row").forEach(row=>{
   const view=row.querySelector(".perm-view");
@@ -2180,10 +2668,12 @@ function enforceRolePermissions(){
    row.querySelector(".perm-delete")
   ];
 
+
   edits.forEach(cb=>{
    if(isClient)cb.checked=false;
    cb.disabled=isClient;
   });
+
 
   if(isClient && view.checked===false){
    // mantém a escolha do administrador para quais módulos o cliente verá
@@ -2191,7 +2681,9 @@ function enforceRolePermissions(){
  });
 }
 
+
 $("accessRole").addEventListener("change",enforceRolePermissions);
+
 
 $("newAccessUserButton").onclick=()=>{
  editingAccessUser=null;
@@ -2208,7 +2700,9 @@ $("newAccessUserButton").onclick=()=>{
  $("accessUserDialog").showModal();
 };
 
+
 $("cancelAccessUser").onclick=()=>$("accessUserDialog").close();
+
 
 function openAccessUserEdit(user,grants){
  editingAccessUser=user;
@@ -2221,16 +2715,20 @@ function openAccessUserEdit(user,grants){
  $("accessUserDialogTitle").textContent="Editar usuário";
  $("saveAccessUser").textContent="Salvar acesso";
 
+
  const selectedUnits=[...new Set(grants.map(g=>g.unit_id).filter(Boolean))];
  renderAccessUnits(selectedUnits);
  applyPermissionTemplate(grants);
  enforceRolePermissions();
 
+
  $("accessUserDialog").showModal();
 }
 
+
 function collectPermissionTemplate(){
  const rows=[];
+
 
  document.querySelectorAll(".permission-row").forEach(row=>{
   const module=row.dataset.module;
@@ -2239,27 +2737,34 @@ function collectPermissionTemplate(){
   const can_edit=row.querySelector(".perm-edit").checked;
   const can_delete=row.querySelector(".perm-delete").checked;
 
+
   if(can_view||can_insert||can_edit||can_delete){
    rows.push({module,can_view,can_insert,can_edit,can_delete});
   }
  });
 
+
  return rows;
 }
+
 
 async function saveUserGrants(userId,role){
  const selectedUnits=[...document.querySelectorAll(".accessUnitCheck:checked")].map(x=>x.value);
  const template=collectPermissionTemplate();
 
+
  if(!selectedUnits.length)throw new Error("Selecione pelo menos uma unidade.");
  if(!template.some(x=>x.can_view))throw new Error("Libere pelo menos um módulo para visualização.");
+
 
  const {error:deleteError}=await db
   .from("access_grants")
   .delete()
   .eq("user_id",userId);
 
+
  if(deleteError)throw deleteError;
+
 
  const rows=[];
  selectedUnits.forEach(unit_id=>{
@@ -2276,17 +2781,21 @@ async function saveUserGrants(userId,role){
   });
  });
 
+
  const {error}=await db.from("access_grants").insert(rows);
  if(error)throw error;
 }
 
+
 $("accessUserForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("saveAccessUser");
  btn.disabled=true;
  const originalText=btn.textContent;
  btn.textContent="Salvando...";
+
 
  try{
   const display_name=$("accessDisplayName").value.trim();
@@ -2294,6 +2803,7 @@ $("accessUserForm").addEventListener("submit",async e=>{
   const role=$("accessRole").value;
   const active=$("accessActive").value==="true";
   let userId=$("accessUserId").value;
+
 
   if(!userId){
    const {data,error}=await db.functions.invoke("admin-invite-user-v2",{
@@ -2305,6 +2815,7 @@ $("accessUserForm").addEventListener("submit",async e=>{
     }
    });
 
+
    if(error)throw error;
    if(data?.error)throw new Error(data.error);
    userId=data.user_id;
@@ -2314,10 +2825,13 @@ $("accessUserForm").addEventListener("submit",async e=>{
     .update({display_name,role,active})
     .eq("user_id",userId);
 
+
    if(error)throw error;
   }
 
+
   await saveUserGrants(userId,role);
+
 
   $("accessUserDialog").close();
   message(
@@ -2326,6 +2840,7 @@ $("accessUserForm").addEventListener("submit",async e=>{
    "ok"
   );
   await loadAccessUsers();
+
 
  }catch(err){
   console.error(err);
@@ -2342,20 +2857,25 @@ $("accessUserForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function sendAccessLink(user,button){
  if(!user?.email||!user?.active)return;
+
 
  const original=button.textContent;
  button.disabled=true;
  button.textContent="Enviando...";
+
 
  try{
   const {data,error}=await db.functions.invoke("admin-send-access-link",{
    body:{email:user.email}
   });
 
+
   if(error)throw error;
   if(data?.error)throw new Error(data.error);
+
 
   message($("appMessage"),`Link de acesso enviado para ${user.email}.`,"ok");
   button.textContent="Reenviar link de acesso";
@@ -2375,8 +2895,10 @@ async function sendAccessLink(user,button){
  }
 }
 
+
 async function revokeAccessUser(user){
  if(!confirm(`Excluir o acesso de ${user.display_name}? O usuário será bloqueado imediatamente e perderá todas as permissões.`))return;
+
 
  try{
   const {error:profileError}=await db
@@ -2384,14 +2906,18 @@ async function revokeAccessUser(user){
    .update({active:false})
    .eq("user_id",user.user_id);
 
+
   if(profileError)throw profileError;
+
 
   const {error:grantError}=await db
    .from("access_grants")
    .delete()
    .eq("user_id",user.user_id);
 
+
   if(grantError)throw grantError;
+
 
   message($("appMessage"),`Acesso de ${user.display_name} excluído e revogado.`,"ok");
   await loadAccessUsers();
@@ -2401,37 +2927,47 @@ async function revokeAccessUser(user){
  }
 }
 
+
 async function toggleAccessUser(user){
  const next=!user.active;
 
+
  if(!confirm(`${next?"Ativar":"Desativar"} o acesso de ${user.display_name}?`))return;
+
 
  const {error}=await db
   .from("profiles")
   .update({active:next})
   .eq("user_id",user.user_id);
 
+
  if(error){
   message($("appMessage"),"Não foi possível alterar o status do usuário.","err");
   return;
  }
+
 
  message($("appMessage"),`Usuário ${next?"ativado":"desativado"}.`,"ok");
  await loadAccessUsers();
 }
 
 
+
+
 /* ============================
    VISÃO GERAL
 ============================ */
+
 
 function moneyBr(value){
  return Number(value||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
+
 function overviewScopeId(){
  return $("overviewUnitSelect")?.value||"";
 }
+
 
 function destroyOverviewCharts(){
  [ovRdiChartInstance,ovEmployeesChartInstance,ovCostChartInstance].forEach(chart=>{
@@ -2442,23 +2978,29 @@ function destroyOverviewCharts(){
  ovCostChartInstance=null;
 }
 
+
 $("overviewUnitSelect").addEventListener("change",loadOverview);
+
 
 async function loadOverview(){
  if(!session||!allUnits.length||overviewLoading)return;
  overviewLoading=true;
 
+
  const scope=overviewScopeId();
  const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
+
 
  destroyOverviewCharts();
  $("ovAttention").innerHTML='<div class="empty">Carregando indicadores...</div>';
  message($("appMessage"),"","info");
 
+
  const canCommunication=profile?.role==="admin"||hasAccess("comunicacao","view");
  const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
  const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
  const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
+
 
  const safe=async(label,enabled,request)=>{
   if(!enabled)return {data:[],error:null,skipped:true};
@@ -2474,6 +3016,7 @@ async function loadOverview(){
    return {data:[],error:err,skipped:false};
   }
  };
+
 
  try{
   const [
@@ -2495,9 +3038,11 @@ async function loadOverview(){
     db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds))
   ]);
 
+
   let partialErrors=[
    employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes
   ].filter(x=>x.error).length;
+
 
   const employeeLinks=employeeLinksRes.data||[];
   const scopedEmployeeIds=new Set(employeeLinks.map(x=>x.employee_id));
@@ -2506,8 +3051,10 @@ async function loadOverview(){
   const docs=docsRes.data||[];
   const waterReports=waterReportsRes.data||[];
 
+
   let waterResults=[];
   const waterIds=waterReports.map(x=>x.id);
+
 
   if(canWater&&waterIds.length){
    const resultRes=await safe(
@@ -2521,19 +3068,23 @@ async function loadOverview(){
    if(resultRes.error)partialErrors++;
   }
 
+
   const openRdi=rdis.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
   const doneRdi=rdis.filter(r=>r.status==="CONCLUÍDA");
   const critical=openRdi.filter(r=>Number(r.gut_score)>=80);
   const completionBase=rdis.filter(r=>r.status!=="CANCELADA").length;
   const completionRate=completionBase?Math.round(doneRdi.length/completionBase*100):0;
 
+
   const estimated=rdis.reduce((s,r)=>s+Number(r.cost_estimated||0),0);
   const actual=rdis.reduce((s,r)=>s+Number(r.actual_cost||0),0);
+
 
   const today=new Date();
   today.setHours(0,0,0,0);
   const thirty=new Date(today);
   thirty.setDate(thirty.getDate()+30);
+
 
   const expiredDocs=docs.filter(d=>d.valid_until&&new Date(d.valid_until+"T00:00:00")<today);
   const soonDocs=docs.filter(d=>{
@@ -2541,6 +3092,7 @@ async function loadOverview(){
    const dt=new Date(d.valid_until+"T00:00:00");
    return dt>=today&&dt<=thirty;
   });
+
 
   const waterOut=waterResults.filter(r=>{
    if(r.result_value===null||r.result_value===undefined)return false;
@@ -2550,10 +3102,13 @@ async function loadOverview(){
    return false;
   });
 
+
   $("ovUnits").textContent=scope?1:scopedUnitIds.length;
   $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede disponível";
 
+
   $("ovEmployees").textContent=canCommunication?employees.length:"—";
+
 
   $("ovRdiOpen").textContent=canRdi?openRdi.length:"—";
   $("ovRdiCritical").textContent=canRdi?`${critical.length} crítica(s)`:"Sem acesso ao módulo";
@@ -2562,11 +3117,14 @@ async function loadOverview(){
   $("ovCostEstimated").textContent=canRdi?moneyBr(estimated):"—";
   $("ovCostActual").textContent=canRdi?moneyBr(actual):"—";
 
+
   $("ovDocuments").textContent=canDocuments?docs.length:"—";
   $("ovDocsAlert").textContent=canDocuments?`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`:"Sem acesso ao módulo";
 
+
   $("ovWaterAnalyses").textContent=canWater?waterReports.length:"—";
   $("ovWaterOut").textContent=canWater?`${waterOut.length} resultado(s) fora da faixa`:"Sem acesso ao módulo";
+
 
   renderOverviewRdiChart(canRdi?rdis:[]);
   renderOverviewEmployeesChart(canCommunication?employees:[]);
@@ -2580,6 +3138,7 @@ async function loadOverview(){
    employees:canCommunication?employees:[]
   });
 
+
   if(partialErrors){
    message(
     $("appMessage"),
@@ -2587,6 +3146,7 @@ async function loadOverview(){
     "info"
    );
   }
+
 
  }catch(err){
   console.error(err);
@@ -2597,6 +3157,7 @@ async function loadOverview(){
  }
 }
 
+
 function renderOverviewRdiChart(rdis){
  const counts={};
  rdis.forEach(r=>{
@@ -2604,8 +3165,10 @@ function renderOverviewRdiChart(rdis){
   counts[key]=(counts[key]||0)+1;
  });
 
+
  const labels=Object.keys(counts);
  const values=labels.map(k=>counts[k]);
+
 
  ovRdiChartInstance=new Chart($("ovRdiChart"),{
   type:"bar",
@@ -2618,15 +3181,19 @@ function renderOverviewRdiChart(rdis){
  });
 }
 
+
 function renderOverviewEmployeesChart(employees){
  const counts={};
+
 
  employees.forEach(e=>{
   const key=e.org_role||e.job_title||"Não definido";
   counts[key]=(counts[key]||0)+1;
  });
 
+
  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
 
  ovEmployeesChartInstance=new Chart($("ovEmployeesChart"),{
   type:"bar",
@@ -2643,12 +3210,15 @@ function renderOverviewEmployeesChart(employees){
  });
 }
 
+
 function renderOverviewCostChart(rdis,unitIds){
  const sums=new Map(unitIds.map(id=>[id,0]));
+
 
  rdis.forEach(r=>{
   sums.set(r.unit_id,(sums.get(r.unit_id)||0)+Number(r.actual_cost||r.cost_estimated||0));
  });
+
 
  const entries=[...sums.entries()]
   .map(([id,value])=>({
@@ -2657,6 +3227,7 @@ function renderOverviewCostChart(rdis,unitIds){
   }))
   .filter(x=>x.value>0)
   .sort((a,b)=>b.value-a.value);
+
 
  ovCostChartInstance=new Chart($("ovCostChart"),{
   type:"bar",
@@ -2673,14 +3244,18 @@ function renderOverviewCostChart(rdis,unitIds){
  });
 }
 
+
 function renderOverviewAttention(data){
  const box=$("ovAttention");
  box.replaceChildren();
 
+
  const today=new Date();
  today.setHours(0,0,0,0);
 
+
  const overdueRdi=data.openRdi.filter(r=>r.due_date&&new Date(r.due_date+"T00:00:00")<today);
+
 
  const alerts=[
   {
@@ -2710,10 +3285,12 @@ function renderOverviewAttention(data){
   }
  ].filter(x=>x.count>0);
 
+
  if(!alerts.length){
   box.innerHTML='<div class="attention-item ok"><strong>Sem alertas críticos no escopo selecionado.</strong></div>';
   return;
  }
+
 
  alerts.forEach(a=>{
   const div=document.createElement("div");
@@ -2724,15 +3301,20 @@ function renderOverviewAttention(data){
 }
 
 
+
+
 /* ============================
    QUALIDADE DA ÁGUA
 ============================ */
+
 
 const WATER_LABELS={
  conforto:"Água gelada de conforto",
  processo:"Água gelada de processo",
  condensada:"Água condensada"
 };
+
+
 
 
 function normalizeWaterText(value){
@@ -2743,6 +3325,7 @@ function normalizeWaterText(value){
   .replace(/\s+/g," ")
   .trim();
 }
+
 
 function parsePtNumber(value){
  if(value===null||value===undefined||value==="")return null;
@@ -2755,6 +3338,7 @@ function parsePtNumber(value){
  return Number.isFinite(n)?n:null;
 }
 
+
 function isWaterOutOfRange(result){
  const v=result.result_value;
  if(v===null||v===undefined)return false;
@@ -2762,6 +3346,7 @@ function isWaterOutOfRange(result){
  if(result.max_snapshot!==null&&result.max_snapshot!==undefined&&Number(v)>Number(result.max_snapshot))return true;
  return false;
 }
+
 
 async function loadWaterReferences(type=null){
  let query=db
@@ -2771,9 +3356,12 @@ async function loadWaterReferences(type=null){
   .order("display_order")
   .order("parameter_name");
 
+
  if(type)query=query.eq("water_type",type);
 
+
  const {data,error}=await query;
+
 
  if(error){
   console.error(error);
@@ -2781,21 +3369,28 @@ async function loadWaterReferences(type=null){
   return [];
  }
 
+
  if(!type)waterReferences=data||[];
  return data||[];
 }
 
+
 async function loadWaterModule(){
  if(!unitId)return;
 
+
  const type=$("waterTypeFilter").value;
+
 
  await loadWaterReferences();
 
+
  const refs=waterReferences.filter(r=>r.water_type===type);
+
 
  $("waterParameterFilter").innerHTML=
   '<option value="">Selecione um parâmetro</option>';
+
 
  refs.forEach(ref=>{
   const option=document.createElement("option");
@@ -2804,6 +3399,7 @@ async function loadWaterModule(){
   $("waterParameterFilter").appendChild(option);
  });
 
+
  const {data:reports,error}=await db
   .from("water_analysis_reports")
   .select("*")
@@ -2811,16 +3407,20 @@ async function loadWaterModule(){
   .eq("water_type",type)
   .order("sample_date",{ascending:false});
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar análises de água.","err");
   return;
  }
 
+
  waterReports=reports||[];
+
 
  const ids=waterReports.map(r=>r.id);
  waterResults=[];
+
 
  if(ids.length){
   const {data:results,error:resultsError}=await db
@@ -2828,37 +3428,46 @@ async function loadWaterModule(){
    .select("*")
    .in("report_id",ids);
 
+
   if(resultsError){
    console.error(resultsError);
    message($("appMessage"),"Falha ao carregar resultados de água.","err");
    return;
   }
 
+
   waterResults=results||[];
  }
+
 
  updateWaterKpis();
  renderWaterAnalysisList();
  renderWaterChart();
 }
 
+
 function updateWaterKpis(){
  $("waterAnalysisCount").textContent=waterReports.length;
+
 
  $("waterLastDate").textContent=
   waterReports.length
    ?formatDate(waterReports[0].sample_date)
    :"—";
 
+
  $("waterOutCount").textContent=
   waterResults.filter(isWaterOutOfRange).length;
 }
+
+
 
 
 function currentUnitName(){
  const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
  return unitId&&option?option.textContent:"Unidade";
 }
+
 
 function waterReferenceText(result){
  const parts=[];
@@ -2871,6 +3480,7 @@ function waterReferenceText(result){
  return parts.length?parts.join(" e "):"—";
 }
 
+
 function waterResultDisplay(result){
  if(result.result_value!==null&&result.result_value!==undefined){
   const value=Number(result.result_value).toLocaleString("pt-BR",{maximumFractionDigits:4});
@@ -2879,21 +3489,26 @@ function waterResultDisplay(result){
  return result.result_text||"—";
 }
 
+
 function renderWaterAnalysisList(){
  const list=$("waterAnalysisList");
  list.replaceChildren();
+
 
  if(!waterReports.length){
   list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este tipo de água.</div>';
   return;
  }
 
+
  waterReports.slice(0,20).forEach(report=>{
   const results=waterResults
    .filter(r=>r.report_id===report.id)
    .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
 
+
   const outCount=results.filter(isWaterOutOfRange).length;
+
 
   const parameterRows=results.length
    ?`
@@ -2923,8 +3538,10 @@ function renderWaterAnalysisList(){
    `
    :'<div class="muted" style="margin-top:10px">Nenhum parâmetro lançado nesta análise.</div>';
 
+
   const el=document.createElement("article");
   el.className="record "+(outCount?"water-out":"water-ok");
+
 
   el.innerHTML=`
    <div class="record-top">
@@ -2945,35 +3562,44 @@ function renderWaterAnalysisList(){
    </div>
   `;
 
+
   const open=el.querySelector(".openWaterPdf");
   if(open)open.onclick=()=>openWaterPdf(report);
 
+
   const editWaterButton=el.querySelector(".editWaterReport"); if(editWaterButton)editWaterButton.onclick=()=>openWaterEdit(report);
   const deleteWaterButton=el.querySelector(".deleteWaterReport"); if(deleteWaterButton)deleteWaterButton.onclick=()=>deleteWaterReport(report);
+
 
   list.appendChild(el);
  });
 }
 
+
 async function openWaterPdf(report){
  if(!report.storage_path)return;
+
 
  const {data,error}=await db.storage
   .from("water-analysis-pdfs")
   .createSignedUrl(report.storage_path,600);
+
 
  if(error||!data?.signedUrl){
   message($("appMessage"),"Não foi possível abrir o PDF.","err");
   return;
  }
 
+
  window.open(data.signedUrl,"_blank");
 }
+
 
 function selectedWaterReference(){
  const id=$("waterParameterFilter").value;
  return waterReferences.find(r=>r.id===id)||null;
 }
+
 
 function renderWaterChart(){
  if(waterChartInstance){
@@ -2981,8 +3607,10 @@ function renderWaterChart(){
   waterChartInstance=null;
  }
 
+
  const ref=selectedWaterReference();
  const canvas=$("waterChart");
+
 
  if(!ref){
   $("waterChartTitle").textContent="Acompanhamento mensal";
@@ -2990,7 +3618,9 @@ function renderWaterChart(){
   return;
  }
 
+
  const period=Number($("waterPeriodFilter").value||0);
+
 
  let reports=[...waterReports];
  if(period){
@@ -2998,6 +3628,7 @@ function renderWaterChart(){
   limit.setMonth(limit.getMonth()-period);
   reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
  }
+
 
  const reportMap=new Map(reports.map(r=>[r.id,r]));
  const rows=waterResults
@@ -3008,7 +3639,9 @@ function renderWaterChart(){
   }))
   .sort((a,b)=>a.date.localeCompare(b.date));
 
+
  const monthly=new Map();
+
 
  rows.forEach(row=>{
   const month=row.date.slice(0,7);
@@ -3016,24 +3649,30 @@ function renderWaterChart(){
   monthly.get(month).push(row.value);
  });
 
+
  const data=[...monthly.entries()].map(([month,values])=>({
   month,
   value:values.reduce((a,b)=>a+b,0)/values.length
  }));
 
+
  $("waterChartTitle").textContent=`${currentUnitName()} — ${ref.parameter_name}`;
+
 
  const limits=[];
  if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
  if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
 
+
  $("waterChartReference").textContent=
   `${WATER_LABELS[$("waterTypeFilter").value]} • ${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
+
 
  const labels=data.map(d=>{
   const [year,month]=d.month.split("-");
   return `${month}/${year}`;
  });
+
 
  const datasets=[{
   label:ref.parameter_name,
@@ -3041,6 +3680,7 @@ function renderWaterChart(){
   borderWidth:2,
   tension:.25
  }];
+
 
  if(ref.min_value!==null){
   datasets.push({
@@ -3052,6 +3692,7 @@ function renderWaterChart(){
   });
  }
 
+
  if(ref.max_value!==null){
   datasets.push({
    label:"Máximo",
@@ -3061,6 +3702,7 @@ function renderWaterChart(){
    borderWidth:1
   });
  }
+
 
  waterChartInstance=new Chart(canvas,{
   type:"line",
@@ -3077,28 +3719,35 @@ function renderWaterChart(){
  });
 }
 
+
 $("waterTypeFilter").addEventListener("change",loadWaterModule);
 $("waterParameterFilter").addEventListener("change",renderWaterChart);
 $("waterPeriodFilter").addEventListener("change",renderWaterChart);
 
+
 /* MANUAL / EDIÇÃO */
+
 
 async function renderWaterManualResults(type,existing=[]){
  const refs=waterReferences.filter(r=>r.water_type===type);
  const box=$("waterManualResults");
  box.replaceChildren();
 
+
  if(!refs.length){
   box.innerHTML='<div class="empty">Cadastre primeiro os parâmetros em Referências.</div>';
   return;
  }
 
+
  refs.forEach(ref=>{
   const current=existing.find(x=>x.reference_id===ref.id);
+
 
   const row=document.createElement("div");
   row.className="water-result-row";
   row.dataset.refId=ref.id;
+
 
   row.innerHTML=`
    <div>
@@ -3119,9 +3768,11 @@ async function renderWaterManualResults(type,existing=[]){
    </div>
   `;
 
+
   box.appendChild(row);
  });
 }
+
 
 $("waterManualButton").onclick=async()=>{
  editingWaterReport=null;
@@ -3134,14 +3785,18 @@ $("waterManualButton").onclick=async()=>{
  $("waterManualDialog").showModal();
 };
 
+
 $("waterManualType").addEventListener("change",async()=>{
  await renderWaterManualResults($("waterManualType").value);
 });
 
+
 $("cancelWaterManual").onclick=()=>$("waterManualDialog").close();
+
 
 async function openWaterEdit(report){
  editingWaterReport=report;
+
 
  $("waterManualForm").reset();
  $("waterReportId").value=report.id;
@@ -3152,21 +3807,27 @@ async function openWaterEdit(report){
  $("waterLaboratory").value=report.laboratory||"";
  $("waterNotes").value=report.notes||"";
 
+
  const existing=waterResults.filter(r=>r.report_id===report.id);
  await renderWaterManualResults(report.water_type,existing);
+
 
  $("waterManualDialog").showModal();
 }
 
+
 $("waterManualForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("saveWaterManual");
  btn.disabled=true;
  btn.textContent="Salvando...";
 
+
  try{
   const type=$("waterManualType").value;
+
 
   const payload={
    unit_id:unitId,
@@ -3179,7 +3840,9 @@ $("waterManualForm").addEventListener("submit",async e=>{
    updated_by:session.user.id
   };
 
+
   let reportId=$("waterReportId").value;
+
 
   if(reportId){
    const {error}=await db
@@ -3187,14 +3850,18 @@ $("waterManualForm").addEventListener("submit",async e=>{
     .update(payload)
     .eq("id",reportId);
 
+
    if(error)throw error;
+
 
    const {error:deleteError}=await db
     .from("water_analysis_results")
     .delete()
     .eq("report_id",reportId);
 
+
    if(deleteError)throw deleteError;
+
 
   }else{
    const {data,error}=await db
@@ -3203,16 +3870,20 @@ $("waterManualForm").addEventListener("submit",async e=>{
     .select("id")
     .single();
 
+
    if(error)throw error;
    reportId=data.id;
   }
+
 
   const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
    .map(row=>{
     const ref=waterReferences.find(r=>r.id===row.dataset.refId);
     const value=parsePtNumber(row.querySelector(".waterManualValue").value);
 
+
     if(value===null)return null;
+
 
     return{
      report_id:reportId,
@@ -3226,14 +3897,17 @@ $("waterManualForm").addEventListener("submit",async e=>{
    })
    .filter(Boolean);
 
+
   if(rows.length){
    const {error}=await db.from("water_analysis_results").insert(rows);
    if(error)throw error;
   }
 
+
   $("waterManualDialog").close();
   message($("appMessage"),"Análise salva com sucesso.","ok");
   await loadWaterModule();
+
 
  }catch(err){
   console.error(err);
@@ -3244,44 +3918,55 @@ $("waterManualForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function deleteWaterReport(report){
  if(!confirm(`Excluir a análise de ${formatDate(report.sample_date)}?`))return;
+
 
  const {error}=await db
   .from("water_analysis_reports")
   .delete()
   .eq("id",report.id);
 
+
  if(error){
   message($("appMessage"),"Falha ao excluir a análise.","err");
   return;
  }
 
+
  if(report.storage_path){
   await db.storage.from("water-analysis-pdfs").remove([report.storage_path]);
  }
+
 
  message($("appMessage"),"Análise excluída.","ok");
  await loadWaterModule();
 }
 
+
 /* REFERÊNCIAS */
+
 
 async function renderWaterReferenceList(){
  const refs=await loadWaterReferences();
  waterReferences=refs;
 
+
  const list=$("waterReferenceList");
  list.replaceChildren();
+
 
  if(!refs.length){
   list.innerHTML='<div class="empty">Nenhum parâmetro cadastrado.</div>';
   return;
  }
 
+
  refs.forEach(ref=>{
   const row=document.createElement("div");
   row.className="water-ref-row";
+
 
   row.innerHTML=`
    <div>
@@ -3297,12 +3982,15 @@ async function renderWaterReferenceList(){
    </div>
   `;
 
+
   row.querySelector(".editWaterRef").onclick=()=>editWaterReference(ref);
   row.querySelector(".deleteWaterRef").onclick=()=>deleteWaterReference(ref);
+
 
   list.appendChild(row);
  });
 }
+
 
 $("waterReferencesButton").onclick=async()=>{
  $("waterReferenceForm").reset();
@@ -3312,16 +4000,19 @@ $("waterReferencesButton").onclick=async()=>{
  $("waterReferencesDialog").showModal();
 };
 
+
 $("closeWaterReferences").onclick=async()=>{
  $("waterReferencesDialog").close();
  if(unitId)await loadWaterModule();
 };
+
 
 $("cancelWaterReferenceEdit").onclick=()=>{
  $("waterReferenceForm").reset();
  $("waterReferenceId").value="";
  $("waterReferenceType").value=$("waterTypeFilter").value;
 };
+
 
 function editWaterReference(ref){
  $("waterReferenceId").value=ref.id;
@@ -3332,10 +4023,13 @@ function editWaterReference(ref){
  $("waterReferenceMax").value=ref.max_value??"";
 }
 
+
 $("waterReferenceForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
+
  const id=$("waterReferenceId").value;
+
 
  const payload={
   water_type:$("waterReferenceType").value,
@@ -3348,7 +4042,9 @@ $("waterReferenceForm").addEventListener("submit",async e=>{
   updated_by:session.user.id
  };
 
+
  let error;
+
 
  if(id){
   ({error}=await db
@@ -3361,24 +4057,29 @@ $("waterReferenceForm").addEventListener("submit",async e=>{
    .insert({...payload,created_by:session.user.id}));
  }
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Não foi possível salvar a referência.","err");
   return;
  }
 
+
  $("waterReferenceForm").reset();
  $("waterReferenceId").value="";
  await renderWaterReferenceList();
 });
 
+
 async function deleteWaterReference(ref){
  if(!confirm(`Excluir o parâmetro "${ref.parameter_name}"?`))return;
+
 
  const {error}=await db
   .from("water_reference_parameters")
   .delete()
   .eq("id",ref.id);
+
 
  if(error){
   console.error(error);
@@ -3386,13 +4087,17 @@ async function deleteWaterReference(ref){
   return;
  }
 
+
  await renderWaterReferenceList();
 }
+
+
 
 
 /* ============================
    RDI
 ============================ */
+
 
 function gutClass(score){
  if(score>=80)return "Crítica";
@@ -3402,9 +4107,11 @@ function gutClass(score){
  return "Muito baixa";
 }
 
+
 function gutClassCss(c){
  return "gut-"+c.toLowerCase().replaceAll(" ","-").replace("í","i");
 }
+
 
 function updateGut(){
  const score=
@@ -3412,16 +4119,138 @@ function updateGut(){
   Number($("urgency").value)*
   Number($("trend").value);
 
+
  $("gutScore").textContent=score;
  $("gutClass").textContent=gutClass(score);
 }
+
 
 ["gravity","urgency","trend"].forEach(id=>{
  $(id).addEventListener("change",updateGut);
 });
 
+
+let rdiCriticalityChartInstance=null;
+let rdiBudgetChartInstance=null;
+let rdiStatusChartInstance=null;
+
+
+function destroyRdiCharts(){
+ [rdiCriticalityChartInstance,rdiBudgetChartInstance,rdiStatusChartInstance].forEach(chart=>{
+  if(chart)chart.destroy();
+ });
+ rdiCriticalityChartInstance=null;
+ rdiBudgetChartInstance=null;
+ rdiStatusChartInstance=null;
+}
+
+
+function renderRdiExecutive(data){
+ const rows=data||[];
+ const critical=rows.filter(r=>gutClass(Number(r.gut_score||0))==="Crítica");
+ const budget=rows.reduce((sum,r)=>sum+Number(r.cost_estimated||0),0);
+ const criticalBudget=critical.reduce((sum,r)=>sum+Number(r.cost_estimated||0),0);
+ const approved=rows.reduce((sum,r)=>sum+Number(r.approved_cost||0),0);
+ const done=rows.filter(r=>r.status==="CONCLUÍDA").length;
+ const criticalPct=rows.length?Math.round(critical.length/rows.length*100):0;
+
+
+ $("rdiKpiTotal").textContent=rows.length;
+ $("rdiKpiTotalNote").textContent=rows.length===records.length
+  ?"Todas as demandas da unidade"
+  :`${rows.length} de ${records.length} demandas após filtros`;
+ $("rdiKpiCritical").textContent=critical.length;
+ $("rdiKpiCriticalNote").textContent=`${criticalPct}% das demandas`;
+ $("rdiKpiBudget").textContent=moneyBr(budget);
+ $("rdiKpiCriticalBudget").textContent=`Críticas: ${moneyBr(criticalBudget)}`;
+ $("rdiKpiApproved").textContent=moneyBr(approved);
+ $("rdiKpiApprovedNote").textContent=`${done} demanda(s) concluída(s)`;
+
+
+ destroyRdiCharts();
+
+
+ const criticalityOrder=["Crítica","Alta","Média","Baixa","Muito baixa"];
+ const criticalityCounts=Object.fromEntries(criticalityOrder.map(k=>[k,0]));
+ const criticalityBudget=Object.fromEntries(criticalityOrder.map(k=>[k,0]));
+ const statusCounts={};
+
+
+ rows.forEach(r=>{
+  const cls=gutClass(Number(r.gut_score||0));
+  criticalityCounts[cls]=(criticalityCounts[cls]||0)+1;
+  criticalityBudget[cls]=(criticalityBudget[cls]||0)+Number(r.cost_estimated||0);
+  const status=r.status||"SEM STATUS";
+  statusCounts[status]=(statusCounts[status]||0)+1;
+ });
+
+
+ rdiCriticalityChartInstance=new Chart($("rdiCriticalityChart"),{
+  type:"bar",
+  data:{
+   labels:criticalityOrder,
+   datasets:[{label:"Demandas",data:criticalityOrder.map(k=>criticalityCounts[k]||0)}]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{y:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+
+
+ rdiBudgetChartInstance=new Chart($("rdiBudgetChart"),{
+  type:"bar",
+  data:{
+   labels:criticalityOrder,
+   datasets:[{label:"Valor orçado",data:criticalityOrder.map(k=>criticalityBudget[k]||0)}]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{
+    legend:{display:false},
+    tooltip:{callbacks:{label:(ctx)=>moneyBr(ctx.raw)}}
+   },
+   scales:{
+    y:{
+     beginAtZero:true,
+     ticks:{
+      callback:(value)=>Number(value).toLocaleString("pt-BR",{
+       notation:"compact",
+       maximumFractionDigits:1
+      })
+     }
+    }
+   }
+  }
+ });
+
+
+ const statusEntries=Object.entries(statusCounts).sort((a,b)=>b[1]-a[1]);
+
+
+ rdiStatusChartInstance=new Chart($("rdiStatusChart"),{
+  type:"bar",
+  data:{
+   labels:statusEntries.map(x=>x[0]),
+   datasets:[{label:"Demandas",data:statusEntries.map(x=>x[1])}]
+  },
+  options:{
+   indexAxis:"y",
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{x:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+}
+
+
 async function loadRdi(){
  $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  const {data,error}=await db
   .from("rdi_demands")
@@ -3431,21 +4260,26 @@ async function loadRdi(){
   .order("gut_score",{ascending:false})
   .order("recorded_on",{ascending:true});
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar RDI.","err");
   return;
  }
 
+
  records=data||[];
+
 
  renderRecords();
 }
+
 
 function filteredRecords(){
  const q=$("searchInput").value.toLowerCase();
  const status=$("statusFilter").value;
  const gut=$("gutFilter").value;
+
 
  return records.filter(r=>{
   const text=[
@@ -3453,26 +4287,33 @@ function filteredRecords(){
    r.operational_deviation,r.recommended_action
   ].filter(Boolean).join(" ").toLowerCase();
 
+
   return (!q||text.includes(q))
    &&(!status||r.status===status)
    &&(!gut||gutClass(r.gut_score)===gut);
  });
 }
 
+
 $("searchInput").addEventListener("input",renderRecords);
 $("statusFilter").addEventListener("change",renderRecords);
 $("gutFilter").addEventListener("change",renderRecords);
+
 
 function renderRecords(){
  const list=$("rdiList");
  list.replaceChildren();
 
+
  const data=filteredRecords();
+ renderRdiExecutive(data);
+
 
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhuma demanda encontrada.</div>';
   return;
  }
+
 
  data.forEach(r=>{
   const c=gutClass(r.gut_score);
@@ -3480,8 +4321,10 @@ function renderRecords(){
    ?"Não informado"
    :Number(r.cost_estimated).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
+
   const el=document.createElement("article");
   el.className="record";
+
 
   el.innerHTML=`
    <div class="rdi-card-layout">
@@ -3502,11 +4345,14 @@ function renderRecords(){
    </div>
   `;
 
+
   el.querySelector(".editBtn").onclick=()=>openEdit(r);
   el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
 
+
   const photoWrap=el.querySelector(".rdi-card-photo-wrap");
   const photo2=r.source_image_2||"";
+
 
   // Foto 2 = Equipamento/Instalação. Só renderiza quando já estiver
   // armazenada no bucket interno rdi-photos.
@@ -3521,9 +4367,11 @@ function renderRecords(){
    });
   }
 
+
   list.appendChild(el);
  });
 }
+
 
 $("newRdiButton").onclick=()=>{
  editingRecord=null;
@@ -3542,8 +4390,10 @@ $("newRdiButton").onclick=()=>{
  $("rdiDialog").showModal();
 };
 
+
 function openEdit(r){
  editingRecord=r;
+
 
  $("recordId").value=r.id;
  $("sourceId").value=r.source_id||"";
@@ -3577,16 +4427,20 @@ function openEdit(r){
  $("manualPriority").value=r.manual_priority||"";
  $("manualPriorityJustification").value=r.manual_priority_justification||"";
 
+
  $("dialogTitle").textContent="Editar demanda RDI";
+
 
  updateGut();
  showExistingPhotos(r);
  $("rdiDialog").showModal();
 }
 
+
 async function showExistingPhotos(r){
  const box=$("currentPhotos");
  box.replaceChildren();
+
 
  const labels=[
   "Foto 1 — Placa de identificação",
@@ -3595,19 +4449,24 @@ async function showExistingPhotos(r){
   "Foto 4 — Detalhe do problema 2"
  ];
 
+
  const paths=[
   r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
  ];
+
 
  for(let i=0;i<paths.length;i++){
   const path=paths[i];
   if(!path || path.startsWith("Demandas Reforma_Images/"))continue;
 
+
   const {data}=await db.storage
    .from("rdi-photos")
    .createSignedUrl(path,600);
 
+
   if(!data?.signedUrl)continue;
+
 
   const wrap=document.createElement("div");
   const title=document.createElement("strong");
@@ -3615,10 +4474,12 @@ async function showExistingPhotos(r){
   title.style.display="block";
   title.style.margin="8px 0 5px";
 
+
   const img=document.createElement("img");
   img.src=data.signedUrl;
   img.className="photo-preview";
   img.alt=labels[i];
+
 
   wrap.appendChild(title);
   wrap.appendChild(img);
@@ -3626,40 +4487,52 @@ async function showExistingPhotos(r){
  }
 }
 
+
 $("cancelDialog").onclick=()=>$("rdiDialog").close();
+
 
 async function uploadPhotos(demandId){
  const paths=[];
 
+
  for(let i=1;i<=4;i++){
   const file=$("photo"+i).files[0];
+
 
   if(!file){
    paths.push(editingRecord?.["source_image_"+i]||null);
    continue;
   }
 
+
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
   const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
+
 
   const {error}=await db.storage
    .from("rdi-photos")
    .upload(path,file,{cacheControl:"3600",upsert:false});
 
+
   if(error)throw error;
+
 
   paths.push(path);
  }
 
+
  return paths;
 }
+
 
 $("rdiForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
+
  const btn=$("saveButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
+
 
  try{
   const payload={
@@ -3698,7 +4571,9 @@ $("rdiForm").addEventListener("submit",async e=>{
    updated_by:session.user.id
   };
 
+
   let id=$("recordId").value;
+
 
   if(id){
    const {error}=await db.from("rdi_demands").update(payload).eq("id",id);
@@ -3709,7 +4584,9 @@ $("rdiForm").addEventListener("submit",async e=>{
    id=data.id;
   }
 
+
   const photos=await uploadPhotos(id);
+
 
   const {error:photoError}=await db
    .from("rdi_demands")
@@ -3722,11 +4599,14 @@ $("rdiForm").addEventListener("submit",async e=>{
    })
    .eq("id",id);
 
+
   if(photoError)throw photoError;
+
 
   $("rdiDialog").close();
   message($("appMessage"),"Demanda salva com sucesso.","ok");
   await loadRdi();
+
 
  }catch(err){
   console.error(err);
@@ -3737,34 +4617,43 @@ $("rdiForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function deleteRecord(r){
  if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
+
 
  const photos=[
   r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
  ].filter(Boolean);
 
+
  const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+
 
  if(error){
   message($("appMessage"),"Falha ao excluir a demanda.","err");
   return;
  }
 
+
  if(photos.length){
   await db.storage.from("rdi-photos").remove(photos);
  }
+
 
  message($("appMessage"),"Demanda excluída.","ok");
  await loadRdi();
 }
 
+
 /* ============================
    DOCUMENTOS
 ============================ */
 
+
 async function loadDocuments(){
  $("documentList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  const {data,error}=await db
   .from("documents")
@@ -3772,74 +4661,94 @@ async function loadDocuments(){
   .eq("unit_id",unitId)
   .order("created_at",{ascending:false});
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar documentos.","err");
   return;
  }
 
+
  documents=data||[];
  renderDocuments();
 }
 
+
 function filteredDocuments(){
  const q=$("documentSearch").value.trim().toLowerCase();
  const category=$("documentCategoryFilter").value;
+
 
  return documents.filter(d=>{
   const text=[
    d.title,d.description,d.filename,d.category
   ].filter(Boolean).join(" ").toLowerCase();
 
+
   return (!q||text.includes(q))
    &&(!category||d.category===category);
  });
 }
 
+
 $("documentSearch").addEventListener("input",renderDocuments);
 $("documentCategoryFilter").addEventListener("change",renderDocuments);
+
 
 function formatDate(value){
  if(!value)return "Não informado";
 
+
  return new Date(value+"T12:00:00").toLocaleDateString("pt-BR");
 }
+
 
 function validityInfo(d){
  if(!d.valid_until)return "";
 
+
  const today=new Date();
  today.setHours(0,0,0,0);
 
+
  const expiration=new Date(d.valid_until+"T00:00:00");
+
 
  if(expiration<today){
   return `<span class="expired-text">Vencido em ${formatDate(d.valid_until)}</span>`;
  }
 
+
  const days=Math.ceil((expiration-today)/86400000);
+
 
  if(days<=30){
   return `<span class="warning-text">Vence em ${days} dia(s)</span>`;
  }
 
+
  return `Validade: ${formatDate(d.valid_until)}`;
 }
+
 
 function renderDocuments(){
  const list=$("documentList");
  list.replaceChildren();
 
+
  const data=filteredDocuments();
+
 
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhum documento encontrado.</div>';
   return;
  }
 
+
  data.forEach(d=>{
   const el=document.createElement("article");
   el.className="record";
+
 
   el.innerHTML=`
    <div class="record-top">
@@ -3858,26 +4767,32 @@ function renderDocuments(){
    </div>
   `;
 
+
   el.querySelector(".openDoc").onclick=()=>openDocument(d);
   el.querySelector(".editDoc").onclick=()=>openDocumentEdit(d);
   el.querySelector(".deleteDoc").onclick=()=>deleteDocument(d);
 
+
   list.appendChild(el);
  });
 }
+
 
 async function openDocument(d){
  const {data,error}=await db.storage
   .from("documents-private")
   .createSignedUrl(d.storage_path,600);
 
+
  if(error||!data?.signedUrl){
   message($("appMessage"),"Não foi possível abrir o arquivo.","err");
   return;
  }
 
+
  window.open(data.signedUrl,"_blank");
 }
+
 
 $("newDocumentButton").onclick=()=>{
  editingDocument=null;
@@ -3888,8 +4803,10 @@ $("newDocumentButton").onclick=()=>{
  $("documentDialog").showModal();
 };
 
+
 function openDocumentEdit(d){
  editingDocument=d;
+
 
  $("documentId").value=d.id;
  $("documentCategory").value=d.category;
@@ -3902,10 +4819,13 @@ function openDocumentEdit(d){
   "Arquivo atual: "+d.filename+" — escolha outro somente se quiser substituí-lo.";
  $("documentDialogTitle").textContent="Editar documento";
 
+
  $("documentDialog").showModal();
 }
 
+
 $("cancelDocumentDialog").onclick=()=>$("documentDialog").close();
+
 
 function safeFilename(name){
  return name
@@ -3914,36 +4834,46 @@ function safeFilename(name){
   .replace(/[^a-zA-Z0-9._-]+/g,"_");
 }
 
+
 $("documentForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("saveDocumentButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
 
+
  let uploadedPath=null;
+
 
  try{
   const file=$("documentFile").files[0];
   const id=$("documentId").value||crypto.randomUUID();
+
 
   let storagePath=editingDocument?.storage_path||null;
   let filename=editingDocument?.filename||null;
   let mimeType=editingDocument?.mime_type||null;
   let sizeBytes=editingDocument?.size_bytes||null;
 
+
   if(!editingDocument&&!file){
    throw new Error("Selecione um arquivo.");
   }
 
+
   if(file){
    const path=`${unitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
+
 
    const {error:uploadError}=await db.storage
     .from("documents-private")
     .upload(path,file,{cacheControl:"3600",upsert:false});
 
+
    if(uploadError)throw uploadError;
+
 
    uploadedPath=path;
    storagePath=path;
@@ -3951,6 +4881,7 @@ $("documentForm").addEventListener("submit",async e=>{
    mimeType=file.type||null;
    sizeBytes=file.size;
   }
+
 
   const payload={
    unit_id:unitId,
@@ -3967,7 +4898,9 @@ $("documentForm").addEventListener("submit",async e=>{
    updated_by:session.user.id
   };
 
+
   let error;
+
 
   if(editingDocument){
    ({error}=await db.from("documents").update(payload).eq("id",id));
@@ -3975,22 +4908,28 @@ $("documentForm").addEventListener("submit",async e=>{
    ({error}=await db.from("documents").insert({...payload,id}));
   }
 
+
   if(error)throw error;
+
 
   if(file&&editingDocument?.storage_path&&editingDocument.storage_path!==storagePath){
    await db.storage.from("documents-private").remove([editingDocument.storage_path]);
   }
 
+
   $("documentDialog").close();
   message($("appMessage"),"Documento salvo com sucesso.","ok");
   await loadDocuments();
 
+
  }catch(err){
   console.error(err);
+
 
   if(uploadedPath){
    await db.storage.from("documents-private").remove([uploadedPath]);
   }
+
 
   message(
    $("appMessage"),
@@ -4003,38 +4942,50 @@ $("documentForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function deleteDocument(d,ask=true){
  if(ask&&!confirm(`Excluir "${d.title}"?`))return false;
 
+
  const {error}=await db.from("documents").delete().eq("id",d.id);
+
 
  if(error){
   message($("appMessage"),"Falha ao excluir documento.","err");
   return false;
  }
 
+
  await db.storage.from("documents-private").remove([d.storage_path]);
+
 
  if(ask){
   message($("appMessage"),"Documento excluído.","ok");
   await loadDocuments();
  }
 
+
  return true;
 }
+
 
 $("selectAllDocuments").onclick=()=>{
  const boxes=[...document.querySelectorAll(".doc-check")];
 
+
  if(!boxes.length)return;
+
 
  const shouldCheck=boxes.some(b=>!b.checked);
 
+
  boxes.forEach(b=>b.checked=shouldCheck);
+
 
  $("selectAllDocuments").textContent=
   shouldCheck?"Desmarcar todos":"Selecionar todos";
 };
+
 
 $("deleteSelectedDocuments").classList.toggle("hidden",!hasAccess("documentos","delete",unitId));
 $("deleteSelectedDocuments").onclick=async()=>{
@@ -4042,22 +4993,27 @@ $("deleteSelectedDocuments").onclick=async()=>{
   ...document.querySelectorAll(".doc-check:checked")
  ].map(b=>b.dataset.id);
 
+
  if(!ids.length){
   message($("appMessage"),"Selecione pelo menos um documento.","info");
   return;
  }
 
+
  if(!confirm(`Excluir ${ids.length} documento(s) selecionado(s)?`)){
   return;
  }
 
+
  const selected=documents.filter(d=>ids.includes(d.id));
  let failed=0;
+
 
  for(const d of selected){
   const ok=await deleteDocument(d,false);
   if(!ok)failed++;
  }
+
 
  message(
   $("appMessage"),
@@ -4065,20 +5021,25 @@ $("deleteSelectedDocuments").onclick=async()=>{
   failed?"err":"ok"
  );
 
+
  await loadDocuments();
 }
+
 
 /* ============================
    MATRIZ DE COMUNICAÇÃO
 ============================ */
 
+
 async function loadEmployees(){
  $("employeeList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  const {data:links,error:linkError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
   .eq("unit_id",unitId);
+
 
  if(linkError){
   console.error(linkError);
@@ -4086,7 +5047,9 @@ async function loadEmployees(){
   return;
  }
 
+
  const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
 
  if(!ids.length){
   employees=[];
@@ -4094,11 +5057,13 @@ async function loadEmployees(){
   return;
  }
 
+
  const {data,error}=await db
   .from("employees")
   .select("*")
   .in("id",ids)
   .order("full_name");
+
 
  if(error){
   console.error(error);
@@ -4106,16 +5071,19 @@ async function loadEmployees(){
   return;
  }
 
+
  const {data:allLinks,error:allLinksError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
   .in("employee_id",ids);
+
 
  if(allLinksError){
   console.error(allLinksError);
   message($("appMessage"),"Falha ao carregar unidades dos profissionais.","err");
   return;
  }
+
 
  employees=(data||[]).map(emp=>({
   ...emp,
@@ -4124,13 +5092,16 @@ async function loadEmployees(){
    .map(link=>link.unit_id)
  }));
 
+
  renderEmployees();
 }
+
 
 function filteredEmployees(){
  const q=$("employeeSearch").value.trim().toLowerCase();
  const status=$("employeeStatusFilter").value;
  const turn=$("employeeShiftFilter").value;
+
 
  return employees.filter(e=>{
   const text=[
@@ -4138,15 +5109,18 @@ function filteredEmployees(){
    e.employee_number,e.cost_center,e.additional_info
   ].filter(Boolean).join(" ").toLowerCase();
 
+
   return (!q||text.includes(q))
    &&(!status||e.status===status)
    &&(!turn||e.day_night===turn);
  });
 }
 
+
 $("employeeSearch").addEventListener("input",renderEmployees);
 $("employeeStatusFilter").addEventListener("change",renderEmployees);
 $("employeeShiftFilter").addEventListener("change",renderEmployees);
+
 
 function employeeUnitNames(ids){
  return (ids||[])
@@ -4155,20 +5129,25 @@ function employeeUnitNames(ids){
   .join(", ");
 }
 
+
 function renderEmployees(){
  const list=$("employeeList");
  list.replaceChildren();
 
+
  const data=filteredEmployees();
+
 
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhum profissional encontrado nesta unidade.</div>';
   return;
  }
 
+
  data.forEach(e=>{
   const el=document.createElement("article");
   el.className="record";
+
 
   el.innerHTML=`
    <div class="employee-card-head">
@@ -4202,8 +5181,10 @@ function renderEmployees(){
    </div>
   `;
 
+
   const editEmployeeButton=el.querySelector(".editEmployee"); if(editEmployeeButton)editEmployeeButton.onclick=()=>openEmployeeEdit(e);
   const deleteEmployeeButton=el.querySelector(".deleteEmployee"); if(deleteEmployeeButton)deleteEmployeeButton.onclick=()=>deleteEmployee(e);
+
 
   if(e.photo_path){
    db.storage.from("employee-photos").createSignedUrl(e.photo_path,600).then(({data})=>{
@@ -4218,17 +5199,21 @@ function renderEmployees(){
    });
   }
 
+
   list.appendChild(el);
  });
 }
+
 
 function renderEmployeeUnitChecks(selected=[]){
  const box=$("employeeUnits");
  box.replaceChildren();
 
+
  allUnits.forEach(u=>{
   const label=document.createElement("label");
   label.className="unit-check-row";
+
 
   const checkbox=document.createElement("input");
   checkbox.type="checkbox";
@@ -4236,17 +5221,22 @@ function renderEmployeeUnitChecks(selected=[]){
   checkbox.className="employeeUnitCheck";
   checkbox.checked=selected.includes(u.id);
 
+
   label.appendChild(checkbox);
   label.appendChild(document.createTextNode(u.name));
+
 
   box.appendChild(label);
  });
 }
 
 
+
+
 async function loadSupervisorOptions(currentId=null,selectedId=null){
  const select=$("employeeSupervisor");
  select.innerHTML='<option value="">Sem superior</option>';
+
 
  const {data,error}=await db
   .from("employees")
@@ -4254,10 +5244,12 @@ async function loadSupervisorOptions(currentId=null,selectedId=null){
   .eq("status","ativo")
   .order("full_name");
 
+
  if(error){
   console.error(error);
   return;
  }
+
 
  (data||[]).forEach(person=>{
   if(person.id===currentId)return;
@@ -4269,6 +5261,7 @@ async function loadSupervisorOptions(currentId=null,selectedId=null){
  });
 }
 
+
 async function showEmployeeCurrentPhoto(path){
  const box=$("employeeCurrentPhoto");
  const preview=$("employeePhotoPreview");
@@ -4276,13 +5269,17 @@ async function showEmployeeCurrentPhoto(path){
  preview.replaceChildren();
  preview.textContent="Foto";
 
+
  if(!path)return;
+
 
  const {data}=await db.storage
   .from("employee-photos")
   .createSignedUrl(path,600);
 
+
  if(!data?.signedUrl)return;
+
 
  const img=document.createElement("img");
  img.src=data.signedUrl;
@@ -4291,9 +5288,11 @@ async function showEmployeeCurrentPhoto(path){
  box.textContent="Foto atual carregada.";
 }
 
+
 $("employeePhoto").addEventListener("change",()=>{
  const file=$("employeePhoto").files[0];
  if(!file)return;
+
 
  const preview=$("employeePhotoPreview");
  const img=document.createElement("img");
@@ -4304,8 +5303,11 @@ $("employeePhoto").addEventListener("change",()=>{
 });
 
 
+
+
 $("newEmployeeButton").onclick=async()=>{
  editingEmployee=null;
+
 
  $("employeeForm").reset();
  $("employeeId").value="";
@@ -4317,14 +5319,18 @@ $("newEmployeeButton").onclick=async()=>{
  $("employeePhotoPreview").textContent="Foto";
  await loadSupervisorOptions(null,null);
 
+
  renderEmployeeUnitChecks(unitId?[unitId]:[]);
+
 
  $("employeeDialogTitle").textContent="Novo profissional";
  $("employeeDialog").showModal();
 };
 
+
 async function openEmployeeEdit(e){
  editingEmployee=e;
+
 
  $("employeeId").value=e.id;
  $("employeeName").value=e.full_name||"";
@@ -4344,45 +5350,59 @@ async function openEmployeeEdit(e){
  await loadSupervisorOptions(e.id,e.supervisor_id||null);
  await showEmployeeCurrentPhoto(e.photo_path||null);
 
+
  renderEmployeeUnitChecks(e.unit_ids||[]);
+
 
  $("employeeDialogTitle").textContent="Editar profissional";
  $("employeeDialog").showModal();
 }
 
+
 $("cancelEmployeeDialog").onclick=()=>$("employeeDialog").close();
+
+
 
 
 async function uploadEmployeePhoto(employeeId,file){
  if(!file)return editingEmployee?.photo_path||null;
 
+
  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
  const path=`${unitId}/${employeeId}/${Date.now()}.${ext}`;
+
 
  const {error}=await db.storage
   .from("employee-photos")
   .upload(path,file,{cacheControl:"3600",upsert:false});
 
+
  if(error)throw error;
+
 
  return path;
 }
 
+
 $("employeeForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("saveEmployeeButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
+
 
  try{
   const selectedUnits=[
    ...document.querySelectorAll(".employeeUnitCheck:checked")
   ].map(x=>x.value);
 
+
   if(!selectedUnits.length){
    throw new Error("Selecione pelo menos uma unidade.");
   }
+
 
   const basePayload={
    full_name:$("employeeName").value.trim(),
@@ -4402,7 +5422,9 @@ $("employeeForm").addEventListener("submit",async e=>{
    updated_by:session.user.id
   };
 
+
   let id=$("employeeId").value;
+
 
   if(id){
    const {error}=await db
@@ -4410,14 +5432,18 @@ $("employeeForm").addEventListener("submit",async e=>{
     .update(basePayload)
     .eq("id",id);
 
+
    if(error)throw error;
+
 
    const {error:deleteLinksError}=await db
     .from("employee_units")
     .delete()
     .eq("employee_id",id);
 
+
    if(deleteLinksError)throw deleteLinksError;
+
 
   }else{
    const {data,error}=await db
@@ -4429,43 +5455,55 @@ $("employeeForm").addEventListener("submit",async e=>{
     .select("id")
     .single();
 
+
    if(error)throw error;
+
 
    id=data.id;
   }
 
+
   const photoFile=$("employeePhoto").files[0];
   const oldPhoto=editingEmployee?.photo_path||null;
   const newPhoto=await uploadEmployeePhoto(id,photoFile);
+
 
   const {error:photoUpdateError}=await db
    .from("employees")
    .update({photo_path:newPhoto,updated_by:session.user.id})
    .eq("id",id);
 
+
   if(photoUpdateError)throw photoUpdateError;
+
 
   if(photoFile&&oldPhoto&&oldPhoto!==newPhoto){
    await db.storage.from("employee-photos").remove([oldPhoto]);
   }
+
 
   const rows=selectedUnits.map(selectedUnitId=>({
    employee_id:id,
    unit_id:selectedUnitId
   }));
 
+
   const {error:linkError}=await db
    .from("employee_units")
    .insert(rows);
 
+
   if(linkError)throw linkError;
+
 
   $("employeeDialog").close();
   message($("appMessage"),"Profissional salvo com sucesso.","ok");
   await loadEmployees();
 
+
  }catch(err){
   console.error(err);
+
 
   message(
    $("appMessage"),
@@ -4480,45 +5518,56 @@ $("employeeForm").addEventListener("submit",async e=>{
  }
 });
 
+
 async function deleteEmployee(e){
  if(!confirm(`Excluir ${e.full_name} da Matriz de Comunicação?`)){
   return;
  }
+
 
  const {error:linksError}=await db
   .from("employee_units")
   .delete()
   .eq("employee_id",e.id);
 
+
  if(linksError){
   message($("appMessage"),"Falha ao remover vínculos do profissional.","err");
   return;
  }
 
+
  const photoPath=e.photo_path||null;
+
 
  const {error}=await db
   .from("employees")
   .delete()
   .eq("id",e.id);
 
+
  if(error){
   message($("appMessage"),"Falha ao excluir profissional.","err");
   return;
  }
 
+
  if(photoPath){
   await db.storage.from("employee-photos").remove([photoPath]);
  }
+
 
  message($("appMessage"),"Profissional excluído.","ok");
  await loadEmployees();
 }
 
 
+
+
 /* ============================
    ORGANOGRAMA
 ============================ */
+
 
 const ORG_ORDER=[
  "Líder",
@@ -4529,14 +5578,17 @@ const ORG_ORDER=[
  "Ajudante"
 ];
 
+
 async function loadOrganogram(){
  const box=$("orgContent");
  box.innerHTML='<div class="empty">Carregando...</div>';
+
 
  const {data:links,error:linkError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
   .eq("unit_id",unitId);
+
 
  if(linkError){
   console.error(linkError);
@@ -4544,12 +5596,15 @@ async function loadOrganogram(){
   return;
  }
 
+
  const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
 
  if(!ids.length){
   box.innerHTML='<div class="empty">Nenhum profissional vinculado a esta unidade.</div>';
   return;
  }
+
 
  const {data,error}=await db
   .from("employees")
@@ -4558,13 +5613,16 @@ async function loadOrganogram(){
   .eq("status","ativo")
   .order("full_name");
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar organograma.","err");
   return;
  }
 
+
  let orgPeople=data||[];
+
 
  // Inclui líderes/superiores compartilhados que não estejam
  // diretamente vinculados à unidade selecionada.
@@ -4575,12 +5633,14 @@ async function loadOrganogram(){
    .filter(id=>id&&!localIds.has(id))
  )];
 
+
  if(missingSupervisorIds.length){
   const {data:supervisors,error:supervisorError}=await db
    .from("employees")
    .select("*")
    .in("id",missingSupervisorIds)
    .eq("status","ativo");
+
 
   if(supervisorError){
    console.warn("Não foi possível carregar líderes compartilhados.",supervisorError);
@@ -4593,18 +5653,22 @@ async function loadOrganogram(){
   }
  }
 
+
  const orgIds=[...new Set(orgPeople.map(e=>e.id))];
+
 
  const {data:allLinks,error:allLinksError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
   .in("employee_id",orgIds);
 
+
  if(allLinksError){
   console.error(allLinksError);
   message($("appMessage"),"Falha ao carregar unidades do organograma.","err");
   return;
  }
+
 
  const enriched=orgPeople.map(emp=>({
   ...emp,
@@ -4613,8 +5677,10 @@ async function loadOrganogram(){
    .map(link=>link.unit_id)
  }));
 
+
  renderOrganogram(enriched);
 }
+
 
 async function signedEmployeePhoto(path){
  if(!path)return null;
@@ -4624,19 +5690,25 @@ async function signedEmployeePhoto(path){
  return data?.signedUrl||null;
 }
 
+
 async function buildOrgNode(person,bySupervisor,seen=new Set()){
  if(seen.has(person.id))return null;
+
 
  const nextSeen=new Set(seen);
  nextSeen.add(person.id);
 
+
  const wrap=document.createElement("div");
  wrap.className="org-node-wrap";
+
 
  const node=document.createElement("div");
  node.className="org-node";
 
+
  const photoUrl=await signedEmployeePhoto(person.photo_path);
+
 
  if(photoUrl){
   const img=document.createElement("img");
@@ -4655,52 +5727,65 @@ async function buildOrgNode(person,bySupervisor,seen=new Set()){
   node.appendChild(ph);
  }
 
+
  const name=document.createElement("strong");
  name.textContent=person.full_name;
  node.appendChild(name);
 
+
  const role=document.createElement("div");
  role.textContent=person.org_role||person.job_title||"Função não definida";
  node.appendChild(role);
+
 
  const meta=document.createElement("div");
  meta.className="muted";
  meta.textContent=[person.shift,person.day_night].filter(Boolean).join(" • ");
  node.appendChild(meta);
 
+
  wrap.appendChild(node);
+
 
  const children=(bySupervisor.get(person.id)||[])
   .filter(c=>!nextSeen.has(c.id));
 
+
  if(children.length){
   const childBox=document.createElement("div");
   childBox.className="org-children";
+
 
   for(const child of children){
    const childNode=await buildOrgNode(child,bySupervisor,nextSeen);
    if(childNode)childBox.appendChild(childNode);
   }
 
+
   wrap.appendChild(childBox);
  }
+
 
  return wrap;
 }
 
+
 async function renderOrganogram(data){
  const box=$("orgContent");
  box.replaceChildren();
+
 
  if(!data.length){
   box.innerHTML='<div class="empty">Nenhum profissional ativo nesta unidade.</div>';
   return;
  }
 
+
  const volante=data.filter(
   e=>(e.org_group||"").trim().toLowerCase()==="equipe volante"
  );
  const normal=data.filter(e=>!volante.includes(e));
+
 
  const leaders=normal.filter(e=>
   (e.org_role||"").trim().toLowerCase()==="líder" ||
@@ -4708,12 +5793,15 @@ async function renderOrganogram(data){
  );
  const nonLeaders=normal.filter(e=>!leaders.includes(e));
 
+
  const tree=document.createElement("div");
  tree.className="org-tree";
+
 
  if(leaders.length){
   const leaderRow=document.createElement("div");
   leaderRow.className="org-leader-row";
+
 
   for(const leader of leaders){
    const node=await buildOrgNode(leader,new Map());
@@ -4721,9 +5809,11 @@ async function renderOrganogram(data){
   }
   tree.appendChild(leaderRow);
 
+
   if(nonLeaders.length){
    const teamRow=document.createElement("div");
    teamRow.className="org-team-row";
+
 
    const orderMap=new Map(ORG_ORDER.map((role,index)=>[role.toLowerCase(),index]));
    nonLeaders.sort((a,b)=>{
@@ -4731,6 +5821,7 @@ async function renderOrganogram(data){
     const br=(b.org_role||b.job_title||"").toLowerCase();
     return (orderMap.get(ar)??99)-(orderMap.get(br)??99) || (a.full_name||"").localeCompare(b.full_name||"");
    });
+
 
    for(const person of nonLeaders){
     const node=await buildOrgNode(person,new Map());
@@ -4740,86 +5831,4 @@ async function renderOrganogram(data){
   }
  }else{
   const ids=new Set(normal.map(e=>e.id));
-  const bySupervisor=new Map();
-
-  normal.forEach(e=>{
-   if(e.supervisor_id&&ids.has(e.supervisor_id)){
-    if(!bySupervisor.has(e.supervisor_id))bySupervisor.set(e.supervisor_id,[]);
-    bySupervisor.get(e.supervisor_id).push(e);
-   }
-  });
-
-  const roots=normal.filter(e=>!e.supervisor_id||!ids.has(e.supervisor_id));
-  const row=document.createElement("div");
-  row.className="org-tree-row";
-
-  for(const root of roots){
-   const node=await buildOrgNode(root,bySupervisor);
-   if(node)row.appendChild(node);
-  }
-  tree.appendChild(row);
- }
-
- box.appendChild(tree);
-
- if(volante.length){
-  const section=document.createElement("section");
-  section.className="org-group-card";
-
-  const title=document.createElement("h3");
-  title.textContent="Equipe volante";
-  section.appendChild(title);
-
-  const row=document.createElement("div");
-  row.className="org-row";
-
-  for(const e of volante){
-   const card=document.createElement("div");
-   card.className="org-node";
-
-   const photoUrl=await signedEmployeePhoto(e.photo_path);
-
-   if(photoUrl){
-    const img=document.createElement("img");
-    img.src=photoUrl;
-    img.alt=e.full_name;
-    card.appendChild(img);
-   }else{
-    const ph=document.createElement("div");
-    ph.className="avatar-placeholder";
-    ph.textContent=(e.full_name||"?")
-     .split(/\s+/)
-     .slice(0,2)
-     .map(x=>x[0]||"")
-     .join("")
-     .toUpperCase();
-    card.appendChild(ph);
-   }
-
-   const name=document.createElement("strong");
-   name.textContent=e.full_name;
-   card.appendChild(name);
-
-   const role=document.createElement("div");
-   role.textContent=e.org_role||e.job_title||"Função não definida";
-   card.appendChild(role);
-
-   const units=document.createElement("div");
-   units.className="muted";
-   units.textContent=employeeUnitNames(e.unit_ids||[]);
-   card.appendChild(units);
-
-   row.appendChild(card);
-  }
-
-  section.appendChild(row);
-  box.appendChild(section);
- }
-}
-
-/* INÍCIO */
-
-start();
-</script>
-</body>
-</html>
+  const by
