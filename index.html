@@ -1,84 +1,4825 @@
-/* RDI — visão executiva */
-.rdi-exec-grid{
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b5c">
+<title>Central de Gestão Rede Américas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --primary:#123b5c;--primary2:#17679b;--bg:#f3f6f9;--card:#fff;
+  --text:#17324c;--muted:#66798a;--border:#d8e2e9;
+  --danger:#a63333;--success:#18794e;--warning:#a96d00;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--primary);color:#fff;padding:22px 18px}
+header h1{margin:5px 0;font-size:clamp(22px,5vw,34px);line-height:1.1}
+header small{color:#c6dcea;font-weight:700}
+main{max-width:1200px;margin:auto;padding:16px 14px 50px}
+.hidden{display:none!important}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:0 3px 12px #123b5c10}
+.login{max-width:450px;margin:30px auto}
+label{display:block;font-weight:700;font-size:13px;margin:11px 0 5px}
+input,select,textarea,button{width:100%;font:inherit;border-radius:9px}
+input,select,textarea{padding:11px;border:1px solid #bdccd7;background:#fff;color:var(--text)}
+textarea{min-height:90px;resize:vertical}
+button{padding:11px 14px;border:0;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--primary2);color:#fff}
+.secondary{background:#e8f1f7;color:var(--primary)}
+.danger{background:var(--danger);color:#fff}
+.ghost{background:#fff;color:var(--primary);border:1px solid var(--border)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.toolbar select,.toolbar button{width:auto;min-width:150px}
+.spacer{flex:1}
+.muted{color:var(--muted)}
+.status{display:none;margin:12px 0;padding:10px;border-radius:8px}
+.status.show{display:block}
+.status.ok{background:#e8f7ef;color:#17683f}
+.status.err{background:#fdeaea;color:#8f2525}
+.status.info{background:#eaf3fa;color:#245c7e}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:18px}
+.stat strong{display:block;font-size:27px;color:var(--primary2);margin-top:6px}
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin:15px 0 20px}
+.module{text-align:left;background:#fff;border:1px solid var(--border);color:var(--primary)}
+.module.active{background:var(--primary2);color:#fff}
+.section-title{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:15px 0}
+.section-title h2{margin:0;flex:1}
+.section-title button{width:auto}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-bottom:13px}
+.record-list{display:grid;gap:10px}
+.record{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.rdi-card-layout{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
+.rdi-card-photo{width:150px;height:115px;border-radius:11px;object-fit:cover;border:1px solid var(--border);background:#eef3f6}
+.rdi-card-photo-wrap{min-height:115px}
+@media(max-width:700px){
+ .rdi-card-layout{grid-template-columns:1fr}
+ .rdi-card-photo{width:100%;height:190px}
+}
+.record-top{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.record-top h3{margin:0;flex:1}
+.badge{padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800;background:#edf2f5}
+.gut-critica{background:#fde5e5;color:#972b2b}
+.gut-alta{background:#ffedd8;color:#9a5600}
+.gut-media{background:#fff4d5;color:#7d6400}
+.gut-baixa{background:#e8f4ea;color:#287044}
+.gut-muito-baixa{background:#e7f2fa;color:#2c6590}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.actions button{width:auto}
+.empty{text-align:center;padding:25px;background:#fff;border:1px dashed #becbd4;border-radius:12px;color:var(--muted)}
+.document-tools{display:flex;gap:8px}
+.document-tools button{width:auto;flex:1}
+.doc-check{width:22px;height:22px;flex:0 0 22px}
+.warning-text{color:#a15b00;font-weight:700}
+.expired-text{color:#a63333;font-weight:700}
+.unit-checks{box-shadow:none;padding:12px;display:grid;gap:8px}
+.unit-check-row{display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
+.unit-check-row input{width:auto}
+
+.org-chart{display:grid;gap:14px}
+.org-level{display:grid;gap:8px}
+.org-level-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.org-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.org-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.org-card strong{display:block;font-size:17px;margin-bottom:4px}
+.org-group-card{background:#eef5fa;border:1px solid #c7dce9;border-radius:14px;padding:16px}
+.org-group-card h3{margin:0 0 10px}
+
+
+.employee-photo-preview{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid #e3edf4;margin-top:8px}
+.org-tree{display:grid;gap:22px}
+.org-tree-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.org-node-wrap{display:grid;justify-items:center;position:relative}
+.org-node{width:min(240px,100%);background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;box-shadow:0 2px 8px #123b5c0d;position:relative}
+.org-node img{width:78px;height:78px;border-radius:50%;object-fit:cover;border:3px solid #e5eef4;margin-bottom:8px}
+.avatar-placeholder{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:#e9f1f6;color:#5c7182;font-weight:800;margin:0 auto 8px}
+.org-children{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;position:relative;padding-top:24px}
+.org-children:before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:#b8c9d5}
+.org-node-wrap>.org-children:after{content:"";position:absolute;top:18px;left:12%;right:12%;height:2px;background:#b8c9d5}
+.org-node-wrap>.org-children>.org-node-wrap:before{content:"";position:absolute;top:-6px;left:50%;width:2px;height:12px;background:#b8c9d5}
+
+dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
+dialog::backdrop{background:#061b2b99}
+.dialog-body{padding:18px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.full{grid-column:1/-1}
+.gut-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}
+.gut-result{background:#eef5fa;border-radius:9px;padding:11px;font-weight:800;text-align:center}
+.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.photo-preview{display:block;width:100%;max-height:170px;object-fit:cover;border-radius:8px;margin-top:5px}
+.dialog-actions{display:flex;gap:8px;margin-top:18px}
+.dialog-actions button{flex:1}
+hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+@media(max-width:700px){
+ .form-grid,.gut-grid,.photo-grid,.filters{grid-template-columns:1fr}
+ .full{grid-column:auto}
+ .toolbar{display:grid}
+ .toolbar select,.toolbar button{width:100%}
+ .spacer{display:none}
+ .section-title{display:grid}
+ .section-title button{width:100%}
+ .document-tools{display:grid}
+}
+
+.employee-photo-box{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:10px;
-  margin:4px 0 14px
-}
-.rdi-exec-card{
-  background:#fff;
+  grid-template-columns:110px 1fr;
+  gap:16px;
+  align-items:center;
+  padding:14px;
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:15px;
-  box-shadow:0 2px 8px #123b5c0d
+  border-radius:12px;
+  background:#f8fbfd;
 }
-.rdi-exec-card span{
-  display:block;
+.employee-photo-circle{
+  width:96px;height:96px;border-radius:50%;
+  display:grid;place-items:center;
+  overflow:hidden;background:#e8f1f7;color:#587083;
+  font-weight:800;font-size:24px;border:3px solid #dce8ef
+}
+.employee-photo-circle img{width:100%;height:100%;object-fit:cover}
+.employee-card-head{display:flex;gap:12px;align-items:center}
+.employee-card-avatar{
+  width:58px;height:58px;border-radius:50%;object-fit:cover;
+  background:#e8f1f7;border:2px solid #dce8ef;flex:0 0 58px
+}
+.employee-card-placeholder{
+  width:58px;height:58px;border-radius:50%;
+  display:grid;place-items:center;background:#e8f1f7;
+  color:#587083;font-weight:800;flex:0 0 58px
+}
+@media(max-width:700px){
+ .employee-photo-box{grid-template-columns:1fr;justify-items:center;text-align:center}
+}
+
+
+.water-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.water-actions button{width:auto}
+.water-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.water-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.water-kpi strong{display:block;font-size:24px;color:var(--primary2);margin-top:4px}
+.water-chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:14px}
+.water-chart-wrap{height:320px;position:relative}
+.water-ref-list{display:grid;gap:8px;margin-top:14px}
+.water-ref-row{display:grid;grid-template-columns:1.5fr .7fr .7fr .7fr auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px}
+.water-result-grid{display:grid;gap:8px;margin-top:12px}
+.water-result-row{display:grid;grid-template-columns:1.5fr .7fr .6fr .8fr;gap:8px;align-items:end;padding:9px;border:1px solid var(--border);border-radius:10px}
+.water-result-row label{margin-top:0}
+.water-out{border-left:5px solid #a63333}
+.water-ok{border-left:5px solid #18794e}
+@media(max-width:700px){
+ .water-actions{display:grid}
+ .water-actions button{width:100%}
+ .water-ref-row,.water-result-row{grid-template-columns:1fr}
+ .water-chart-wrap{height:280px}
+}
+
+
+.water-analysis-params{
+  display:grid;
+  gap:6px;
+  margin-top:10px;
+  border-top:1px solid var(--border);
+  padding-top:10px
+}
+.water-analysis-param{
+  display:grid;
+  grid-template-columns:1.5fr .7fr .9fr .8fr;
+  gap:8px;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:8px;
+  background:#f8fafc
+}
+.water-analysis-param-head{
+  font-size:12px;
+  font-weight:800;
   color:var(--muted);
-  font-size:13px;
-  font-weight:700
+  text-transform:uppercase;
+  letter-spacing:.3px
 }
-.rdi-exec-card strong{
-  display:block;
-  font-size:25px;
-  line-height:1.15;
-  color:var(--primary2);
-  margin-top:5px
+.water-status-ok{
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:7px;
+  background:#e8f7ef;
+  color:#17683f;
+  font-weight:700;
+  font-size:12px
 }
-.rdi-exec-card small{
-  display:block;
-  color:var(--muted);
-  margin-top:5px
+.water-status-out{
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:7px;
+  background:#fdeaea;
+  color:#8f2525;
+  font-weight:700;
+  font-size:12px
 }
-.rdi-analysis-title{
+@media(max-width:700px){
+ .water-analysis-param{
+   grid-template-columns:1fr 1fr;
+ }
+ .water-analysis-param-head{
+   display:none;
+ }
+}
+
+
+.overview-filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.overview-filter>div{min-width:240px}
+.overview-filter select{min-width:240px}
+.exec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.exec-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
+.exec-card span{display:block;color:var(--muted);font-size:13px;font-weight:700}
+.exec-card strong{display:block;font-size:26px;color:var(--primary2);margin-top:5px}
+.exec-card small{display:block;color:var(--muted);margin-top:4px}
+.exec-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.exec-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px}
+.exec-panel h3{margin:0 0 12px}
+.exec-chart{height:280px;position:relative}
+.exec-attention{display:grid;gap:8px}
+.attention-item{padding:11px 12px;border-radius:10px;background:#f8fafc;border-left:5px solid #a96d00}
+.attention-item.critical{border-left-color:#a63333;background:#fff6f6}
+.attention-item.ok{border-left-color:#18794e;background:#f4fbf7}
+.exec-mini-table{display:grid;gap:6px}
+.exec-mini-row{display:grid;grid-template-columns:1.3fr .7fr;gap:8px;padding:8px 10px;border-radius:8px;background:#f8fafc}
+@media(max-width:800px){
+ .exec-sections{grid-template-columns:1fr}
+ .overview-filter,.overview-filter>div,.overview-filter select{width:100%;min-width:0}
+ .exec-chart{height:250px}
+}
+
+
+.module-unit-bar{
+  display:flex;gap:10px;align-items:end;flex-wrap:wrap;
+  background:#eef5fa;border:1px solid #cfe0eb;border-radius:12px;
+  padding:12px;margin:-5px 0 16px
+}
+.module-unit-bar>div{min-width:260px}
+.module-unit-bar select{min-width:260px}
+.units-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(285px,1fr));
+  gap:14px
+}
+.unit-admin-card{
+  --unit-accent:#3c718f;
+  --unit-soft:#eef6fa;
+  background:linear-gradient(145deg,#fff 0%,var(--unit-soft) 100%);
+  border:1px solid #d6e2ea;
+  border-top:6px solid var(--unit-accent);
+  border-radius:17px;
+  padding:16px;
+  min-height:265px;
   display:flex;
+  flex-direction:column;
+  box-shadow:0 5px 16px #123b5c10;
+  transition:transform .18s ease,box-shadow .18s ease
+}
+.unit-admin-card.unit-coi{
+  --unit-accent:#7256b5;
+  --unit-soft:#f3f0fb
+}
+.unit-admin-card.unit-hospital{
+  --unit-accent:#55a8d6;
+  --unit-soft:#eef8fd
+}
+.unit-admin-card.unit-default{
+  --unit-accent:#3c718f;
+  --unit-soft:#eef6fa
+}
+.unit-admin-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px #123b5c18
+}
+.unit-card-top{display:flex;gap:12px;align-items:center}
+.unit-card-icon{
+  width:50px;height:50px;border-radius:14px;
+  display:grid;place-items:center;
+  flex:0 0 50px;
+  background:var(--unit-accent);color:#fff;
+  font-size:20px;font-weight:900
+}
+.unit-admin-info{flex:1;min-width:0}
+.unit-admin-card h3{margin:0;font-size:18px;line-height:1.2}
+.unit-status{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:7px;padding:4px 8px;border-radius:999px;
+  background:#fff;color:#287044;border:1px solid #dbe9df;
+  font-size:12px;font-weight:800
+}
+.unit-status:before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#2c8a5a
+}
+.unit-card-summary{
+  display:grid;
+  gap:9px;
+  margin:15px 0 12px
+}
+.unit-summary-line{
+  display:flex;
+  align-items:flex-start;
   justify-content:space-between;
   gap:10px;
-  align-items:end;
-  margin:18px 0 10px
+  padding:9px 10px;
+  border-radius:10px;
+  background:#ffffffb8;
+  border:1px solid #dfe8ee
 }
-.rdi-analysis-title h3{margin:0}
-
-.rdi-analysis-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-  margin-bottom:16px
-}
-.rdi-analysis-panel{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  min-width:0
-}
-.rdi-analysis-panel h4{
-  margin:0 0 3px;
-  font-size:15px
-}
-.rdi-analysis-panel .muted{
+.unit-summary-line span{
+  color:var(--muted);
   font-size:12px;
-  min-height:34px
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.25px
 }
-.rdi-chart-wrap{
-  height:230px;
-  position:relative;
-  margin-top:8px
+.unit-summary-line strong{
+  text-align:right;
+  font-size:13px
+}
+.unit-function-box{
+  padding:10px;
+  border-radius:10px;
+  background:#ffffffb8;
+  border:1px solid #dfe8ee
+}
+.unit-function-title{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.25px;
+  margin-bottom:7px
+}
+.unit-function-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px
+}
+.unit-function-chip{
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #d8e3ea;
+  font-size:12px;
+  font-weight:700
+}
+.unit-inventory-pending{
+  color:var(--muted);
+  font-style:italic
+}
+.unit-card-footer{
+  margin-top:auto;padding-top:14px;
+  border-top:1px solid #dbe5eb;
+  display:flex;gap:8px
+}
+.unit-card-footer button{flex:1;width:auto;padding:9px 10px}
+.unit-edit-btn{background:#fff;color:var(--primary);border:1px solid #cbdbe5}
+.unit-delete-btn{background:#fff;color:var(--danger);border:1px solid #eccdcd}
+.unit-delete-btn:hover{background:#fff1f1}
+@media(max-width:700px){
+ .module-unit-bar,.module-unit-bar>div,.module-unit-bar select{width:100%;min-width:0}
+ .units-grid{grid-template-columns:1fr}
+ .unit-admin-card{min-height:245px}
+ .unit-summary-line{display:grid}
+ .unit-summary-line strong{text-align:left}
 }
 
-@media(max-width:900px){
-  .rdi-exec-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr))
-  }
-  .rdi-analysis-grid{
-    grid-template-columns:1fr
-  }
-  .rdi-chart-wrap{
-    height:245px
-  }
+.access-list{display:grid;gap:10px}
+.access-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
+.access-card-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.access-card-head>div:first-child{flex:1}
+.access-card h3{margin:0 0 4px}
+.permission-table{display:grid;gap:7px;margin-top:14px}
+.permission-head,.permission-row{
+ display:grid;grid-template-columns:1.5fr repeat(4,.65fr);gap:8px;align-items:center;
+ padding:8px 10px;border-radius:9px
+}
+.permission-head{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase}
+.permission-row{background:#f8fafc}
+.permission-row input{width:20px;height:20px;margin:auto}
+.access-unit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
+.access-unit-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-weight:600}
+.access-unit-item input{width:20px;height:20px}
+
+.org-leader-row{display:flex;justify-content:center;margin-bottom:26px;position:relative}
+.org-leader-row:after{content:"";position:absolute;left:50%;bottom:-20px;width:2px;height:20px;background:#b8c9d5}
+.org-team-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start;position:relative;padding-top:18px}
+.org-team-row:before{content:"";position:absolute;top:0;left:12%;right:12%;height:2px;background:#b8c9d5}
+.org-team-row>.org-node-wrap:before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:#b8c9d5}
+
+@media(max-width:700px){
+ .permission-head{display:none}
+ .permission-row{grid-template-columns:1fr 1fr}
+ .permission-row .perm-label{grid-column:1/-1;font-weight:800}
+ .access-card-head{display:grid}
 }
 
-@media(max-width:480px){
-  .rdi-exec-card{padding:13px}
-  .rdi-exec-card strong{font-size:22px}
+</style>
+</head>
+
+<body>
+<header>
+<small>GRUPO AMÉRICAS • MANUTENÇÃO HOSPITALAR</small>
+<h1>Central de Gestão Manutenção Rede Américas</h1>
+<div id="headerStatus">Acesso controlado</div>
+</header>
+
+<main>
+
+<section id="loginView" class="card login">
+<h2>Administrador</h2>
+<p class="muted">Acesso administrativo com e-mail e senha.</p>
+<form id="loginForm">
+<label>E-mail</label>
+<input id="email" type="email" required autocomplete="username">
+<label>Senha</label>
+<input id="password" type="password" required autocomplete="current-password">
+<button id="adminLoginButton" class="primary" style="margin-top:15px">Entrar como administrador</button>
+</form>
+<div id="loginMessage" class="status"></div>
+<hr>
+<p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
+</section>
+
+<section id="appView" class="hidden">
+
+<div class="toolbar">
+<span class="spacer"></span>
+<div>
+<strong id="userName"></strong>
+<div class="muted" id="userRole"></div>
+</div>
+<button id="logoutButton" class="ghost">Sair</button>
+</div>
+
+<div id="appMessage" class="status"></div>
+
+
+<h2>Módulos</h2>
+
+<div class="modules">
+<button id="moduleOverview" class="module active">Visão Geral</button>
+<button id="moduleUnits" class="module">Unidades</button>
+<button id="moduleAccess" class="module">Usuários e Acessos</button>
+<button id="moduleRdi" class="module">RDI</button>
+<button id="moduleWater" class="module">Qualidade da Água</button>
+<button class="module" disabled>Neovero</button>
+<button class="module" disabled>Relatórios</button>
+<button id="moduleDocuments" class="module">Documentos</button>
+<button class="module" disabled>Inventário</button>
+<button class="module" disabled>Treinamentos</button>
+<button id="moduleOrg" class="module">Organograma</button>
+<button id="moduleCommunication" class="module">Matriz de Comunicação</button>
+</div>
+
+<div id="moduleUnitBar" class="module-unit-bar hidden">
+<div>
+<label>Unidade deste módulo</label>
+<select id="moduleUnitSelect">
+<option value="">Selecione uma unidade</option>
+</select>
+</div>
+</div>
+
+
+<!-- VISÃO GERAL -->
+<div id="overviewModuleView">
+
+<div class="section-title">
+<div>
+<h2>Visão Geral</h2>
+<div class="muted">Resumo executivo da manutenção.</div>
+</div>
+</div>
+
+<div class="overview-filter">
+<div>
+<label>Escopo</label>
+<select id="overviewUnitSelect">
+<option value="">Toda a Rede</option>
+</select>
+</div>
+</div>
+
+<div class="exec-grid">
+<div class="exec-card"><span>Unidades</span><strong id="ovUnits">0</strong><small id="ovUnitsNote">Rede ativa</small></div>
+<div class="exec-card"><span>Funcionários ativos</span><strong id="ovEmployees">0</strong><small>Equipe cadastrada</small></div>
+<div class="exec-card"><span>RDI em aberto</span><strong id="ovRdiOpen">0</strong><small id="ovRdiCritical">0 críticas</small></div>
+<div class="exec-card"><span>RDI concluídas</span><strong id="ovRdiDone">0</strong><small id="ovRdiRate">0% de conclusão</small></div>
+<div class="exec-card"><span>Custo estimado RDI</span><strong id="ovCostEstimated" style="font-size:21px">R$ 0</strong><small>Demandas do escopo</small></div>
+<div class="exec-card"><span>Custo realizado RDI</span><strong id="ovCostActual" style="font-size:21px">R$ 0</strong><small>Valor realizado</small></div>
+<div class="exec-card"><span>Documentos</span><strong id="ovDocuments">0</strong><small id="ovDocsAlert">0 vencidos / próximos</small></div>
+<div class="exec-card"><span>Qualidade da Água</span><strong id="ovWaterAnalyses">0</strong><small id="ovWaterOut">0 resultados fora da faixa</small></div>
+</div>
+
+<div class="exec-sections">
+<div class="exec-panel">
+<h3>RDI por status</h3>
+<div class="exec-chart"><canvas id="ovRdiChart"></canvas></div>
+</div>
+
+<div class="exec-panel">
+<h3>Efetivo por função</h3>
+<div class="exec-chart"><canvas id="ovEmployeesChart"></canvas></div>
+</div>
+</div>
+
+<div class="exec-sections">
+<div class="exec-panel">
+<h3>Custos RDI por unidade</h3>
+<div class="exec-chart"><canvas id="ovCostChart"></canvas></div>
+</div>
+
+<div class="exec-panel">
+<h3>Atenções</h3>
+<div id="ovAttention" class="exec-attention">
+<div class="empty">Carregando indicadores...</div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<!-- UNIDADES -->
+<div id="unitsModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Unidades</h2>
+<div class="muted">Cadastro das unidades utilizadas em todo o aplicativo.</div>
+</div>
+<button id="newUnitButton" class="primary">+ Nova unidade</button>
+</div>
+
+<div id="unitsList" class="units-grid">
+<div class="empty">Carregando unidades...</div>
+</div>
+
+</div>
+
+
+<!-- USUÁRIOS E ACESSOS -->
+<div id="accessModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Usuários e Acessos</h2>
+<div class="muted">Convites, perfis e permissões por unidade e módulo.</div>
+</div>
+<button id="newAccessUserButton" class="primary">+ Novo usuário</button>
+</div>
+
+<div id="accessUsersList" class="access-list">
+<div class="empty">Carregando usuários...</div>
+</div>
+
+</div>
+
+<!-- RDI -->
+<div id="rdiModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>RDI — Gestão de Criticidade</h2>
+<div id="rdiSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+<button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
+</div>
+
+<div class="filters">
+<input id="searchInput" placeholder="Buscar equipamento, desvio, local...">
+<select id="statusFilter">
+<option value="">Todos os status</option>
+<option>EM ABERTO</option>
+<option>EM COTAÇÃO</option>
+<option>AGUARDANDO APROVAÇÃO</option>
+<option>APROVADA</option>
+<option>EM EXECUÇÃO</option>
+<option>CONCLUÍDA</option>
+<option>CANCELADA</option>
+</select>
+<select id="gutFilter">
+<option value="">Todas as criticidades</option>
+<option value="Crítica">Crítica</option>
+<option value="Alta">Alta</option>
+<option value="Média">Média</option>
+<option value="Baixa">Baixa</option>
+<option value="Muito baixa">Muito baixa</option>
+</select>
+</div>
+
+<div id="rdiList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+
+<!-- QUALIDADE DA ÁGUA -->
+<div id="waterModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Qualidade da Água</h2>
+<div id="waterSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+</div>
+
+<div class="water-actions">
+<button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
+<button id="waterReferencesButton" class="ghost">Referências</button>
+</div>
+
+<div class="filters">
+<select id="waterTypeFilter">
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+
+<select id="waterParameterFilter">
+<option value="">Selecione um parâmetro</option>
+</select>
+
+<select id="waterPeriodFilter">
+<option value="12">Últimos 12 meses</option>
+<option value="24">Últimos 24 meses</option>
+<option value="0">Todo o histórico</option>
+</select>
+</div>
+
+<div class="water-kpis">
+<div class="water-kpi"><span>Análises</span><strong id="waterAnalysisCount">0</strong></div>
+<div class="water-kpi"><span>Última análise</span><strong id="waterLastDate" style="font-size:18px">—</strong></div>
+<div class="water-kpi"><span>Resultados fora da faixa</span><strong id="waterOutCount">0</strong></div>
+</div>
+
+<div class="water-chart-card">
+<div class="section-title" style="margin-top:0">
+<div>
+<h3 id="waterChartTitle" style="margin:0">Acompanhamento mensal</h3>
+<div id="waterChartReference" class="muted">Selecione um parâmetro.</div>
+</div>
+</div>
+<div class="water-chart-wrap">
+<canvas id="waterChart"></canvas>
+</div>
+</div>
+
+<h3>Últimas análises</h3>
+<div id="waterAnalysisList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+<!-- DOCUMENTOS -->
+<div id="documentModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Documentos</h2>
+<div id="documentSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+<button id="newDocumentButton" class="primary" disabled>+ Novo documento</button>
+</div>
+
+<div class="filters">
+<input id="documentSearch" placeholder="Buscar documento...">
+<select id="documentCategoryFilter">
+<option value="">Todas as categorias</option>
+<option>ART</option>
+<option>PGR</option>
+<option>PCMSO</option>
+<option>PMOC</option>
+<option>NRs</option>
+<option>POPs</option>
+<option>Contrato</option>
+</select>
+<div class="document-tools">
+<button id="selectAllDocuments" type="button" class="secondary">Selecionar todos</button>
+<button id="deleteSelectedDocuments" type="button" class="danger">Excluir selecionados</button>
+</div>
+</div>
+
+<div id="documentList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+<!-- MATRIZ DE COMUNICAÇÃO -->
+<div id="communicationModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Matriz de Comunicação</h2>
+<div id="communicationSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+<button id="newEmployeeButton" class="primary" disabled>+ Novo profissional</button>
+</div>
+
+<div class="filters">
+<input id="employeeSearch" placeholder="Buscar nome, função, matrícula...">
+<select id="employeeStatusFilter">
+<option value="">Todos os status</option>
+<option value="ativo">Ativo</option>
+<option value="inativo">Inativo</option>
+<option value="transferido">Transferido</option>
+<option value="desligado">Desligado</option>
+</select>
+<select id="employeeShiftFilter">
+<option value="">Todos os turnos</option>
+<option value="dia">Dia</option>
+<option value="noite">Noite</option>
+</select>
+</div>
+
+<div id="employeeList" class="record-list">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+
+<!-- ORGANOGRAMA -->
+<div id="orgModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Organograma</h2>
+<div id="orgSubtitle" class="muted">Selecione uma unidade.</div>
+</div>
+</div>
+
+<div id="orgContent">
+<div class="empty">Selecione uma unidade.</div>
+</div>
+
+</div>
+
+</section>
+</main>
+
+
+
+
+<!-- MODAL USUÁRIO E ACESSOS -->
+<dialog id="accessUserDialog">
+<div class="dialog-body">
+<h2 id="accessUserDialogTitle">Novo usuário</h2>
+
+<form id="accessUserForm">
+<input id="accessUserId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Nome *</label>
+<input id="accessDisplayName" required maxlength="120">
+</div>
+<div>
+<label>E-mail *</label>
+<input id="accessEmail" type="email" required>
+</div>
+<div>
+<label>Perfil *</label>
+<select id="accessRole" required>
+<option value="team">Equipe</option>
+<option value="client">Cliente</option>
+</select>
+</div>
+<div>
+<label>Status</label>
+<select id="accessActive">
+<option value="true">Ativo</option>
+<option value="false">Inativo</option>
+</select>
+</div>
+</div>
+
+<h3>Unidades permitidas</h3>
+<div id="accessUnits" class="access-unit-grid"></div>
+
+<h3>Permissões</h3>
+<p id="clientReadOnlyNotice" class="muted hidden">Perfil Cliente: somente visualização. Inclusão, edição e exclusão ficam bloqueadas.</p>
+
+<div class="permission-table">
+<div class="permission-head">
+<div>Módulo</div><div>Ver</div><div>Inserir</div><div>Editar</div><div>Excluir</div>
+</div>
+
+<div class="permission-row" data-module="rdi">
+<div class="perm-label">RDI</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="qualidade_agua">
+<div class="perm-label">Qualidade da Água</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="documentos">
+<div class="perm-label">Documentos</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+<div class="permission-row" data-module="comunicacao">
+<div class="perm-label">Matriz / Organograma</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+</div>
+
+<div class="dialog-actions">
+<button id="cancelAccessUser" type="button" class="ghost">Cancelar</button>
+<button id="saveAccessUser" type="submit" class="primary">Enviar convite</button>
+</div>
+</form>
+</div>
+</dialog>
+
+<!-- MODAL UNIDADE -->
+<dialog id="unitDialog">
+<div class="dialog-body">
+<h2 id="unitDialogTitle">Nova unidade</h2>
+
+<form id="unitForm">
+<input id="unitIdField" type="hidden">
+
+<label>Nome da unidade *</label>
+<input id="unitNameField" required maxlength="120" placeholder="Ex.: Hospital Pasteur">
+
+<div class="dialog-actions">
+<button id="cancelUnitDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveUnitButton" type="submit" class="primary">Salvar unidade</button>
+</div>
+</form>
+</div>
+</dialog>
+
+<!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
+<dialog id="waterManualDialog">
+<div class="dialog-body">
+<h2 id="waterManualDialogTitle">Lançamento manual</h2>
+<form id="waterManualForm">
+<input id="waterReportId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Tipo de água *</label>
+<select id="waterManualType" required>
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+</div>
+
+<div>
+<label>Data da coleta *</label>
+<input id="waterSampleDate" type="date" required>
+</div>
+
+<div>
+<label>Data do laudo</label>
+<input id="waterReportDate" type="date">
+</div>
+
+<div>
+<label>Laboratório</label>
+<input id="waterLaboratory">
+</div>
+
+<div class="full">
+<label>Observações</label>
+<textarea id="waterNotes"></textarea>
+</div>
+</div>
+
+<h3>Resultados</h3>
+<div id="waterManualResults" class="water-result-grid"></div>
+
+<div class="dialog-actions">
+<button id="cancelWaterManual" type="button" class="ghost">Cancelar</button>
+<button id="saveWaterManual" type="submit" class="primary">Salvar análise</button>
+</div>
+</form>
+</div>
+</dialog>
+
+<!-- MODAL QUALIDADE DA ÁGUA - REFERÊNCIAS -->
+<dialog id="waterReferencesDialog">
+<div class="dialog-body">
+<h2>Parâmetros de referência</h2>
+<p class="muted">Cadastre apenas os parâmetros realmente acompanhados. Mínimo e máximo podem ficar em branco quando não se aplicarem.</p>
+
+<form id="waterReferenceForm">
+<input id="waterReferenceId" type="hidden">
+
+<div class="form-grid">
+<div>
+<label>Tipo de água *</label>
+<select id="waterReferenceType" required>
+<option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option>
+<option value="condensada">Água condensada</option>
+</select>
+</div>
+
+<div>
+<label>Parâmetro *</label>
+<input id="waterReferenceName" required placeholder="Ex.: pH">
+</div>
+
+<div>
+<label>Unidade</label>
+<input id="waterReferenceUnit" placeholder="Ex.: mg/L">
+</div>
+
+<div>
+<label>Mínimo desejado</label>
+<input id="waterReferenceMin" type="number" step="any">
+</div>
+
+<div>
+<label>Máximo desejado</label>
+<input id="waterReferenceMax" type="number" step="any">
+</div>
+</div>
+
+<div class="dialog-actions">
+<button id="cancelWaterReferenceEdit" type="button" class="ghost">Limpar</button>
+<button id="saveWaterReference" type="submit" class="primary">Salvar parâmetro</button>
+</div>
+</form>
+
+<div id="waterReferenceList" class="water-ref-list"></div>
+
+<div class="dialog-actions">
+<button id="closeWaterReferences" type="button" class="ghost">Fechar</button>
+</div>
+</div>
+</dialog>
+
+<!-- MODAL RDI -->
+<dialog id="rdiDialog">
+<div class="dialog-body">
+<h2 id="dialogTitle">Nova demanda RDI</h2>
+
+<form id="rdiForm">
+<input id="recordId" type="hidden">
+
+<div class="form-grid">
+
+<div>
+<label>ID de origem</label>
+<input id="sourceId" placeholder="Opcional">
+</div>
+
+<div>
+<label>Oficina</label>
+<input id="workshop">
+</div>
+
+<div class="full">
+<label>Informações do equipamento / instalação</label>
+<textarea id="equipmentInfo"></textarea>
+</div>
+
+<div>
+<label>Local</label>
+<input id="location">
+</div>
+
+<div>
+<label>Data do registro</label>
+<input id="recordedOn" type="date">
+</div>
+
+<div class="full">
+<label>Desvio operacional *</label>
+<textarea id="operationalDeviation" required></textarea>
+</div>
+
+<div class="full">
+<label>Possível impacto</label>
+<textarea id="possibleImpact"></textarea>
+</div>
+
+<div class="full">
+<label>Ação a ser tomada</label>
+<textarea id="recommendedAction"></textarea>
+</div>
+
+<div class="full">
+<h3>GUT</h3>
+<div class="gut-grid">
+
+<div>
+<label>Gravidade *</label>
+<select id="gravity" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+
+<div>
+<label>Urgência *</label>
+<select id="urgency" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+
+<div>
+<label>Tendência *</label>
+<select id="trend" required>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+</select>
+</div>
+
+<div class="gut-result">
+<div>Pontuação</div>
+<div id="gutScore">1</div>
+<div id="gutClass">Muito baixa</div>
+</div>
+
+</div>
+</div>
+
+<div>
+<label>Classificação de risco original</label>
+<input id="riskClassificationSource">
+</div>
+
+<div>
+<label>Dano</label>
+<input id="damage">
+</div>
+
+<div>
+<label>Custo estimado (R$)</label>
+<input id="costEstimated" type="number" step="0.01" min="0">
+</div>
+
+<div>
+<label>Orçamento</label>
+<input id="budgetReference">
+</div>
+
+<div class="full">
+<label>Parecer técnico</label>
+<textarea id="technicalOpinion"></textarea>
+</div>
+
+<div>
+<label>Status</label>
+<select id="status">
+<option>EM ABERTO</option>
+<option>EM COTAÇÃO</option>
+<option>AGUARDANDO APROVAÇÃO</option>
+<option>APROVADA</option>
+<option>EM EXECUÇÃO</option>
+<option>CONCLUÍDA</option>
+<option>CANCELADA</option>
+</select>
+</div>
+
+<div>
+<label>Data de execução</label>
+<input id="executionDate" type="date">
+</div>
+
+<div>
+<label>Responsável</label>
+<input id="responsible">
+</div>
+
+<div>
+<label>Prazo</label>
+<input id="dueDate" type="date">
+</div>
+
+<div>
+<label>Data de conclusão</label>
+<input id="conclusionDate" type="date">
+</div>
+
+<div>
+<label>Fornecedor</label>
+<input id="supplier">
+</div>
+
+<div>
+<label>Categoria</label>
+<select id="capexOpex">
+<option>Não definido</option>
+<option>CAPEX</option>
+<option>OPEX</option>
+</select>
+</div>
+
+<div>
+<label>Custo aprovado (R$)</label>
+<input id="approvedCost" type="number" step="0.01" min="0">
+</div>
+
+<div>
+<label>Custo realizado (R$)</label>
+<input id="actualCost" type="number" step="0.01" min="0">
+</div>
+
+<div>
+<label>Redundância</label>
+<select id="redundancy">
+<option>não avaliada</option>
+<option>sim</option>
+<option>não</option>
+</select>
+</div>
+
+<div>
+<label>Impacto assistencial</label>
+<select id="careImpact">
+<option>não avaliado</option>
+<option>baixo</option>
+<option>médio</option>
+<option>alto</option>
+</select>
+</div>
+
+<div>
+<label>Prioridade manual</label>
+<input id="manualPriority">
+</div>
+
+<div class="full">
+<label>Justificativa da prioridade manual</label>
+<textarea id="manualPriorityJustification"></textarea>
+</div>
+
+<div class="full">
+<label>Observações de gestão</label>
+<textarea id="managementNotes"></textarea>
+</div>
+
+<div class="full">
+<hr>
+<h3>Fotos da ocorrência</h3>
+<p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+
+<div class="photo-grid">
+<div><label>Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
+<div><label>Foto 2</label><input id="photo2" type="file" accept="image/*"></div>
+<div><label>Foto 3</label><input id="photo3" type="file" accept="image/*"></div>
+<div><label>Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
+</div>
+
+<div id="currentPhotos" class="photo-grid"></div>
+</div>
+
+</div>
+
+<div class="dialog-actions">
+<button id="cancelDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveButton" type="submit" class="primary">Salvar demanda</button>
+</div>
+
+</form>
+</div>
+</dialog>
+
+<!-- MODAL DOCUMENTOS -->
+<dialog id="documentDialog">
+<div class="dialog-body">
+<h2 id="documentDialogTitle">Novo documento</h2>
+
+<form id="documentForm">
+<input id="documentId" type="hidden">
+
+<div class="form-grid">
+
+<div>
+<label>Categoria *</label>
+<select id="documentCategory" required>
+<option>ART</option>
+<option>PGR</option>
+<option>PCMSO</option>
+<option>PMOC</option>
+<option>NRs</option>
+<option>POPs</option>
+<option>Contrato</option>
+</select>
+</div>
+
+<div>
+<label>Título *</label>
+<input id="documentTitle" required>
+</div>
+
+<div>
+<label>Data do documento</label>
+<input id="documentDate" type="date">
+</div>
+
+<div>
+<label>Validade</label>
+<input id="documentValidUntil" type="date">
+</div>
+
+<div class="full">
+<label>Descrição</label>
+<textarea id="documentDescription"></textarea>
+</div>
+
+<div class="full">
+<label>Arquivo</label>
+<input id="documentFile" type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,image/jpeg,image/png,image/webp">
+<div id="currentDocumentFile" class="muted" style="margin-top:6px"></div>
+</div>
+
+</div>
+
+<div class="dialog-actions">
+<button id="cancelDocumentDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveDocumentButton" type="submit" class="primary">Salvar documento</button>
+</div>
+
+</form>
+</div>
+</dialog>
+
+<!-- MODAL MATRIZ DE COMUNICAÇÃO -->
+<dialog id="employeeDialog">
+<div class="dialog-body">
+<h2 id="employeeDialogTitle">Novo profissional</h2>
+
+<form id="employeeForm">
+<input id="employeeId" type="hidden">
+
+<div class="employee-photo-box">
+  <div id="employeePhotoPreview" class="employee-photo-circle">Foto</div>
+  <div>
+    <label style="margin-top:0">Foto do profissional</label>
+    <input id="employeePhoto" type="file" accept="image/*">
+    <div class="muted" style="margin-top:6px">JPG, PNG, WEBP, HEIC ou HEIF. Máximo de 10 MB.</div>
+    <div id="employeeCurrentPhoto" class="muted" style="margin-top:6px"></div>
+  </div>
+</div>
+
+<div class="form-grid">
+
+<div class="full">
+<label>Nome *</label>
+<input id="employeeName" required>
+</div>
+
+<div>
+<label>Função</label>
+<input id="employeeJobTitle">
+</div>
+
+<div>
+<label>Escala</label>
+<input id="employeeScale" placeholder="Ex.: 12x36">
+</div>
+
+<div>
+<label>Horário</label>
+<input id="employeeWorkHours" placeholder="Ex.: 07:00 às 19:00">
+</div>
+
+<div>
+<label>Turno</label>
+<select id="employeeDayNight">
+<option value="">Não informado</option>
+<option value="dia">Dia</option>
+<option value="noite">Noite</option>
+</select>
+</div>
+
+<div>
+<label>Celular</label>
+<input id="employeePhone" type="tel">
+</div>
+
+<div>
+<label>Data de admissão</label>
+<input id="employeeHiredOn" type="date">
+</div>
+
+<div>
+<label>Adicional</label>
+<input id="employeeAdditionalInfo" placeholder="Ex.: Periculosidade">
+</div>
+
+<div>
+<label>Matrícula</label>
+<input id="employeeNumber">
+</div>
+
+<div>
+<label>Centro de custo</label>
+<input id="employeeCostCenter">
+</div>
+
+<div>
+<label>Status</label>
+<select id="employeeStatus">
+<option value="ativo">Ativo</option>
+<option value="inativo">Inativo</option>
+<option value="transferido">Transferido</option>
+<option value="desligado">Desligado</option>
+</select>
+</div>
+
+<div>
+<label>Posição no organograma</label>
+<select id="employeeOrgRole">
+<option value="">Não definido</option>
+<option>Líder</option>
+<option>Eletromecânico V</option>
+<option>Eletromecânico IV</option>
+<option>Eletromecânico III</option>
+<option>Oficial</option>
+<option>Ajudante</option>
+</select>
+</div>
+
+<div>
+<label>Grupo</label>
+<input id="employeeOrgGroup" placeholder="Ex.: Equipe volante">
+</div>
+
+<div>
+<label>Superior imediato</label>
+<select id="employeeSupervisor">
+<option value="">Sem superior</option>
+</select>
+</div>
+
+
+<div class="full">
+<label>Unidade(s) *</label>
+<div id="employeeUnits" class="card unit-checks"></div>
+<p class="muted">O profissional pode pertencer a uma ou mais unidades.</p>
+</div>
+
+</div>
+
+<div class="dialog-actions">
+<button id="cancelEmployeeDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveEmployeeButton" type="submit" class="primary">Salvar profissional</button>
+</div>
+
+</form>
+</div>
+</dialog>
+
+<script>
+const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
+const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
+
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+ auth:{persistSession:true,autoRefreshToken:true}
+});
+
+let session=null;
+let profile=null;
+let enteringApp=false;
+let overviewLoading=false;
+let unitId="";
+let allUnits=[];
+let editingUnit=null;
+let accessGrants=[];
+let editingAccessUser=null;
+
+let records=[];
+let editingRecord=null;
+
+let documents=[];
+let editingDocument=null;
+
+let employees=[];
+let editingEmployee=null;
+
+let currentModule="overview";
+let ovRdiChartInstance=null;
+let ovEmployeesChartInstance=null;
+let ovCostChartInstance=null;
+
+let waterReferences=[];
+let waterReports=[];
+let waterResults=[];
+let waterChartInstance=null;
+let editingWaterReport=null;
+
+
+const $=id=>document.getElementById(id);
+
+function message(el,text,type="info"){
+ el.textContent=text;
+ el.className=text?`status show ${type}`:"status";
 }
+
+function numberOrNull(v){
+ return v===""?null:Number(v);
+}
+
+function textOrNull(v){
+ v=v.trim();
+ return v||null;
+}
+
+function escapeHtml(v){
+ const d=document.createElement("div");
+ d.textContent=String(v??"");
+ return d.innerHTML;
+}
+
+/* LOGIN */
+
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("adminLoginButton");
+ btn.disabled=true;
+ btn.textContent="Entrando...";
+ message($("loginMessage"),"Validando acesso administrativo...","info");
+
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim().toLowerCase(),
+  password:$("password").value
+ });
+
+ if(error||!data?.session){
+  message($("loginMessage"),"E-mail ou senha inválidos.","err");
+  btn.disabled=false;
+  btn.textContent="Entrar como administrador";
+  return;
+ }
+
+ const {data:adminProfile,error:profileError}=await db
+  .from("profiles")
+  .select("role,active")
+  .eq("user_id",data.session.user.id)
+  .single();
+
+ if(profileError||!adminProfile?.active||adminProfile.role!=="admin"){
+  await db.auth.signOut();
+  session=null;
+  message(
+   $("loginMessage"),
+   "Esta tela é exclusiva do Administrador. Equipe e Cliente devem acessar pelo link enviado pelo Administrador.",
+   "err"
+  );
+  btn.disabled=false;
+  btn.textContent="Entrar como administrador";
+  return;
+ }
+
+ session=data.session;
+ await enterApp();
+
+ btn.disabled=false;
+ btn.textContent="Entrar como administrador";
+});
+
+$("logoutButton").onclick=async()=>{
+ await db.auth.signOut();
+ location.reload();
+};
+
+db.auth.onAuthStateChange(async(event,newSession)=>{
+ session=newSession;
+
+ if(event==="SIGNED_IN"&&newSession){
+  const appHidden=$("appView").classList.contains("hidden");
+  if(appHidden)await enterApp();
+ }
+});
+
+async function start(){
+ const {data}=await db.auth.getSession();
+ session=data.session;
+
+ if(session){
+  await enterApp();
+ }
+}
+
+async function enterApp(){
+ if(enteringApp)return;
+ enteringApp=true;
+
+ $("loginView").classList.add("hidden");
+ $("appView").classList.remove("hidden");
+ $("headerStatus").textContent="Ambiente autenticado";
+
+ const {data,error}=await db
+  .from("profiles")
+  .select("display_name,email,role,active")
+  .eq("user_id",session.user.id)
+  .single();
+
+ if(error||!data?.active){
+  message($("appMessage"),"Perfil sem autorização.","err");
+  enteringApp=false;
+  return;
+ }
+
+ profile=data;
+ $("userName").textContent=data.display_name||session.user.email;
+ $("userRole").textContent=
+  data.role==="admin"?"Administrador Geral":
+  data.role==="client"?"Cliente":"Equipe";
+
+ await loadAccessGrantsForCurrentUser();
+ await loadUnits();
+ configureVisibleModules();
+ $("newUnitButton").classList.toggle("hidden",profile?.role!=="admin");
+ await loadOverview();
+ enteringApp=false;
+}
+
+
+const ACCESS_MODULES=["rdi","qualidade_agua","documentos","comunicacao"];
+
+async function loadAccessGrantsForCurrentUser(){
+ if(profile?.role==="admin"){
+  accessGrants=[];
+  return;
+ }
+
+ const {data,error}=await db
+  .from("access_grants")
+  .select("*")
+  .eq("user_id",session.user.id);
+
+ if(error){
+  console.error(error);
+  accessGrants=[];
+  return;
+ }
+
+ accessGrants=data||[];
+}
+
+function hasAccess(module,action="view",targetUnit=null){
+ if(profile?.role==="admin")return true;
+
+ const key={
+  view:"can_view",
+  insert:"can_insert",
+  edit:"can_edit",
+  delete:"can_delete"
+ }[action]||"can_view";
+
+ return accessGrants.some(g=>
+  g.module===module &&
+  (targetUnit===null || g.unit_id===targetUnit || g.unit_id===null) &&
+  !!g[key]
+ );
+}
+
+function accessibleUnitIds(){
+ if(profile?.role==="admin")return allUnits.map(u=>u.id);
+ return [...new Set(accessGrants.filter(g=>g.can_view&&g.unit_id).map(g=>g.unit_id))];
+}
+
+function configureVisibleModules(){
+ const admin=profile?.role==="admin";
+
+ $("moduleUnits").classList.toggle("hidden",!admin);
+ $("moduleAccess").classList.toggle("hidden",!admin);
+
+ $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
+ $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
+ $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
+
+ const communicationVisible=hasAccess("comunicacao","view");
+ $("moduleCommunication").classList.toggle("hidden",!communicationVisible);
+ $("moduleOrg").classList.toggle("hidden",!communicationVisible);
+
+ // Visão Geral permanece disponível e respeita o RLS das permissões.
+ $("moduleOverview").classList.remove("hidden");
+}
+
+function configureActionButtons(){
+ if(!unitId)return;
+
+ $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
+ $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
+ $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
+ $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
+
+ // Referências de água permanecem administrativas.
+ $("waterReferencesButton").classList.toggle("hidden",profile?.role!=="admin");
+}
+
+/* UNIDADES */
+
+async function loadUnits(){
+ const {data,error}=await db
+  .from("units")
+  .select("id,name,active,created_at")
+  .eq("active",true)
+  .order("name");
+
+ if(error){
+  message($("appMessage"),"Falha ao carregar unidades.","err");
+  return;
+ }
+
+ allUnits=data||[];
+
+ const selected=unitId;
+
+ $("moduleUnitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
+ allUnits.forEach(u=>{
+  const option=document.createElement("option");
+  option.value=u.id;
+  option.textContent=u.name;
+  option.selected=u.id===selected;
+  $("moduleUnitSelect").appendChild(option);
+ });
+
+ if($("overviewUnitSelect")){
+  const overviewSelected=$("overviewUnitSelect").value;
+  $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
+  allUnits.forEach(u=>{
+   const option=document.createElement("option");
+   option.value=u.id;
+   option.textContent=u.name;
+   option.selected=u.id===overviewSelected;
+   $("overviewUnitSelect").appendChild(option);
+  });
+ }
+
+ if(unitId&&!allUnits.some(u=>u.id===unitId)){
+  unitId="";
+ }
+
+ configureVisibleModules();
+}
+
+async function applyModuleUnitSelection(){
+ unitId=$("moduleUnitSelect").value;
+
+ const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
+ const unitName=unitId?option.textContent:"Selecione uma unidade.";
+
+ $("rdiSubtitle").textContent=unitName;
+ $("documentSubtitle").textContent=unitName;
+ $("communicationSubtitle").textContent=unitName;
+ $("orgSubtitle").textContent=unitName;
+ $("waterSubtitle").textContent=unitName;
+
+ $("newRdiButton").disabled=!unitId;
+ $("newDocumentButton").disabled=!unitId;
+ $("newEmployeeButton").disabled=!unitId;
+ $("waterManualButton").disabled=!unitId;
+ configureActionButtons();
+
+ if(!unitId){
+  $("rdiList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  return;
+ }
+
+ if(currentModule==="rdi"){
+  await loadRdi();
+ }else if(currentModule==="documents"){
+  await loadDocuments();
+ }else if(currentModule==="communication"){
+  await loadEmployees();
+ }else if(currentModule==="org"){
+  await loadOrganogram();
+ }else if(currentModule==="water"){
+  await loadWaterModule();
+ }
+}
+
+$("moduleUnitSelect").onchange=applyModuleUnitSelection;
+
+/* ADMINISTRAÇÃO DE UNIDADES */
+
+async function loadUnitsAdmin(){
+ const list=$("unitsList");
+ list.innerHTML='<div class="empty">Carregando unidades...</div>';
+
+ const {data,error}=await db
+  .from("units")
+  .select("id,name,active,created_at")
+  .eq("active",true)
+  .order("name");
+
+ if(error){
+  console.error(error);
+  list.innerHTML='<div class="empty">Não foi possível carregar as unidades.</div>';
+  return;
+ }
+
+ list.replaceChildren();
+
+ if(!data?.length){
+  list.innerHTML='<div class="empty">Nenhuma unidade cadastrada.</div>';
+  return;
+ }
+
+ const unitIds=data.map(u=>u.id);
+
+ const [{data:links,error:linksError},{data:staff,error:staffError}]=await Promise.all([
+  db.from("employee_units")
+   .select("employee_id,unit_id")
+   .in("unit_id",unitIds),
+  db.from("employees")
+   .select("id,full_name,job_title,org_role,status")
+   .eq("status","ativo")
+ ]);
+
+ if(linksError)console.error(linksError);
+ if(staffError)console.error(staffError);
+
+ const employeeById=new Map((staff||[]).map(e=>[e.id,e]));
+ const summaries=new Map();
+
+ data.forEach(u=>{
+  summaries.set(u.id,{
+   leader:"Não definido",
+   functions:new Map(),
+   totalEmployees:0
+  });
+ });
+
+ (links||[]).forEach(link=>{
+  const employee=employeeById.get(link.employee_id);
+  if(!employee)return;
+
+  const summary=summaries.get(link.unit_id);
+  if(!summary)return;
+
+  summary.totalEmployees++;
+
+  const role=(employee.org_role||"").trim();
+  const job=(employee.job_title||role||"Sem função definida").trim();
+
+  const roleNormalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  if(roleNormalized==="lider" && summary.leader==="Não definido"){
+   summary.leader=employee.full_name||"Não definido";
+  }
+
+  summary.functions.set(job,(summary.functions.get(job)||0)+1);
+ });
+
+ data.forEach(u=>{
+  const card=document.createElement("article");
+
+  const name=(u.name||"").trim();
+  const normalized=name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+
+  const typeClass=normalized.startsWith("COI")
+   ?"unit-coi"
+   :normalized.startsWith("HOSPITAL")
+    ?"unit-hospital"
+    :"unit-default";
+
+  card.className=`unit-admin-card ${typeClass}`;
+
+  const initial=name.charAt(0).toUpperCase()||"U";
+  const summary=summaries.get(u.id)||{
+   leader:"Não definido",
+   functions:new Map(),
+   totalEmployees:0
+  };
+
+  const functionEntries=[...summary.functions.entries()]
+   .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
+
+  const functionHtml=functionEntries.length
+   ?functionEntries.map(([role,count])=>
+      `<span class="unit-function-chip">${escapeHtml(role)}: ${count}</span>`
+    ).join("")
+   :'<span class="muted">Nenhum funcionário ativo vinculado.</span>';
+
+  card.innerHTML=`
+   <div class="unit-card-top">
+    <div class="unit-card-icon">${escapeHtml(initial)}</div>
+    <div class="unit-admin-info">
+     <h3>${escapeHtml(name)}</h3>
+     <span class="unit-status">Ativa</span>
+    </div>
+   </div>
+
+   <div class="unit-card-summary">
+    <div class="unit-summary-line">
+     <span>Líder</span>
+     <strong>${escapeHtml(summary.leader)}</strong>
+    </div>
+
+    <div class="unit-summary-line">
+     <span>Efetivo total</span>
+     <strong>${summary.totalEmployees}</strong>
+    </div>
+
+    <div class="unit-function-box">
+     <div class="unit-function-title">Funcionários por função</div>
+     <div class="unit-function-list">${functionHtml}</div>
+    </div>
+
+    <div class="unit-summary-line">
+     <span>Equipamentos</span>
+     <strong class="unit-inventory-pending">Inventário ainda não ativo</strong>
+    </div>
+   </div>
+
+   <div class="unit-card-footer">
+    <button class="unit-edit-btn editUnit">Editar</button>
+    <button class="unit-delete-btn deleteUnit">Excluir</button>
+   </div>
+  `;
+
+  card.querySelector(".editUnit").onclick=()=>openUnitEdit(u);
+  card.querySelector(".deleteUnit").onclick=()=>deleteUnit(u);
+
+  list.appendChild(card);
+ });
+}
+
+$("newUnitButton").onclick=()=>{
+ editingUnit=null;
+ $("unitForm").reset();
+ $("unitIdField").value="";
+ $("unitDialogTitle").textContent="Nova unidade";
+ $("unitDialog").showModal();
+};
+
+$("cancelUnitDialog").onclick=()=>$("unitDialog").close();
+
+function openUnitEdit(unit){
+ editingUnit=unit;
+ $("unitIdField").value=unit.id;
+ $("unitNameField").value=unit.name;
+ $("unitDialogTitle").textContent="Editar unidade";
+ $("unitDialog").showModal();
+}
+
+$("unitForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const name=$("unitNameField").value.trim();
+ if(!name)return;
+
+ const btn=$("saveUnitButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const id=$("unitIdField").value;
+  let error;
+
+  if(id){
+   ({error}=await db.from("units").update({name}).eq("id",id));
+  }else{
+   ({error}=await db.from("units").insert({name,active:true}));
+  }
+
+  if(error)throw error;
+
+  $("unitDialog").close();
+  await loadUnits();
+  await loadUnitsAdmin();
+  await loadOverview();
+  message($("appMessage"),"Unidade salva com sucesso.","ok");
+
+ }catch(err){
+  console.error(err);
+  const duplicate=String(err?.message||"").toLowerCase().includes("duplicate");
+  message(
+   $("appMessage"),
+   duplicate?"Já existe uma unidade com esse nome.":"Não foi possível salvar a unidade.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar unidade";
+ }
+});
+
+async function countUnitLinks(unitIdToCheck){
+ const checks=await Promise.all([
+  db.from("rdi_demands").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("documents").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("employee_units").select("employee_id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("water_analysis_reports").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck)
+ ]);
+
+ const labels=["RDI","documentos","profissionais","análises de água"];
+ return checks.map((r,i)=>({label:labels[i],count:r.count||0,error:r.error}))
+  .filter(x=>x.count>0);
+}
+
+async function deleteUnit(unit){
+ const links=await countUnitLinks(unit.id);
+
+ if(links.length){
+  const summary=links.map(x=>`${x.count} ${x.label}`).join(", ");
+  alert(`A unidade "${unit.name}" não pode ser excluída porque possui registros vinculados: ${summary}. Remova ou transfira esses registros antes da exclusão.`);
+  return;
+ }
+
+ if(!confirm(`Excluir definitivamente a unidade "${unit.name}"?`))return;
+
+ const {error}=await db.from("units").delete().eq("id",unit.id);
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível excluir a unidade.","err");
+  return;
+ }
+
+ if(unitId===unit.id){
+  unitId="";
+ }
+
+ await loadUnits();
+ await loadUnitsAdmin();
+ await loadOverview();
+ message($("appMessage"),"Unidade excluída.","ok");
+}
+
+
+/* NAVEGAÇÃO */
+
+function switchModule(name){
+ currentModule=name;
+
+ const isOverview=name==="overview";
+ const isUnits=name==="units";
+ const isAccess=name==="access";
+ const isRdi=name==="rdi";
+ const isDocuments=name==="documents";
+ const isCommunication=name==="communication";
+ const isOrg=name==="org";
+ const isWater=name==="water";
+
+ $("overviewModuleView").classList.toggle("hidden",!isOverview);
+ $("unitsModuleView").classList.toggle("hidden",!isUnits);
+ $("accessModuleView").classList.toggle("hidden",!isAccess);
+ $("rdiModuleView").classList.toggle("hidden",!isRdi);
+ $("documentModuleView").classList.toggle("hidden",!isDocuments);
+ $("communicationModuleView").classList.toggle("hidden",!isCommunication);
+ $("orgModuleView").classList.toggle("hidden",!isOrg);
+ $("waterModuleView").classList.toggle("hidden",!isWater);
+
+ $("moduleOverview").classList.toggle("active",isOverview);
+ $("moduleUnits").classList.toggle("active",isUnits);
+ $("moduleAccess").classList.toggle("active",isAccess);
+ $("moduleRdi").classList.toggle("active",isRdi);
+ $("moduleDocuments").classList.toggle("active",isDocuments);
+ $("moduleCommunication").classList.toggle("active",isCommunication);
+ $("moduleOrg").classList.toggle("active",isOrg);
+ $("moduleWater").classList.toggle("active",isWater);
+
+ const needsUnit=!isOverview&&!isUnits&&!isAccess;
+ $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
+
+ if(isOverview){
+  loadOverview();
+  return;
+ }
+
+ if(isUnits){
+  loadUnitsAdmin();
+  return;
+ }
+
+ if(isAccess){
+  loadAccessUsers();
+  return;
+ }
+
+ if(!unitId){
+  message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
+  return;
+ }
+
+ if(isRdi){
+  loadRdi();
+ }else if(isDocuments){
+  loadDocuments();
+ }else if(isCommunication){
+  loadEmployees();
+ }else if(isOrg){
+  loadOrganogram();
+ }else{
+  loadWaterModule();
+ }
+}
+
+$("moduleOverview").onclick=()=>switchModule("overview");
+$("moduleUnits").onclick=()=>switchModule("units");
+$("moduleAccess").onclick=()=>switchModule("access");
+$("moduleRdi").onclick=()=>switchModule("rdi");
+$("moduleDocuments").onclick=()=>switchModule("documents");
+$("moduleCommunication").onclick=()=>switchModule("communication");
+$("moduleOrg").onclick=()=>switchModule("org");
+$("moduleWater").onclick=()=>switchModule("water");
+
+
+
+
+/* ============================
+   USUÁRIOS E ACESSOS
+============================ */
+
+function roleLabel(role){
+ return role==="admin"?"Administrador":role==="client"?"Cliente":"Equipe";
+}
+
+async function loadAccessUsers(){
+ if(profile?.role!=="admin")return;
+
+ const list=$("accessUsersList");
+ list.innerHTML='<div class="empty">Carregando usuários...</div>';
+
+ const [{data:profiles,error:pError},{data:grants,error:gError}]=await Promise.all([
+  db.from("profiles").select("user_id,display_name,email,role,active,created_at").order("display_name"),
+  db.from("access_grants").select("*")
+ ]);
+
+ if(pError||gError){
+  console.error(pError||gError);
+  list.innerHTML='<div class="empty">Não foi possível carregar os acessos.</div>';
+  return;
+ }
+
+ const grantsByUser=new Map();
+ (grants||[]).forEach(g=>{
+  if(!grantsByUser.has(g.user_id))grantsByUser.set(g.user_id,[]);
+  grantsByUser.get(g.user_id).push(g);
+ });
+
+ list.replaceChildren();
+
+ (profiles||[]).forEach(p=>{
+  const userGrants=grantsByUser.get(p.user_id)||[];
+  const unitNames=[...new Set(userGrants.map(g=>allUnits.find(u=>u.id===g.unit_id)?.name).filter(Boolean))];
+  const modules=[...new Set(userGrants.filter(g=>g.can_view).map(g=>g.module))];
+
+  const card=document.createElement("article");
+  card.className="access-card";
+  card.innerHTML=`
+   <div class="access-card-head">
+    <div>
+     <h3>${escapeHtml(p.display_name)}</h3>
+     <div>${escapeHtml(p.email||"E-mail não informado")}</div>
+     <div class="muted">${escapeHtml(roleLabel(p.role))} • ${p.active?"Ativo":"Inativo"}</div>
+    </div>
+    ${p.role!=="admin"?`
+    <div class="actions">
+     <button class="primary sendAccessLink">${p.active?"Enviar link de acesso":"Acesso revogado"}</button>
+     <button class="secondary editAccessUser">Editar acesso</button>
+     <button class="${p.active?"danger":"primary"} toggleAccessUser">${p.active?"Desativar":"Ativar"}</button>
+     <button class="danger revokeAccessUser">Excluir acesso</button>
+    </div>`:""}
+   </div>
+   ${p.role!=="admin"?`
+   <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
+   <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
+     rdi:"RDI",qualidade_agua:"Qualidade da Água",documentos:"Documentos",comunicacao:"Matriz / Organograma"
+   }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
+  `;
+
+  const edit=card.querySelector(".editAccessUser");
+  if(edit)edit.onclick=()=>openAccessUserEdit(p,userGrants);
+
+  const sendLink=card.querySelector(".sendAccessLink");
+  if(sendLink){
+   sendLink.disabled=!p.active;
+   sendLink.onclick=()=>sendAccessLink(p,sendLink);
+  }
+
+  const toggle=card.querySelector(".toggleAccessUser");
+  if(toggle)toggle.onclick=()=>toggleAccessUser(p);
+
+  const revoke=card.querySelector(".revokeAccessUser");
+  if(revoke)revoke.onclick=()=>revokeAccessUser(p);
+
+  list.appendChild(card);
+ });
+}
+
+function renderAccessUnits(selected=[]){
+ const box=$("accessUnits");
+ box.replaceChildren();
+
+ allUnits.forEach(u=>{
+  const label=document.createElement("label");
+  label.className="access-unit-item";
+
+  const cb=document.createElement("input");
+  cb.type="checkbox";
+  cb.className="accessUnitCheck";
+  cb.value=u.id;
+  cb.checked=selected.includes(u.id);
+
+  label.appendChild(cb);
+  label.appendChild(document.createTextNode(u.name));
+  box.appendChild(label);
+ });
+}
+
+function resetPermissionRows(){
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  row.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.checked=false);
+ });
+}
+
+function applyPermissionTemplate(grants=[]){
+ resetPermissionRows();
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const module=row.dataset.module;
+  const relevant=grants.filter(g=>g.module===module);
+
+  row.querySelector(".perm-view").checked=relevant.some(g=>g.can_view);
+  row.querySelector(".perm-insert").checked=relevant.some(g=>g.can_insert);
+  row.querySelector(".perm-edit").checked=relevant.some(g=>g.can_edit);
+  row.querySelector(".perm-delete").checked=relevant.some(g=>g.can_delete);
+ });
+}
+
+function enforceRolePermissions(){
+ const isClient=$("accessRole").value==="client";
+ $("clientReadOnlyNotice").classList.toggle("hidden",!isClient);
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const view=row.querySelector(".perm-view");
+  const edits=[
+   row.querySelector(".perm-insert"),
+   row.querySelector(".perm-edit"),
+   row.querySelector(".perm-delete")
+  ];
+
+  edits.forEach(cb=>{
+   if(isClient)cb.checked=false;
+   cb.disabled=isClient;
+  });
+
+  if(isClient && view.checked===false){
+   // mantém a escolha do administrador para quais módulos o cliente verá
+  }
+ });
+}
+
+$("accessRole").addEventListener("change",enforceRolePermissions);
+
+$("newAccessUserButton").onclick=()=>{
+ editingAccessUser=null;
+ $("accessUserForm").reset();
+ $("accessUserId").value="";
+ $("accessRole").value="team";
+ $("accessActive").value="true";
+ $("accessEmail").disabled=false;
+ $("accessUserDialogTitle").textContent="Novo usuário";
+ $("saveAccessUser").textContent="Criar e enviar acesso";
+ renderAccessUnits([]);
+ resetPermissionRows();
+ enforceRolePermissions();
+ $("accessUserDialog").showModal();
+};
+
+$("cancelAccessUser").onclick=()=>$("accessUserDialog").close();
+
+function openAccessUserEdit(user,grants){
+ editingAccessUser=user;
+ $("accessUserId").value=user.user_id;
+ $("accessDisplayName").value=user.display_name||"";
+ $("accessEmail").value=user.email||"";
+ $("accessEmail").disabled=true;
+ $("accessRole").value=user.role==="client"?"client":"team";
+ $("accessActive").value=String(!!user.active);
+ $("accessUserDialogTitle").textContent="Editar usuário";
+ $("saveAccessUser").textContent="Salvar acesso";
+
+ const selectedUnits=[...new Set(grants.map(g=>g.unit_id).filter(Boolean))];
+ renderAccessUnits(selectedUnits);
+ applyPermissionTemplate(grants);
+ enforceRolePermissions();
+
+ $("accessUserDialog").showModal();
+}
+
+function collectPermissionTemplate(){
+ const rows=[];
+
+ document.querySelectorAll(".permission-row").forEach(row=>{
+  const module=row.dataset.module;
+  const can_view=row.querySelector(".perm-view").checked;
+  const can_insert=row.querySelector(".perm-insert").checked;
+  const can_edit=row.querySelector(".perm-edit").checked;
+  const can_delete=row.querySelector(".perm-delete").checked;
+
+  if(can_view||can_insert||can_edit||can_delete){
+   rows.push({module,can_view,can_insert,can_edit,can_delete});
+  }
+ });
+
+ return rows;
+}
+
+async function saveUserGrants(userId,role){
+ const selectedUnits=[...document.querySelectorAll(".accessUnitCheck:checked")].map(x=>x.value);
+ const template=collectPermissionTemplate();
+
+ if(!selectedUnits.length)throw new Error("Selecione pelo menos uma unidade.");
+ if(!template.some(x=>x.can_view))throw new Error("Libere pelo menos um módulo para visualização.");
+
+ const {error:deleteError}=await db
+  .from("access_grants")
+  .delete()
+  .eq("user_id",userId);
+
+ if(deleteError)throw deleteError;
+
+ const rows=[];
+ selectedUnits.forEach(unit_id=>{
+  template.forEach(p=>{
+   rows.push({
+    user_id:userId,
+    unit_id,
+    module:p.module,
+    can_view:p.can_view,
+    can_insert:role==="client"?false:p.can_insert,
+    can_edit:role==="client"?false:p.can_edit,
+    can_delete:role==="client"?false:p.can_delete
+   });
+  });
+ });
+
+ const {error}=await db.from("access_grants").insert(rows);
+ if(error)throw error;
+}
+
+$("accessUserForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveAccessUser");
+ btn.disabled=true;
+ const originalText=btn.textContent;
+ btn.textContent="Salvando...";
+
+ try{
+  const display_name=$("accessDisplayName").value.trim();
+  const email=$("accessEmail").value.trim().toLowerCase();
+  const role=$("accessRole").value;
+  const active=$("accessActive").value==="true";
+  let userId=$("accessUserId").value;
+
+  if(!userId){
+   const {data,error}=await db.functions.invoke("admin-invite-user-v2",{
+    body:{
+     email,
+     display_name,
+     role,
+     redirect_to:"https://rede-americas-pwa.pages.dev"
+    }
+   });
+
+   if(error)throw error;
+   if(data?.error)throw new Error(data.error);
+   userId=data.user_id;
+  }else{
+   const {error}=await db
+    .from("profiles")
+    .update({display_name,role,active})
+    .eq("user_id",userId);
+
+   if(error)throw error;
+  }
+
+  await saveUserGrants(userId,role);
+
+  $("accessUserDialog").close();
+  message(
+   $("appMessage"),
+   editingAccessUser?"Acesso atualizado com sucesso.":"Usuário criado e link de acesso enviado.",
+   "ok"
+  );
+  await loadAccessUsers();
+
+ }catch(err){
+  console.error(err);
+  message(
+   $("appMessage"),
+   err?.message==="Selecione pelo menos uma unidade."||err?.message==="Libere pelo menos um módulo para visualização."
+    ?err.message
+    :"Não foi possível salvar o acesso. Verifique se o e-mail já possui usuário no sistema.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent=originalText;
+ }
+});
+
+async function sendAccessLink(user,button){
+ if(!user?.email||!user?.active)return;
+
+ const original=button.textContent;
+ button.disabled=true;
+ button.textContent="Enviando...";
+
+ try{
+  const {data,error}=await db.functions.invoke("admin-send-access-link",{
+   body:{email:user.email}
+  });
+
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+
+  message($("appMessage"),`Link de acesso enviado para ${user.email}.`,"ok");
+  button.textContent="Reenviar link de acesso";
+ }catch(err){
+  console.error(err);
+  const msg=(err?.message||"").toLowerCase();
+  message(
+   $("appMessage"),
+   msg.includes("rate limit")
+    ?"Limite temporário de envio de e-mails atingido. Tente novamente mais tarde."
+    :"Não foi possível enviar o link de acesso.",
+   "err"
+  );
+  button.textContent=original;
+ }finally{
+  button.disabled=false;
+ }
+}
+
+async function revokeAccessUser(user){
+ if(!confirm(`Excluir o acesso de ${user.display_name}? O usuário será bloqueado imediatamente e perderá todas as permissões.`))return;
+
+ try{
+  const {error:profileError}=await db
+   .from("profiles")
+   .update({active:false})
+   .eq("user_id",user.user_id);
+
+  if(profileError)throw profileError;
+
+  const {error:grantError}=await db
+   .from("access_grants")
+   .delete()
+   .eq("user_id",user.user_id);
+
+  if(grantError)throw grantError;
+
+  message($("appMessage"),`Acesso de ${user.display_name} excluído e revogado.`,"ok");
+  await loadAccessUsers();
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível excluir o acesso do usuário.","err");
+ }
+}
+
+async function toggleAccessUser(user){
+ const next=!user.active;
+
+ if(!confirm(`${next?"Ativar":"Desativar"} o acesso de ${user.display_name}?`))return;
+
+ const {error}=await db
+  .from("profiles")
+  .update({active:next})
+  .eq("user_id",user.user_id);
+
+ if(error){
+  message($("appMessage"),"Não foi possível alterar o status do usuário.","err");
+  return;
+ }
+
+ message($("appMessage"),`Usuário ${next?"ativado":"desativado"}.`,"ok");
+ await loadAccessUsers();
+}
+
+
+/* ============================
+   VISÃO GERAL
+============================ */
+
+function moneyBr(value){
+ return Number(value||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
+function overviewScopeId(){
+ return $("overviewUnitSelect")?.value||"";
+}
+
+function destroyOverviewCharts(){
+ [ovRdiChartInstance,ovEmployeesChartInstance,ovCostChartInstance].forEach(chart=>{
+  if(chart)chart.destroy();
+ });
+ ovRdiChartInstance=null;
+ ovEmployeesChartInstance=null;
+ ovCostChartInstance=null;
+}
+
+$("overviewUnitSelect").addEventListener("change",loadOverview);
+
+async function loadOverview(){
+ if(!session||!allUnits.length||overviewLoading)return;
+ overviewLoading=true;
+
+ const scope=overviewScopeId();
+ const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
+
+ destroyOverviewCharts();
+ $("ovAttention").innerHTML='<div class="empty">Carregando indicadores...</div>';
+ message($("appMessage"),"","info");
+
+ const canCommunication=profile?.role==="admin"||hasAccess("comunicacao","view");
+ const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
+ const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
+ const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
+
+ const safe=async(label,enabled,request)=>{
+  if(!enabled)return {data:[],error:null,skipped:true};
+  try{
+   const res=await request;
+   if(res?.error){
+    console.warn("Visão Geral -",label,res.error);
+    return {data:[],error:res.error,skipped:false};
+   }
+   return {data:res?.data||[],error:null,skipped:false};
+  }catch(err){
+   console.warn("Visão Geral -",label,err);
+   return {data:[],error:err,skipped:false};
+  }
+ };
+
+ try{
+  const [
+   employeeLinksRes,
+   employeesRes,
+   rdiRes,
+   docsRes,
+   waterReportsRes
+  ]=await Promise.all([
+   safe("vínculos da equipe",canCommunication,
+    db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds)),
+   safe("funcionários",canCommunication,
+    db.from("employees").select("id,job_title,org_role,status")),
+   safe("RDI",canRdi,
+    db.from("rdi_demands").select("id,unit_id,status,gut_score,cost_estimated,approved_cost,actual_cost,due_date,archived").in("unit_id",scopedUnitIds).eq("archived",false)),
+   safe("documentos",canDocuments,
+    db.from("documents").select("id,unit_id,valid_until").in("unit_id",scopedUnitIds)),
+   safe("qualidade da água",canWater,
+    db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds))
+  ]);
+
+  let partialErrors=[
+   employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes
+  ].filter(x=>x.error).length;
+
+  const employeeLinks=employeeLinksRes.data||[];
+  const scopedEmployeeIds=new Set(employeeLinks.map(x=>x.employee_id));
+  const employees=(employeesRes.data||[]).filter(e=>scopedEmployeeIds.has(e.id)&&e.status==="ativo");
+  const rdis=rdiRes.data||[];
+  const docs=docsRes.data||[];
+  const waterReports=waterReportsRes.data||[];
+
+  let waterResults=[];
+  const waterIds=waterReports.map(x=>x.id);
+
+  if(canWater&&waterIds.length){
+   const resultRes=await safe(
+    "resultados da qualidade da água",
+    true,
+    db.from("water_analysis_results")
+      .select("id,report_id,result_value,min_snapshot,max_snapshot")
+      .in("report_id",waterIds)
+   );
+   waterResults=resultRes.data||[];
+   if(resultRes.error)partialErrors++;
+  }
+
+  const openRdi=rdis.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
+  const doneRdi=rdis.filter(r=>r.status==="CONCLUÍDA");
+  const critical=openRdi.filter(r=>Number(r.gut_score)>=80);
+  const completionBase=rdis.filter(r=>r.status!=="CANCELADA").length;
+  const completionRate=completionBase?Math.round(doneRdi.length/completionBase*100):0;
+
+  const estimated=rdis.reduce((s,r)=>s+Number(r.cost_estimated||0),0);
+  const actual=rdis.reduce((s,r)=>s+Number(r.actual_cost||0),0);
+
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const thirty=new Date(today);
+  thirty.setDate(thirty.getDate()+30);
+
+  const expiredDocs=docs.filter(d=>d.valid_until&&new Date(d.valid_until+"T00:00:00")<today);
+  const soonDocs=docs.filter(d=>{
+   if(!d.valid_until)return false;
+   const dt=new Date(d.valid_until+"T00:00:00");
+   return dt>=today&&dt<=thirty;
+  });
+
+  const waterOut=waterResults.filter(r=>{
+   if(r.result_value===null||r.result_value===undefined)return false;
+   const v=Number(r.result_value);
+   if(r.min_snapshot!==null&&r.min_snapshot!==undefined&&v<Number(r.min_snapshot))return true;
+   if(r.max_snapshot!==null&&r.max_snapshot!==undefined&&v>Number(r.max_snapshot))return true;
+   return false;
+  });
+
+  $("ovUnits").textContent=scope?1:scopedUnitIds.length;
+  $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede disponível";
+
+  $("ovEmployees").textContent=canCommunication?employees.length:"—";
+
+  $("ovRdiOpen").textContent=canRdi?openRdi.length:"—";
+  $("ovRdiCritical").textContent=canRdi?`${critical.length} crítica(s)`:"Sem acesso ao módulo";
+  $("ovRdiDone").textContent=canRdi?doneRdi.length:"—";
+  $("ovRdiRate").textContent=canRdi?`${completionRate}% de conclusão`:"Sem acesso ao módulo";
+  $("ovCostEstimated").textContent=canRdi?moneyBr(estimated):"—";
+  $("ovCostActual").textContent=canRdi?moneyBr(actual):"—";
+
+  $("ovDocuments").textContent=canDocuments?docs.length:"—";
+  $("ovDocsAlert").textContent=canDocuments?`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`:"Sem acesso ao módulo";
+
+  $("ovWaterAnalyses").textContent=canWater?waterReports.length:"—";
+  $("ovWaterOut").textContent=canWater?`${waterOut.length} resultado(s) fora da faixa`:"Sem acesso ao módulo";
+
+  renderOverviewRdiChart(canRdi?rdis:[]);
+  renderOverviewEmployeesChart(canCommunication?employees:[]);
+  renderOverviewCostChart(canRdi?rdis:[],scopedUnitIds);
+  renderOverviewAttention({
+   critical:canRdi?critical:[],
+   openRdi:canRdi?openRdi:[],
+   expiredDocs:canDocuments?expiredDocs:[],
+   soonDocs:canDocuments?soonDocs:[],
+   waterOut:canWater?waterOut:[],
+   employees:canCommunication?employees:[]
+  });
+
+  if(partialErrors){
+   message(
+    $("appMessage"),
+    "A Visão Geral foi carregada parcialmente. Alguns indicadores não estavam disponíveis para este perfil.",
+    "info"
+   );
+  }
+
+ }catch(err){
+  console.error(err);
+  $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar os indicadores disponíveis.</div>';
+  message($("appMessage"),"Falha ao carregar a Visão Geral.","err");
+ }finally{
+  overviewLoading=false;
+ }
+}
+
+function renderOverviewRdiChart(rdis){
+ const counts={};
+ rdis.forEach(r=>{
+  const key=r.status||"SEM STATUS";
+  counts[key]=(counts[key]||0)+1;
+ });
+
+ const labels=Object.keys(counts);
+ const values=labels.map(k=>counts[k]);
+
+ ovRdiChartInstance=new Chart($("ovRdiChart"),{
+  type:"bar",
+  data:{labels,datasets:[{label:"RDI",data:values}]},
+  options:{
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{y:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+}
+
+function renderOverviewEmployeesChart(employees){
+ const counts={};
+
+ employees.forEach(e=>{
+  const key=e.org_role||e.job_title||"Não definido";
+  counts[key]=(counts[key]||0)+1;
+ });
+
+ const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
+ ovEmployeesChartInstance=new Chart($("ovEmployeesChart"),{
+  type:"bar",
+  data:{
+   labels:entries.map(x=>x[0]),
+   datasets:[{label:"Funcionários",data:entries.map(x=>x[1])}]
+  },
+  options:{
+   indexAxis:"y",
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{x:{beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+}
+
+function renderOverviewCostChart(rdis,unitIds){
+ const sums=new Map(unitIds.map(id=>[id,0]));
+
+ rdis.forEach(r=>{
+  sums.set(r.unit_id,(sums.get(r.unit_id)||0)+Number(r.actual_cost||r.cost_estimated||0));
+ });
+
+ const entries=[...sums.entries()]
+  .map(([id,value])=>({
+   name:allUnits.find(u=>u.id===id)?.name||"Unidade",
+   value
+  }))
+  .filter(x=>x.value>0)
+  .sort((a,b)=>b.value-a.value);
+
+ ovCostChartInstance=new Chart($("ovCostChart"),{
+  type:"bar",
+  data:{
+   labels:entries.map(x=>x.name),
+   datasets:[{label:"Custo RDI",data:entries.map(x=>x.value)}]
+  },
+  options:{
+   indexAxis:"y",
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{x:{beginAtZero:true}}
+  }
+ });
+}
+
+function renderOverviewAttention(data){
+ const box=$("ovAttention");
+ box.replaceChildren();
+
+ const today=new Date();
+ today.setHours(0,0,0,0);
+
+ const overdueRdi=data.openRdi.filter(r=>r.due_date&&new Date(r.due_date+"T00:00:00")<today);
+
+ const alerts=[
+  {
+   count:data.critical.length,
+   text:`RDI crítica(s) em aberto`,
+   cls:"critical"
+  },
+  {
+   count:overdueRdi.length,
+   text:`RDI vencida(s)`,
+   cls:"critical"
+  },
+  {
+   count:data.expiredDocs.length,
+   text:`documento(s) vencido(s)`,
+   cls:"critical"
+  },
+  {
+   count:data.soonDocs.length,
+   text:`documento(s) vencendo em até 30 dias`,
+   cls:""
+  },
+  {
+   count:data.waterOut.length,
+   text:`resultado(s) de qualidade da água fora da faixa`,
+   cls:"critical"
+  }
+ ].filter(x=>x.count>0);
+
+ if(!alerts.length){
+  box.innerHTML='<div class="attention-item ok"><strong>Sem alertas críticos no escopo selecionado.</strong></div>';
+  return;
+ }
+
+ alerts.forEach(a=>{
+  const div=document.createElement("div");
+  div.className=`attention-item ${a.cls}`;
+  div.innerHTML=`<strong>${a.count}</strong> ${escapeHtml(a.text)}`;
+  box.appendChild(div);
+ });
+}
+
+
+/* ============================
+   QUALIDADE DA ÁGUA
+============================ */
+
+const WATER_LABELS={
+ conforto:"Água gelada de conforto",
+ processo:"Água gelada de processo",
+ condensada:"Água condensada"
+};
+
+
+function normalizeWaterText(value){
+ return String(value||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase()
+  .replace(/\s+/g," ")
+  .trim();
+}
+
+function parsePtNumber(value){
+ if(value===null||value===undefined||value==="")return null;
+ const normalized=String(value)
+  .trim()
+  .replace(/\s/g,"")
+  .replace(/\.(?=\d{3}(?:\D|$))/g,"")
+  .replace(",",".");
+ const n=Number(normalized);
+ return Number.isFinite(n)?n:null;
+}
+
+function isWaterOutOfRange(result){
+ const v=result.result_value;
+ if(v===null||v===undefined)return false;
+ if(result.min_snapshot!==null&&result.min_snapshot!==undefined&&Number(v)<Number(result.min_snapshot))return true;
+ if(result.max_snapshot!==null&&result.max_snapshot!==undefined&&Number(v)>Number(result.max_snapshot))return true;
+ return false;
+}
+
+async function loadWaterReferences(type=null){
+ let query=db
+  .from("water_reference_parameters")
+  .select("*")
+  .eq("active",true)
+  .order("display_order")
+  .order("parameter_name");
+
+ if(type)query=query.eq("water_type",type);
+
+ const {data,error}=await query;
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar referências da água.","err");
+  return [];
+ }
+
+ if(!type)waterReferences=data||[];
+ return data||[];
+}
+
+async function loadWaterModule(){
+ if(!unitId)return;
+
+ const type=$("waterTypeFilter").value;
+
+ await loadWaterReferences();
+
+ const refs=waterReferences.filter(r=>r.water_type===type);
+
+ $("waterParameterFilter").innerHTML=
+  '<option value="">Selecione um parâmetro</option>';
+
+ refs.forEach(ref=>{
+  const option=document.createElement("option");
+  option.value=ref.id;
+  option.textContent=ref.parameter_name;
+  $("waterParameterFilter").appendChild(option);
+ });
+
+ const {data:reports,error}=await db
+  .from("water_analysis_reports")
+  .select("*")
+  .eq("unit_id",unitId)
+  .eq("water_type",type)
+  .order("sample_date",{ascending:false});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar análises de água.","err");
+  return;
+ }
+
+ waterReports=reports||[];
+
+ const ids=waterReports.map(r=>r.id);
+ waterResults=[];
+
+ if(ids.length){
+  const {data:results,error:resultsError}=await db
+   .from("water_analysis_results")
+   .select("*")
+   .in("report_id",ids);
+
+  if(resultsError){
+   console.error(resultsError);
+   message($("appMessage"),"Falha ao carregar resultados de água.","err");
+   return;
+  }
+
+  waterResults=results||[];
+ }
+
+ updateWaterKpis();
+ renderWaterAnalysisList();
+ renderWaterChart();
+}
+
+function updateWaterKpis(){
+ $("waterAnalysisCount").textContent=waterReports.length;
+
+ $("waterLastDate").textContent=
+  waterReports.length
+   ?formatDate(waterReports[0].sample_date)
+   :"—";
+
+ $("waterOutCount").textContent=
+  waterResults.filter(isWaterOutOfRange).length;
+}
+
+
+function currentUnitName(){
+ const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
+ return unitId&&option?option.textContent:"Unidade";
+}
+
+function waterReferenceText(result){
+ const parts=[];
+ if(result.min_snapshot!==null&&result.min_snapshot!==undefined){
+  parts.push(`≥ ${result.min_snapshot}`);
+ }
+ if(result.max_snapshot!==null&&result.max_snapshot!==undefined){
+  parts.push(`≤ ${result.max_snapshot}`);
+ }
+ return parts.length?parts.join(" e "):"—";
+}
+
+function waterResultDisplay(result){
+ if(result.result_value!==null&&result.result_value!==undefined){
+  const value=Number(result.result_value).toLocaleString("pt-BR",{maximumFractionDigits:4});
+  return `${value}${result.unit?` ${result.unit}`:""}`;
+ }
+ return result.result_text||"—";
+}
+
+function renderWaterAnalysisList(){
+ const list=$("waterAnalysisList");
+ list.replaceChildren();
+
+ if(!waterReports.length){
+  list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este tipo de água.</div>';
+  return;
+ }
+
+ waterReports.slice(0,20).forEach(report=>{
+  const results=waterResults
+   .filter(r=>r.report_id===report.id)
+   .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
+
+  const outCount=results.filter(isWaterOutOfRange).length;
+
+  const parameterRows=results.length
+   ?`
+    <div class="water-analysis-params">
+     <div class="water-analysis-param water-analysis-param-head">
+      <div>Parâmetro</div>
+      <div>Resultado</div>
+      <div>Referência</div>
+      <div>Situação</div>
+     </div>
+     ${results.map(result=>{
+       const outside=isWaterOutOfRange(result);
+       return `
+        <div class="water-analysis-param">
+         <div><strong>${escapeHtml(result.parameter_name||"—")}</strong></div>
+         <div>${escapeHtml(waterResultDisplay(result))}</div>
+         <div>${escapeHtml(waterReferenceText(result))}</div>
+         <div>
+          <span class="${outside?"water-status-out":"water-status-ok"}">
+           ${outside?"Fora da faixa":"Dentro dos limites"}
+          </span>
+         </div>
+        </div>
+       `;
+     }).join("")}
+    </div>
+   `
+   :'<div class="muted" style="margin-top:10px">Nenhum parâmetro lançado nesta análise.</div>';
+
+  const el=document.createElement("article");
+  el.className="record "+(outCount?"water-out":"water-ok");
+
+  el.innerHTML=`
+   <div class="record-top">
+    <h3>${formatDate(report.sample_date)}</h3>
+    <span class="badge">${report.source==="pdf"?"PDF (legado)":"MANUAL"}</span>
+   </div>
+   <p>
+    <strong>${escapeHtml(currentUnitName())}</strong>
+    • ${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}
+   </p>
+   <p class="muted">${escapeHtml(report.laboratory||"Laboratório não informado")}</p>
+   <p><strong>${results.length}</strong> parâmetro(s) • <strong>${outCount}</strong> fora da faixa</p>
+   ${parameterRows}
+   <div class="actions">
+    ${report.storage_path?'<button class="primary openWaterPdf">Abrir PDF</button>':""}
+    ${hasAccess("qualidade_agua","edit",unitId)?'<button class="secondary editWaterReport">Editar</button>':""}
+    ${hasAccess("qualidade_agua","delete",unitId)?'<button class="danger deleteWaterReport">Excluir</button>':""}
+   </div>
+  `;
+
+  const open=el.querySelector(".openWaterPdf");
+  if(open)open.onclick=()=>openWaterPdf(report);
+
+  const editWaterButton=el.querySelector(".editWaterReport"); if(editWaterButton)editWaterButton.onclick=()=>openWaterEdit(report);
+  const deleteWaterButton=el.querySelector(".deleteWaterReport"); if(deleteWaterButton)deleteWaterButton.onclick=()=>deleteWaterReport(report);
+
+  list.appendChild(el);
+ });
+}
+
+async function openWaterPdf(report){
+ if(!report.storage_path)return;
+
+ const {data,error}=await db.storage
+  .from("water-analysis-pdfs")
+  .createSignedUrl(report.storage_path,600);
+
+ if(error||!data?.signedUrl){
+  message($("appMessage"),"Não foi possível abrir o PDF.","err");
+  return;
+ }
+
+ window.open(data.signedUrl,"_blank");
+}
+
+function selectedWaterReference(){
+ const id=$("waterParameterFilter").value;
+ return waterReferences.find(r=>r.id===id)||null;
+}
+
+function renderWaterChart(){
+ if(waterChartInstance){
+  waterChartInstance.destroy();
+  waterChartInstance=null;
+ }
+
+ const ref=selectedWaterReference();
+ const canvas=$("waterChart");
+
+ if(!ref){
+  $("waterChartTitle").textContent="Acompanhamento mensal";
+  $("waterChartReference").textContent="Selecione um parâmetro.";
+  return;
+ }
+
+ const period=Number($("waterPeriodFilter").value||0);
+
+ let reports=[...waterReports];
+ if(period){
+  const limit=new Date();
+  limit.setMonth(limit.getMonth()-period);
+  reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
+ }
+
+ const reportMap=new Map(reports.map(r=>[r.id,r]));
+ const rows=waterResults
+  .filter(r=>r.reference_id===ref.id&&r.result_value!==null&&reportMap.has(r.report_id))
+  .map(r=>({
+   date:reportMap.get(r.report_id).sample_date,
+   value:Number(r.result_value)
+  }))
+  .sort((a,b)=>a.date.localeCompare(b.date));
+
+ const monthly=new Map();
+
+ rows.forEach(row=>{
+  const month=row.date.slice(0,7);
+  if(!monthly.has(month))monthly.set(month,[]);
+  monthly.get(month).push(row.value);
+ });
+
+ const data=[...monthly.entries()].map(([month,values])=>({
+  month,
+  value:values.reduce((a,b)=>a+b,0)/values.length
+ }));
+
+ $("waterChartTitle").textContent=`${currentUnitName()} — ${ref.parameter_name}`;
+
+ const limits=[];
+ if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
+ if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
+
+ $("waterChartReference").textContent=
+  `${WATER_LABELS[$("waterTypeFilter").value]} • ${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
+
+ const labels=data.map(d=>{
+  const [year,month]=d.month.split("-");
+  return `${month}/${year}`;
+ });
+
+ const datasets=[{
+  label:ref.parameter_name,
+  data:data.map(d=>d.value),
+  borderWidth:2,
+  tension:.25
+ }];
+
+ if(ref.min_value!==null){
+  datasets.push({
+   label:"Mínimo",
+   data:labels.map(()=>Number(ref.min_value)),
+   borderDash:[6,6],
+   pointRadius:0,
+   borderWidth:1
+  });
+ }
+
+ if(ref.max_value!==null){
+  datasets.push({
+   label:"Máximo",
+   data:labels.map(()=>Number(ref.max_value)),
+   borderDash:[6,6],
+   pointRadius:0,
+   borderWidth:1
+  });
+ }
+
+ waterChartInstance=new Chart(canvas,{
+  type:"line",
+  data:{labels,datasets},
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   interaction:{mode:"index",intersect:false},
+   plugins:{legend:{display:true}},
+   scales:{
+    y:{title:{display:!!ref.unit,text:ref.unit||""}}
+   }
+  }
+ });
+}
+
+$("waterTypeFilter").addEventListener("change",loadWaterModule);
+$("waterParameterFilter").addEventListener("change",renderWaterChart);
+$("waterPeriodFilter").addEventListener("change",renderWaterChart);
+
+/* MANUAL / EDIÇÃO */
+
+async function renderWaterManualResults(type,existing=[]){
+ const refs=waterReferences.filter(r=>r.water_type===type);
+ const box=$("waterManualResults");
+ box.replaceChildren();
+
+ if(!refs.length){
+  box.innerHTML='<div class="empty">Cadastre primeiro os parâmetros em Referências.</div>';
+  return;
+ }
+
+ refs.forEach(ref=>{
+  const current=existing.find(x=>x.reference_id===ref.id);
+
+  const row=document.createElement("div");
+  row.className="water-result-row";
+  row.dataset.refId=ref.id;
+
+  row.innerHTML=`
+   <div>
+    <label>Parâmetro</label>
+    <strong>${escapeHtml(ref.parameter_name)}</strong>
+   </div>
+   <div>
+    <label>Valor</label>
+    <input class="waterManualValue" type="number" step="any" value="${current?.result_value??""}">
+   </div>
+   <div>
+    <label>Unidade</label>
+    <div>${escapeHtml(ref.unit||"—")}</div>
+   </div>
+   <div>
+    <label>Referência</label>
+    <div>${ref.min_value??"—"} a ${ref.max_value??"—"}</div>
+   </div>
+  `;
+
+  box.appendChild(row);
+ });
+}
+
+$("waterManualButton").onclick=async()=>{
+ editingWaterReport=null;
+ $("waterManualForm").reset();
+ $("waterReportId").value="";
+ $("waterManualDialogTitle").textContent="Lançamento manual";
+ $("waterManualType").value=$("waterTypeFilter").value;
+ $("waterSampleDate").value=new Date().toISOString().slice(0,10);
+ await renderWaterManualResults($("waterManualType").value);
+ $("waterManualDialog").showModal();
+};
+
+$("waterManualType").addEventListener("change",async()=>{
+ await renderWaterManualResults($("waterManualType").value);
+});
+
+$("cancelWaterManual").onclick=()=>$("waterManualDialog").close();
+
+async function openWaterEdit(report){
+ editingWaterReport=report;
+
+ $("waterManualForm").reset();
+ $("waterReportId").value=report.id;
+ $("waterManualDialogTitle").textContent="Editar análise";
+ $("waterManualType").value=report.water_type;
+ $("waterSampleDate").value=report.sample_date||"";
+ $("waterReportDate").value=report.report_date||"";
+ $("waterLaboratory").value=report.laboratory||"";
+ $("waterNotes").value=report.notes||"";
+
+ const existing=waterResults.filter(r=>r.report_id===report.id);
+ await renderWaterManualResults(report.water_type,existing);
+
+ $("waterManualDialog").showModal();
+}
+
+$("waterManualForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveWaterManual");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const type=$("waterManualType").value;
+
+  const payload={
+   unit_id:unitId,
+   water_type:type,
+   sample_date:$("waterSampleDate").value,
+   report_date:$("waterReportDate").value||null,
+   source:editingWaterReport?.source||"manual",
+   laboratory:textOrNull($("waterLaboratory").value),
+   notes:textOrNull($("waterNotes").value),
+   updated_by:session.user.id
+  };
+
+  let reportId=$("waterReportId").value;
+
+  if(reportId){
+   const {error}=await db
+    .from("water_analysis_reports")
+    .update(payload)
+    .eq("id",reportId);
+
+   if(error)throw error;
+
+   const {error:deleteError}=await db
+    .from("water_analysis_results")
+    .delete()
+    .eq("report_id",reportId);
+
+   if(deleteError)throw deleteError;
+
+  }else{
+   const {data,error}=await db
+    .from("water_analysis_reports")
+    .insert({...payload,created_by:session.user.id})
+    .select("id")
+    .single();
+
+   if(error)throw error;
+   reportId=data.id;
+  }
+
+  const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
+   .map(row=>{
+    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
+    const value=parsePtNumber(row.querySelector(".waterManualValue").value);
+
+    if(value===null)return null;
+
+    return{
+     report_id:reportId,
+     reference_id:ref.id,
+     parameter_name:ref.parameter_name,
+     unit:ref.unit,
+     result_value:value,
+     min_snapshot:ref.min_value,
+     max_snapshot:ref.max_value
+    };
+   })
+   .filter(Boolean);
+
+  if(rows.length){
+   const {error}=await db.from("water_analysis_results").insert(rows);
+   if(error)throw error;
+  }
+
+  $("waterManualDialog").close();
+  message($("appMessage"),"Análise salva com sucesso.","ok");
+  await loadWaterModule();
+
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível salvar a análise.","err");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar análise";
+ }
+});
+
+async function deleteWaterReport(report){
+ if(!confirm(`Excluir a análise de ${formatDate(report.sample_date)}?`))return;
+
+ const {error}=await db
+  .from("water_analysis_reports")
+  .delete()
+  .eq("id",report.id);
+
+ if(error){
+  message($("appMessage"),"Falha ao excluir a análise.","err");
+  return;
+ }
+
+ if(report.storage_path){
+  await db.storage.from("water-analysis-pdfs").remove([report.storage_path]);
+ }
+
+ message($("appMessage"),"Análise excluída.","ok");
+ await loadWaterModule();
+}
+
+/* REFERÊNCIAS */
+
+async function renderWaterReferenceList(){
+ const refs=await loadWaterReferences();
+ waterReferences=refs;
+
+ const list=$("waterReferenceList");
+ list.replaceChildren();
+
+ if(!refs.length){
+  list.innerHTML='<div class="empty">Nenhum parâmetro cadastrado.</div>';
+  return;
+ }
+
+ refs.forEach(ref=>{
+  const row=document.createElement("div");
+  row.className="water-ref-row";
+
+  row.innerHTML=`
+   <div>
+    <strong>${escapeHtml(ref.parameter_name)}</strong>
+    <div class="muted">${escapeHtml(WATER_LABELS[ref.water_type])}</div>
+   </div>
+   <div>${escapeHtml(ref.unit||"—")}</div>
+   <div>Mín. ${ref.min_value??"—"}</div>
+   <div>Máx. ${ref.max_value??"—"}</div>
+   <div class="actions" style="margin:0">
+    <button class="secondary editWaterRef">Editar</button>
+    <button class="danger deleteWaterRef">Excluir</button>
+   </div>
+  `;
+
+  row.querySelector(".editWaterRef").onclick=()=>editWaterReference(ref);
+  row.querySelector(".deleteWaterRef").onclick=()=>deleteWaterReference(ref);
+
+  list.appendChild(row);
+ });
+}
+
+$("waterReferencesButton").onclick=async()=>{
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ $("waterReferenceType").value=$("waterTypeFilter").value;
+ await renderWaterReferenceList();
+ $("waterReferencesDialog").showModal();
+};
+
+$("closeWaterReferences").onclick=async()=>{
+ $("waterReferencesDialog").close();
+ if(unitId)await loadWaterModule();
+};
+
+$("cancelWaterReferenceEdit").onclick=()=>{
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ $("waterReferenceType").value=$("waterTypeFilter").value;
+};
+
+function editWaterReference(ref){
+ $("waterReferenceId").value=ref.id;
+ $("waterReferenceType").value=ref.water_type;
+ $("waterReferenceName").value=ref.parameter_name;
+ $("waterReferenceUnit").value=ref.unit||"";
+ $("waterReferenceMin").value=ref.min_value??"";
+ $("waterReferenceMax").value=ref.max_value??"";
+}
+
+$("waterReferenceForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const id=$("waterReferenceId").value;
+
+ const payload={
+  water_type:$("waterReferenceType").value,
+  parameter_name:$("waterReferenceName").value.trim(),
+  unit:textOrNull($("waterReferenceUnit").value),
+  min_value:numberOrNull($("waterReferenceMin").value),
+  max_value:numberOrNull($("waterReferenceMax").value),
+  active:true,
+  updated_at:new Date().toISOString(),
+  updated_by:session.user.id
+ };
+
+ let error;
+
+ if(id){
+  ({error}=await db
+   .from("water_reference_parameters")
+   .update(payload)
+   .eq("id",id));
+ }else{
+  ({error}=await db
+   .from("water_reference_parameters")
+   .insert({...payload,created_by:session.user.id}));
+ }
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível salvar a referência.","err");
+  return;
+ }
+
+ $("waterReferenceForm").reset();
+ $("waterReferenceId").value="";
+ await renderWaterReferenceList();
+});
+
+async function deleteWaterReference(ref){
+ if(!confirm(`Excluir o parâmetro "${ref.parameter_name}"?`))return;
+
+ const {error}=await db
+  .from("water_reference_parameters")
+  .delete()
+  .eq("id",ref.id);
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível excluir a referência.","err");
+  return;
+ }
+
+ await renderWaterReferenceList();
+}
+
+
+/* ============================
+   RDI
+============================ */
+
+function gutClass(score){
+ if(score>=80)return "Crítica";
+ if(score>=60)return "Alta";
+ if(score>=40)return "Média";
+ if(score>=20)return "Baixa";
+ return "Muito baixa";
+}
+
+function gutClassCss(c){
+ return "gut-"+c.toLowerCase().replaceAll(" ","-").replace("í","i");
+}
+
+function updateGut(){
+ const score=
+  Number($("gravity").value)*
+  Number($("urgency").value)*
+  Number($("trend").value);
+
+ $("gutScore").textContent=score;
+ $("gutClass").textContent=gutClass(score);
+}
+
+["gravity","urgency","trend"].forEach(id=>{
+ $(id).addEventListener("change",updateGut);
+});
+
+async function loadRdi(){
+ $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data,error}=await db
+  .from("rdi_demands")
+  .select("*")
+  .eq("unit_id",unitId)
+  .eq("archived",false)
+  .order("gut_score",{ascending:false})
+  .order("recorded_on",{ascending:true});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar RDI.","err");
+  return;
+ }
+
+ records=data||[];
+
+ renderRecords();
+}
+
+function filteredRecords(){
+ const q=$("searchInput").value.toLowerCase();
+ const status=$("statusFilter").value;
+ const gut=$("gutFilter").value;
+
+ return records.filter(r=>{
+  const text=[
+   r.source_id,r.workshop,r.equipment_info,r.location,
+   r.operational_deviation,r.recommended_action
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return (!q||text.includes(q))
+   &&(!status||r.status===status)
+   &&(!gut||gutClass(r.gut_score)===gut);
+ });
+}
+
+$("searchInput").addEventListener("input",renderRecords);
+$("statusFilter").addEventListener("change",renderRecords);
+$("gutFilter").addEventListener("change",renderRecords);
+
+function renderRecords(){
+ const list=$("rdiList");
+ list.replaceChildren();
+
+ const data=filteredRecords();
+
+ if(!data.length){
+  list.innerHTML='<div class="empty">Nenhuma demanda encontrada.</div>';
+  return;
+ }
+
+ data.forEach(r=>{
+  const c=gutClass(r.gut_score);
+  const cost=r.cost_estimated==null
+   ?"Não informado"
+   :Number(r.cost_estimated).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+  const el=document.createElement("article");
+  el.className="record";
+
+  el.innerHTML=`
+   <div class="rdi-card-layout">
+    <div class="rdi-card-photo-wrap"></div>
+    <div>
+     <div class="record-top">
+      <h3>${escapeHtml(r.source_id||"RDI")} — ${escapeHtml(r.location||"Local não informado")}</h3>
+      <span class="badge ${gutClassCss(c)}">${c} • GUT ${r.gut_score}</span>
+     </div>
+     <p><strong>${escapeHtml(r.operational_deviation)}</strong></p>
+     <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
+     <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
+     <div class="actions">
+      <button class="secondary editBtn">Editar</button>
+      <button class="danger deleteBtn">Excluir</button>
+     </div>
+    </div>
+   </div>
+  `;
+
+  el.querySelector(".editBtn").onclick=()=>openEdit(r);
+  el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
+
+  const photoWrap=el.querySelector(".rdi-card-photo-wrap");
+  const photo2=r.source_image_2||"";
+
+  // Foto 2 = Equipamento/Instalação. Só renderiza quando já estiver
+  // armazenada no bucket interno rdi-photos.
+  if(photo2 && !photo2.startsWith("Demandas Reforma_Images/")){
+   db.storage.from("rdi-photos").createSignedUrl(photo2,600).then(({data})=>{
+    if(!data?.signedUrl)return;
+    const img=document.createElement("img");
+    img.src=data.signedUrl;
+    img.alt="Equipamento ou instalação";
+    img.className="rdi-card-photo";
+    photoWrap.replaceChildren(img);
+   });
+  }
+
+  list.appendChild(el);
+ });
+}
+
+$("newRdiButton").onclick=()=>{
+ editingRecord=null;
+ $("rdiForm").reset();
+ $("recordId").value="";
+ $("gravity").value="1";
+ $("urgency").value="1";
+ $("trend").value="1";
+ $("status").value="EM ABERTO";
+ $("capexOpex").value="Não definido";
+ $("redundancy").value="não avaliada";
+ $("careImpact").value="não avaliado";
+ $("currentPhotos").replaceChildren();
+ $("dialogTitle").textContent="Nova demanda RDI";
+ updateGut();
+ $("rdiDialog").showModal();
+};
+
+function openEdit(r){
+ editingRecord=r;
+
+ $("recordId").value=r.id;
+ $("sourceId").value=r.source_id||"";
+ $("workshop").value=r.workshop||"";
+ $("equipmentInfo").value=r.equipment_info||"";
+ $("location").value=r.location||"";
+ $("operationalDeviation").value=r.operational_deviation||"";
+ $("possibleImpact").value=r.possible_impact||"";
+ $("recommendedAction").value=r.recommended_action||"";
+ $("gravity").value=r.gravity;
+ $("urgency").value=r.urgency;
+ $("trend").value=r.trend;
+ $("riskClassificationSource").value=r.risk_classification_source||"";
+ $("damage").value=r.damage||"";
+ $("recordedOn").value=r.recorded_on||"";
+ $("costEstimated").value=r.cost_estimated??"";
+ $("budgetReference").value=r.budget_reference||"";
+ $("technicalOpinion").value=r.technical_opinion||"";
+ $("status").value=r.status;
+ $("executionDate").value=r.execution_date||"";
+ $("responsible").value=r.responsible||"";
+ $("dueDate").value=r.due_date||"";
+ $("conclusionDate").value=r.conclusion_date||"";
+ $("supplier").value=r.supplier||"";
+ $("capexOpex").value=r.capex_opex||"Não definido";
+ $("approvedCost").value=r.approved_cost??"";
+ $("actualCost").value=r.actual_cost??"";
+ $("managementNotes").value=r.management_notes||"";
+ $("redundancy").value=r.redundancy||"não avaliada";
+ $("careImpact").value=r.care_impact||"não avaliado";
+ $("manualPriority").value=r.manual_priority||"";
+ $("manualPriorityJustification").value=r.manual_priority_justification||"";
+
+ $("dialogTitle").textContent="Editar demanda RDI";
+
+ updateGut();
+ showExistingPhotos(r);
+ $("rdiDialog").showModal();
+}
+
+async function showExistingPhotos(r){
+ const box=$("currentPhotos");
+ box.replaceChildren();
+
+ const labels=[
+  "Foto 1 — Placa de identificação",
+  "Foto 2 — Equipamento ou instalação",
+  "Foto 3 — Detalhe do problema 1",
+  "Foto 4 — Detalhe do problema 2"
+ ];
+
+ const paths=[
+  r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
+ ];
+
+ for(let i=0;i<paths.length;i++){
+  const path=paths[i];
+  if(!path || path.startsWith("Demandas Reforma_Images/"))continue;
+
+  const {data}=await db.storage
+   .from("rdi-photos")
+   .createSignedUrl(path,600);
+
+  if(!data?.signedUrl)continue;
+
+  const wrap=document.createElement("div");
+  const title=document.createElement("strong");
+  title.textContent=labels[i];
+  title.style.display="block";
+  title.style.margin="8px 0 5px";
+
+  const img=document.createElement("img");
+  img.src=data.signedUrl;
+  img.className="photo-preview";
+  img.alt=labels[i];
+
+  wrap.appendChild(title);
+  wrap.appendChild(img);
+  box.appendChild(wrap);
+ }
+}
+
+$("cancelDialog").onclick=()=>$("rdiDialog").close();
+
+async function uploadPhotos(demandId){
+ const paths=[];
+
+ for(let i=1;i<=4;i++){
+  const file=$("photo"+i).files[0];
+
+  if(!file){
+   paths.push(editingRecord?.["source_image_"+i]||null);
+   continue;
+  }
+
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
+
+  const {error}=await db.storage
+   .from("rdi-photos")
+   .upload(path,file,{cacheControl:"3600",upsert:false});
+
+  if(error)throw error;
+
+  paths.push(path);
+ }
+
+ return paths;
+}
+
+$("rdiForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const payload={
+   source_id:textOrNull($("sourceId").value),
+   unit_id:unitId,
+   workshop:textOrNull($("workshop").value),
+   equipment_info:textOrNull($("equipmentInfo").value),
+   location:textOrNull($("location").value),
+   operational_deviation:$("operationalDeviation").value.trim(),
+   possible_impact:textOrNull($("possibleImpact").value),
+   recommended_action:textOrNull($("recommendedAction").value),
+   gravity:Number($("gravity").value),
+   urgency:Number($("urgency").value),
+   trend:Number($("trend").value),
+   risk_classification_source:textOrNull($("riskClassificationSource").value),
+   damage:textOrNull($("damage").value),
+   recorded_on:$("recordedOn").value||null,
+   cost_estimated:numberOrNull($("costEstimated").value),
+   budget_reference:textOrNull($("budgetReference").value),
+   technical_opinion:textOrNull($("technicalOpinion").value),
+   status:$("status").value,
+   execution_date:$("executionDate").value||null,
+   responsible:textOrNull($("responsible").value),
+   due_date:$("dueDate").value||null,
+   conclusion_date:$("conclusionDate").value||null,
+   supplier:textOrNull($("supplier").value),
+   capex_opex:$("capexOpex").value,
+   approved_cost:numberOrNull($("approvedCost").value),
+   actual_cost:numberOrNull($("actualCost").value),
+   management_notes:textOrNull($("managementNotes").value),
+   redundancy:$("redundancy").value,
+   care_impact:$("careImpact").value,
+   manual_priority:textOrNull($("manualPriority").value),
+   manual_priority_justification:textOrNull($("manualPriorityJustification").value),
+   created_by:session.user.id,
+   updated_by:session.user.id
+  };
+
+  let id=$("recordId").value;
+
+  if(id){
+   const {error}=await db.from("rdi_demands").update(payload).eq("id",id);
+   if(error)throw error;
+  }else{
+   const {data,error}=await db.from("rdi_demands").insert(payload).select("id").single();
+   if(error)throw error;
+   id=data.id;
+  }
+
+  const photos=await uploadPhotos(id);
+
+  const {error:photoError}=await db
+   .from("rdi_demands")
+   .update({
+    source_image_1:photos[0],
+    source_image_2:photos[1],
+    source_image_3:photos[2],
+    source_image_4:photos[3],
+    updated_by:session.user.id
+   })
+   .eq("id",id);
+
+  if(photoError)throw photoError;
+
+  $("rdiDialog").close();
+  message($("appMessage"),"Demanda salva com sucesso.","ok");
+  await loadRdi();
+
+ }catch(err){
+  console.error(err);
+  message($("appMessage"),"Não foi possível salvar a demanda. Verifique os campos e permissões.","err");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar demanda";
+ }
+});
+
+async function deleteRecord(r){
+ if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
+
+ const photos=[
+  r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
+ ].filter(Boolean);
+
+ const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+
+ if(error){
+  message($("appMessage"),"Falha ao excluir a demanda.","err");
+  return;
+ }
+
+ if(photos.length){
+  await db.storage.from("rdi-photos").remove(photos);
+ }
+
+ message($("appMessage"),"Demanda excluída.","ok");
+ await loadRdi();
+}
+
+/* ============================
+   DOCUMENTOS
+============================ */
+
+async function loadDocuments(){
+ $("documentList").innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data,error}=await db
+  .from("documents")
+  .select("*")
+  .eq("unit_id",unitId)
+  .order("created_at",{ascending:false});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar documentos.","err");
+  return;
+ }
+
+ documents=data||[];
+ renderDocuments();
+}
+
+function filteredDocuments(){
+ const q=$("documentSearch").value.trim().toLowerCase();
+ const category=$("documentCategoryFilter").value;
+
+ return documents.filter(d=>{
+  const text=[
+   d.title,d.description,d.filename,d.category
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return (!q||text.includes(q))
+   &&(!category||d.category===category);
+ });
+}
+
+$("documentSearch").addEventListener("input",renderDocuments);
+$("documentCategoryFilter").addEventListener("change",renderDocuments);
+
+function formatDate(value){
+ if(!value)return "Não informado";
+
+ return new Date(value+"T12:00:00").toLocaleDateString("pt-BR");
+}
+
+function validityInfo(d){
+ if(!d.valid_until)return "";
+
+ const today=new Date();
+ today.setHours(0,0,0,0);
+
+ const expiration=new Date(d.valid_until+"T00:00:00");
+
+ if(expiration<today){
+  return `<span class="expired-text">Vencido em ${formatDate(d.valid_until)}</span>`;
+ }
+
+ const days=Math.ceil((expiration-today)/86400000);
+
+ if(days<=30){
+  return `<span class="warning-text">Vence em ${days} dia(s)</span>`;
+ }
+
+ return `Validade: ${formatDate(d.valid_until)}`;
+}
+
+function renderDocuments(){
+ const list=$("documentList");
+ list.replaceChildren();
+
+ const data=filteredDocuments();
+
+ if(!data.length){
+  list.innerHTML='<div class="empty">Nenhum documento encontrado.</div>';
+  return;
+ }
+
+ data.forEach(d=>{
+  const el=document.createElement("article");
+  el.className="record";
+
+  el.innerHTML=`
+   <div class="record-top">
+    <input type="checkbox" class="doc-check" data-id="${d.id}">
+    <h3>${escapeHtml(d.title)}</h3>
+    <span class="badge">${escapeHtml(d.category)}</span>
+   </div>
+   <p class="muted">${escapeHtml(d.description||"Sem descrição")}</p>
+   <p><strong>Arquivo:</strong> ${escapeHtml(d.filename)}</p>
+   <p><strong>Data:</strong> ${formatDate(d.document_date)}</p>
+   <p>${validityInfo(d)}</p>
+   <div class="actions">
+    <button class="primary openDoc">Abrir</button>
+    <button class="secondary editDoc">Editar</button>
+    <button class="danger deleteDoc">Excluir</button>
+   </div>
+  `;
+
+  el.querySelector(".openDoc").onclick=()=>openDocument(d);
+  el.querySelector(".editDoc").onclick=()=>openDocumentEdit(d);
+  el.querySelector(".deleteDoc").onclick=()=>deleteDocument(d);
+
+  list.appendChild(el);
+ });
+}
+
+async function openDocument(d){
+ const {data,error}=await db.storage
+  .from("documents-private")
+  .createSignedUrl(d.storage_path,600);
+
+ if(error||!data?.signedUrl){
+  message($("appMessage"),"Não foi possível abrir o arquivo.","err");
+  return;
+ }
+
+ window.open(data.signedUrl,"_blank");
+}
+
+$("newDocumentButton").onclick=()=>{
+ editingDocument=null;
+ $("documentForm").reset();
+ $("documentId").value="";
+ $("currentDocumentFile").textContent="Selecione um arquivo para enviar.";
+ $("documentDialogTitle").textContent="Novo documento";
+ $("documentDialog").showModal();
+};
+
+function openDocumentEdit(d){
+ editingDocument=d;
+
+ $("documentId").value=d.id;
+ $("documentCategory").value=d.category;
+ $("documentTitle").value=d.title;
+ $("documentDescription").value=d.description||"";
+ $("documentDate").value=d.document_date||"";
+ $("documentValidUntil").value=d.valid_until||"";
+ $("documentFile").value="";
+ $("currentDocumentFile").textContent=
+  "Arquivo atual: "+d.filename+" — escolha outro somente se quiser substituí-lo.";
+ $("documentDialogTitle").textContent="Editar documento";
+
+ $("documentDialog").showModal();
+}
+
+$("cancelDocumentDialog").onclick=()=>$("documentDialog").close();
+
+function safeFilename(name){
+ return name
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .replace(/[^a-zA-Z0-9._-]+/g,"_");
+}
+
+$("documentForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveDocumentButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ let uploadedPath=null;
+
+ try{
+  const file=$("documentFile").files[0];
+  const id=$("documentId").value||crypto.randomUUID();
+
+  let storagePath=editingDocument?.storage_path||null;
+  let filename=editingDocument?.filename||null;
+  let mimeType=editingDocument?.mime_type||null;
+  let sizeBytes=editingDocument?.size_bytes||null;
+
+  if(!editingDocument&&!file){
+   throw new Error("Selecione um arquivo.");
+  }
+
+  if(file){
+   const path=`${unitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
+
+   const {error:uploadError}=await db.storage
+    .from("documents-private")
+    .upload(path,file,{cacheControl:"3600",upsert:false});
+
+   if(uploadError)throw uploadError;
+
+   uploadedPath=path;
+   storagePath=path;
+   filename=file.name;
+   mimeType=file.type||null;
+   sizeBytes=file.size;
+  }
+
+  const payload={
+   unit_id:unitId,
+   category:$("documentCategory").value,
+   title:$("documentTitle").value.trim(),
+   description:textOrNull($("documentDescription").value),
+   document_date:$("documentDate").value||null,
+   valid_until:$("documentValidUntil").value||null,
+   storage_path:storagePath,
+   filename,
+   mime_type:mimeType,
+   size_bytes:sizeBytes,
+   created_by:session.user.id,
+   updated_by:session.user.id
+  };
+
+  let error;
+
+  if(editingDocument){
+   ({error}=await db.from("documents").update(payload).eq("id",id));
+  }else{
+   ({error}=await db.from("documents").insert({...payload,id}));
+  }
+
+  if(error)throw error;
+
+  if(file&&editingDocument?.storage_path&&editingDocument.storage_path!==storagePath){
+   await db.storage.from("documents-private").remove([editingDocument.storage_path]);
+  }
+
+  $("documentDialog").close();
+  message($("appMessage"),"Documento salvo com sucesso.","ok");
+  await loadDocuments();
+
+ }catch(err){
+  console.error(err);
+
+  if(uploadedPath){
+   await db.storage.from("documents-private").remove([uploadedPath]);
+  }
+
+  message(
+   $("appMessage"),
+   err?.message==="Selecione um arquivo."?err.message:"Não foi possível salvar o documento.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar documento";
+ }
+});
+
+async function deleteDocument(d,ask=true){
+ if(ask&&!confirm(`Excluir "${d.title}"?`))return false;
+
+ const {error}=await db.from("documents").delete().eq("id",d.id);
+
+ if(error){
+  message($("appMessage"),"Falha ao excluir documento.","err");
+  return false;
+ }
+
+ await db.storage.from("documents-private").remove([d.storage_path]);
+
+ if(ask){
+  message($("appMessage"),"Documento excluído.","ok");
+  await loadDocuments();
+ }
+
+ return true;
+}
+
+$("selectAllDocuments").onclick=()=>{
+ const boxes=[...document.querySelectorAll(".doc-check")];
+
+ if(!boxes.length)return;
+
+ const shouldCheck=boxes.some(b=>!b.checked);
+
+ boxes.forEach(b=>b.checked=shouldCheck);
+
+ $("selectAllDocuments").textContent=
+  shouldCheck?"Desmarcar todos":"Selecionar todos";
+};
+
+$("deleteSelectedDocuments").classList.toggle("hidden",!hasAccess("documentos","delete",unitId));
+$("deleteSelectedDocuments").onclick=async()=>{
+ const ids=[
+  ...document.querySelectorAll(".doc-check:checked")
+ ].map(b=>b.dataset.id);
+
+ if(!ids.length){
+  message($("appMessage"),"Selecione pelo menos um documento.","info");
+  return;
+ }
+
+ if(!confirm(`Excluir ${ids.length} documento(s) selecionado(s)?`)){
+  return;
+ }
+
+ const selected=documents.filter(d=>ids.includes(d.id));
+ let failed=0;
+
+ for(const d of selected){
+  const ok=await deleteDocument(d,false);
+  if(!ok)failed++;
+ }
+
+ message(
+  $("appMessage"),
+  failed?"Alguns documentos não puderam ser excluídos.":"Documentos excluídos com sucesso.",
+  failed?"err":"ok"
+ );
+
+ await loadDocuments();
+}
+
+/* ============================
+   MATRIZ DE COMUNICAÇÃO
+============================ */
+
+async function loadEmployees(){
+ $("employeeList").innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data:links,error:linkError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .eq("unit_id",unitId);
+
+ if(linkError){
+  console.error(linkError);
+  message($("appMessage"),"Falha ao carregar vínculos da equipe.","err");
+  return;
+ }
+
+ const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
+ if(!ids.length){
+  employees=[];
+  renderEmployees();
+  return;
+ }
+
+ const {data,error}=await db
+  .from("employees")
+  .select("*")
+  .in("id",ids)
+  .order("full_name");
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar profissionais.","err");
+  return;
+ }
+
+ const {data:allLinks,error:allLinksError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .in("employee_id",ids);
+
+ if(allLinksError){
+  console.error(allLinksError);
+  message($("appMessage"),"Falha ao carregar unidades dos profissionais.","err");
+  return;
+ }
+
+ employees=(data||[]).map(emp=>({
+  ...emp,
+  unit_ids:(allLinks||[])
+   .filter(link=>link.employee_id===emp.id)
+   .map(link=>link.unit_id)
+ }));
+
+ renderEmployees();
+}
+
+function filteredEmployees(){
+ const q=$("employeeSearch").value.trim().toLowerCase();
+ const status=$("employeeStatusFilter").value;
+ const turn=$("employeeShiftFilter").value;
+
+ return employees.filter(e=>{
+  const text=[
+   e.full_name,e.job_title,e.shift,e.work_hours,e.phone,
+   e.employee_number,e.cost_center,e.additional_info
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return (!q||text.includes(q))
+   &&(!status||e.status===status)
+   &&(!turn||e.day_night===turn);
+ });
+}
+
+$("employeeSearch").addEventListener("input",renderEmployees);
+$("employeeStatusFilter").addEventListener("change",renderEmployees);
+$("employeeShiftFilter").addEventListener("change",renderEmployees);
+
+function employeeUnitNames(ids){
+ return (ids||[])
+  .map(id=>allUnits.find(u=>u.id===id)?.name)
+  .filter(Boolean)
+  .join(", ");
+}
+
+function renderEmployees(){
+ const list=$("employeeList");
+ list.replaceChildren();
+
+ const data=filteredEmployees();
+
+ if(!data.length){
+  list.innerHTML='<div class="empty">Nenhum profissional encontrado nesta unidade.</div>';
+  return;
+ }
+
+ data.forEach(e=>{
+  const el=document.createElement("article");
+  el.className="record";
+
+  el.innerHTML=`
+   <div class="employee-card-head">
+    <div class="employee-card-placeholder employeeAvatar">
+     ${escapeHtml((e.full_name||"?").split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase())}
+    </div>
+    <div style="flex:1">
+     <div class="record-top">
+      <h3>${escapeHtml(e.full_name)}</h3>
+      <span class="badge">${escapeHtml((e.status||"").toUpperCase())}</span>
+     </div>
+    </div>
+   </div>
+   <p><strong>Função:</strong> ${escapeHtml(e.job_title||"Não informado")}</p>
+   <p>
+    <strong>Escala:</strong> ${escapeHtml(e.shift||"—")}
+    • <strong>Horário:</strong> ${escapeHtml(e.work_hours||"—")}
+    • <strong>Turno:</strong> ${escapeHtml(e.day_night||"—")}
+   </p>
+   <p>
+    <strong>Celular:</strong> ${escapeHtml(e.phone||"—")}
+    • <strong>Matrícula:</strong> ${escapeHtml(e.employee_number||"—")}
+   </p>
+   <p><strong>Adicional:</strong> ${escapeHtml(e.additional_info||"—")}</p>
+   <p><strong>Centro de custo:</strong> ${escapeHtml(e.cost_center||"—")}</p>
+   <p><strong>Organograma:</strong> ${escapeHtml(e.org_role||"—")} • <strong>Grupo:</strong> ${escapeHtml(e.org_group||"—")}</p>
+   <p><strong>Unidade(s):</strong> ${escapeHtml(employeeUnitNames(e.unit_ids)||"—")}</p>
+   <div class="actions">
+    ${hasAccess("comunicacao","edit",unitId)?'<button class="secondary editEmployee">Editar</button>':""}
+    ${hasAccess("comunicacao","delete",unitId)?'<button class="danger deleteEmployee">Excluir</button>':""}
+   </div>
+  `;
+
+  const editEmployeeButton=el.querySelector(".editEmployee"); if(editEmployeeButton)editEmployeeButton.onclick=()=>openEmployeeEdit(e);
+  const deleteEmployeeButton=el.querySelector(".deleteEmployee"); if(deleteEmployeeButton)deleteEmployeeButton.onclick=()=>deleteEmployee(e);
+
+  if(e.photo_path){
+   db.storage.from("employee-photos").createSignedUrl(e.photo_path,600).then(({data})=>{
+    if(!data?.signedUrl)return;
+    const avatar=el.querySelector(".employeeAvatar");
+    if(!avatar)return;
+    const img=document.createElement("img");
+    img.src=data.signedUrl;
+    img.alt=e.full_name;
+    img.className="employee-card-avatar";
+    avatar.replaceWith(img);
+   });
+  }
+
+  list.appendChild(el);
+ });
+}
+
+function renderEmployeeUnitChecks(selected=[]){
+ const box=$("employeeUnits");
+ box.replaceChildren();
+
+ allUnits.forEach(u=>{
+  const label=document.createElement("label");
+  label.className="unit-check-row";
+
+  const checkbox=document.createElement("input");
+  checkbox.type="checkbox";
+  checkbox.value=u.id;
+  checkbox.className="employeeUnitCheck";
+  checkbox.checked=selected.includes(u.id);
+
+  label.appendChild(checkbox);
+  label.appendChild(document.createTextNode(u.name));
+
+  box.appendChild(label);
+ });
+}
+
+
+async function loadSupervisorOptions(currentId=null,selectedId=null){
+ const select=$("employeeSupervisor");
+ select.innerHTML='<option value="">Sem superior</option>';
+
+ const {data,error}=await db
+  .from("employees")
+  .select("id,full_name,org_role,status")
+  .eq("status","ativo")
+  .order("full_name");
+
+ if(error){
+  console.error(error);
+  return;
+ }
+
+ (data||[]).forEach(person=>{
+  if(person.id===currentId)return;
+  const option=document.createElement("option");
+  option.value=person.id;
+  option.textContent=person.full_name+(person.org_role?` — ${person.org_role}`:"");
+  option.selected=person.id===selectedId;
+  select.appendChild(option);
+ });
+}
+
+async function showEmployeeCurrentPhoto(path){
+ const box=$("employeeCurrentPhoto");
+ const preview=$("employeePhotoPreview");
+ box.textContent="";
+ preview.replaceChildren();
+ preview.textContent="Foto";
+
+ if(!path)return;
+
+ const {data}=await db.storage
+  .from("employee-photos")
+  .createSignedUrl(path,600);
+
+ if(!data?.signedUrl)return;
+
+ const img=document.createElement("img");
+ img.src=data.signedUrl;
+ img.alt="Foto do profissional";
+ preview.replaceChildren(img);
+ box.textContent="Foto atual carregada.";
+}
+
+$("employeePhoto").addEventListener("change",()=>{
+ const file=$("employeePhoto").files[0];
+ if(!file)return;
+
+ const preview=$("employeePhotoPreview");
+ const img=document.createElement("img");
+ img.src=URL.createObjectURL(file);
+ img.alt="Pré-visualização da foto";
+ preview.replaceChildren(img);
+ $("employeeCurrentPhoto").textContent="Nova foto selecionada.";
+});
+
+
+$("newEmployeeButton").onclick=async()=>{
+ editingEmployee=null;
+
+ $("employeeForm").reset();
+ $("employeeId").value="";
+ $("employeeStatus").value="ativo";
+ $("employeeOrgRole").value="";
+ $("employeeOrgGroup").value="";
+ $("employeePhoto").value="";
+ $("employeeCurrentPhoto").textContent="";
+ $("employeePhotoPreview").textContent="Foto";
+ await loadSupervisorOptions(null,null);
+
+ renderEmployeeUnitChecks(unitId?[unitId]:[]);
+
+ $("employeeDialogTitle").textContent="Novo profissional";
+ $("employeeDialog").showModal();
+};
+
+async function openEmployeeEdit(e){
+ editingEmployee=e;
+
+ $("employeeId").value=e.id;
+ $("employeeName").value=e.full_name||"";
+ $("employeeJobTitle").value=e.job_title||"";
+ $("employeeScale").value=e.shift||"";
+ $("employeeWorkHours").value=e.work_hours||"";
+ $("employeeDayNight").value=e.day_night||"";
+ $("employeePhone").value=e.phone||"";
+ $("employeeHiredOn").value=e.hired_on||"";
+ $("employeeAdditionalInfo").value=e.additional_info||"";
+ $("employeeNumber").value=e.employee_number||"";
+ $("employeeCostCenter").value=e.cost_center||"";
+ $("employeeStatus").value=e.status||"ativo";
+ $("employeeOrgRole").value=e.org_role||"";
+ $("employeeOrgGroup").value=e.org_group||"";
+ $("employeePhoto").value="";
+ await loadSupervisorOptions(e.id,e.supervisor_id||null);
+ await showEmployeeCurrentPhoto(e.photo_path||null);
+
+ renderEmployeeUnitChecks(e.unit_ids||[]);
+
+ $("employeeDialogTitle").textContent="Editar profissional";
+ $("employeeDialog").showModal();
+}
+
+$("cancelEmployeeDialog").onclick=()=>$("employeeDialog").close();
+
+
+async function uploadEmployeePhoto(employeeId,file){
+ if(!file)return editingEmployee?.photo_path||null;
+
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+ const path=`${unitId}/${employeeId}/${Date.now()}.${ext}`;
+
+ const {error}=await db.storage
+  .from("employee-photos")
+  .upload(path,file,{cacheControl:"3600",upsert:false});
+
+ if(error)throw error;
+
+ return path;
+}
+
+$("employeeForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveEmployeeButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ try{
+  const selectedUnits=[
+   ...document.querySelectorAll(".employeeUnitCheck:checked")
+  ].map(x=>x.value);
+
+  if(!selectedUnits.length){
+   throw new Error("Selecione pelo menos uma unidade.");
+  }
+
+  const basePayload={
+   full_name:$("employeeName").value.trim(),
+   job_title:textOrNull($("employeeJobTitle").value),
+   shift:textOrNull($("employeeScale").value),
+   work_hours:textOrNull($("employeeWorkHours").value),
+   day_night:$("employeeDayNight").value||null,
+   phone:textOrNull($("employeePhone").value),
+   hired_on:$("employeeHiredOn").value||null,
+   additional_info:textOrNull($("employeeAdditionalInfo").value),
+   employee_number:textOrNull($("employeeNumber").value),
+   cost_center:textOrNull($("employeeCostCenter").value),
+   status:$("employeeStatus").value,
+   org_role:$("employeeOrgRole").value||null,
+   org_group:textOrNull($("employeeOrgGroup").value),
+   supervisor_id:$("employeeSupervisor").value||null,
+   updated_by:session.user.id
+  };
+
+  let id=$("employeeId").value;
+
+  if(id){
+   const {error}=await db
+    .from("employees")
+    .update(basePayload)
+    .eq("id",id);
+
+   if(error)throw error;
+
+   const {error:deleteLinksError}=await db
+    .from("employee_units")
+    .delete()
+    .eq("employee_id",id);
+
+   if(deleteLinksError)throw deleteLinksError;
+
+  }else{
+   const {data,error}=await db
+    .from("employees")
+    .insert({
+     ...basePayload,
+     created_by:session.user.id
+    })
+    .select("id")
+    .single();
+
+   if(error)throw error;
+
+   id=data.id;
+  }
+
+  const photoFile=$("employeePhoto").files[0];
+  const oldPhoto=editingEmployee?.photo_path||null;
+  const newPhoto=await uploadEmployeePhoto(id,photoFile);
+
+  const {error:photoUpdateError}=await db
+   .from("employees")
+   .update({photo_path:newPhoto,updated_by:session.user.id})
+   .eq("id",id);
+
+  if(photoUpdateError)throw photoUpdateError;
+
+  if(photoFile&&oldPhoto&&oldPhoto!==newPhoto){
+   await db.storage.from("employee-photos").remove([oldPhoto]);
+  }
+
+  const rows=selectedUnits.map(selectedUnitId=>({
+   employee_id:id,
+   unit_id:selectedUnitId
+  }));
+
+  const {error:linkError}=await db
+   .from("employee_units")
+   .insert(rows);
+
+  if(linkError)throw linkError;
+
+  $("employeeDialog").close();
+  message($("appMessage"),"Profissional salvo com sucesso.","ok");
+  await loadEmployees();
+
+ }catch(err){
+  console.error(err);
+
+  message(
+   $("appMessage"),
+   err?.message==="Selecione pelo menos uma unidade."
+    ?err.message
+    :"Não foi possível salvar o profissional.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Salvar profissional";
+ }
+});
+
+async function deleteEmployee(e){
+ if(!confirm(`Excluir ${e.full_name} da Matriz de Comunicação?`)){
+  return;
+ }
+
+ const {error:linksError}=await db
+  .from("employee_units")
+  .delete()
+  .eq("employee_id",e.id);
+
+ if(linksError){
+  message($("appMessage"),"Falha ao remover vínculos do profissional.","err");
+  return;
+ }
+
+ const photoPath=e.photo_path||null;
+
+ const {error}=await db
+  .from("employees")
+  .delete()
+  .eq("id",e.id);
+
+ if(error){
+  message($("appMessage"),"Falha ao excluir profissional.","err");
+  return;
+ }
+
+ if(photoPath){
+  await db.storage.from("employee-photos").remove([photoPath]);
+ }
+
+ message($("appMessage"),"Profissional excluído.","ok");
+ await loadEmployees();
+}
+
+
+/* ============================
+   ORGANOGRAMA
+============================ */
+
+const ORG_ORDER=[
+ "Líder",
+ "Eletromecânico V",
+ "Eletromecânico IV",
+ "Eletromecânico III",
+ "Oficial",
+ "Ajudante"
+];
+
+async function loadOrganogram(){
+ const box=$("orgContent");
+ box.innerHTML='<div class="empty">Carregando...</div>';
+
+ const {data:links,error:linkError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .eq("unit_id",unitId);
+
+ if(linkError){
+  console.error(linkError);
+  message($("appMessage"),"Falha ao carregar vínculos do organograma.","err");
+  return;
+ }
+
+ const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
+ if(!ids.length){
+  box.innerHTML='<div class="empty">Nenhum profissional vinculado a esta unidade.</div>';
+  return;
+ }
+
+ const {data,error}=await db
+  .from("employees")
+  .select("*")
+  .in("id",ids)
+  .eq("status","ativo")
+  .order("full_name");
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar organograma.","err");
+  return;
+ }
+
+ let orgPeople=data||[];
+
+ // Inclui líderes/superiores compartilhados que não estejam
+ // diretamente vinculados à unidade selecionada.
+ const localIds=new Set(orgPeople.map(e=>e.id));
+ const missingSupervisorIds=[...new Set(
+  orgPeople
+   .map(e=>e.supervisor_id)
+   .filter(id=>id&&!localIds.has(id))
+ )];
+
+ if(missingSupervisorIds.length){
+  const {data:supervisors,error:supervisorError}=await db
+   .from("employees")
+   .select("*")
+   .in("id",missingSupervisorIds)
+   .eq("status","ativo");
+
+  if(supervisorError){
+   console.warn("Não foi possível carregar líderes compartilhados.",supervisorError);
+  }else{
+   const sharedLeaders=(supervisors||[]).filter(e=>{
+    const role=(e.org_role||"").trim().toLowerCase();
+    return role==="líder"||role==="lider";
+   });
+   orgPeople=[...sharedLeaders,...orgPeople];
+  }
+ }
+
+ const orgIds=[...new Set(orgPeople.map(e=>e.id))];
+
+ const {data:allLinks,error:allLinksError}=await db
+  .from("employee_units")
+  .select("employee_id,unit_id")
+  .in("employee_id",orgIds);
+
+ if(allLinksError){
+  console.error(allLinksError);
+  message($("appMessage"),"Falha ao carregar unidades do organograma.","err");
+  return;
+ }
+
+ const enriched=orgPeople.map(emp=>({
+  ...emp,
+  unit_ids:(allLinks||[])
+   .filter(link=>link.employee_id===emp.id)
+   .map(link=>link.unit_id)
+ }));
+
+ renderOrganogram(enriched);
+}
+
+async function signedEmployeePhoto(path){
+ if(!path)return null;
+ const {data}=await db.storage
+  .from("employee-photos")
+  .createSignedUrl(path,600);
+ return data?.signedUrl||null;
+}
+
+async function buildOrgNode(person,bySupervisor,seen=new Set()){
+ if(seen.has(person.id))return null;
+
+ const nextSeen=new Set(seen);
+ nextSeen.add(person.id);
+
+ const wrap=document.createElement("div");
+ wrap.className="org-node-wrap";
+
+ const node=document.createElement("div");
+ node.className="org-node";
+
+ const photoUrl=await signedEmployeePhoto(person.photo_path);
+
+ if(photoUrl){
+  const img=document.createElement("img");
+  img.src=photoUrl;
+  img.alt=person.full_name;
+  node.appendChild(img);
+ }else{
+  const ph=document.createElement("div");
+  ph.className="avatar-placeholder";
+  ph.textContent=(person.full_name||"?")
+   .split(/\s+/)
+   .slice(0,2)
+   .map(x=>x[0]||"")
+   .join("")
+   .toUpperCase();
+  node.appendChild(ph);
+ }
+
+ const name=document.createElement("strong");
+ name.textContent=person.full_name;
+ node.appendChild(name);
+
+ const role=document.createElement("div");
+ role.textContent=person.org_role||person.job_title||"Função não definida";
+ node.appendChild(role);
+
+ const meta=document.createElement("div");
+ meta.className="muted";
+ meta.textContent=[person.shift,person.day_night].filter(Boolean).join(" • ");
+ node.appendChild(meta);
+
+ wrap.appendChild(node);
+
+ const children=(bySupervisor.get(person.id)||[])
+  .filter(c=>!nextSeen.has(c.id));
+
+ if(children.length){
+  const childBox=document.createElement("div");
+  childBox.className="org-children";
+
+  for(const child of children){
+   const childNode=await buildOrgNode(child,bySupervisor,nextSeen);
+   if(childNode)childBox.appendChild(childNode);
+  }
+
+  wrap.appendChild(childBox);
+ }
+
+ return wrap;
+}
+
+async function renderOrganogram(data){
+ const box=$("orgContent");
+ box.replaceChildren();
+
+ if(!data.length){
+  box.innerHTML='<div class="empty">Nenhum profissional ativo nesta unidade.</div>';
+  return;
+ }
+
+ const volante=data.filter(
+  e=>(e.org_group||"").trim().toLowerCase()==="equipe volante"
+ );
+ const normal=data.filter(e=>!volante.includes(e));
+
+ const leaders=normal.filter(e=>
+  (e.org_role||"").trim().toLowerCase()==="líder" ||
+  (e.org_role||"").trim().toLowerCase()==="lider"
+ );
+ const nonLeaders=normal.filter(e=>!leaders.includes(e));
+
+ const tree=document.createElement("div");
+ tree.className="org-tree";
+
+ if(leaders.length){
+  const leaderRow=document.createElement("div");
+  leaderRow.className="org-leader-row";
+
+  for(const leader of leaders){
+   const node=await buildOrgNode(leader,new Map());
+   if(node)leaderRow.appendChild(node);
+  }
+  tree.appendChild(leaderRow);
+
+  if(nonLeaders.length){
+   const teamRow=document.createElement("div");
+   teamRow.className="org-team-row";
+
+   const orderMap=new Map(ORG_ORDER.map((role,index)=>[role.toLowerCase(),index]));
+   nonLeaders.sort((a,b)=>{
+    const ar=(a.org_role||a.job_title||"").toLowerCase();
+    const br=(b.org_role||b.job_title||"").toLowerCase();
+    return (orderMap.get(ar)??99)-(orderMap.get(br)??99) || (a.full_name||"").localeCompare(b.full_name||"");
+   });
+
+   for(const person of nonLeaders){
+    const node=await buildOrgNode(person,new Map());
+    if(node)teamRow.appendChild(node);
+   }
+   tree.appendChild(teamRow);
+  }
+ }else{
+  const ids=new Set(normal.map(e=>e.id));
+  const bySupervisor=new Map();
+
+  normal.forEach(e=>{
+   if(e.supervisor_id&&ids.has(e.supervisor_id)){
+    if(!bySupervisor.has(e.supervisor_id))bySupervisor.set(e.supervisor_id,[]);
+    bySupervisor.get(e.supervisor_id).push(e);
+   }
+  });
+
+  const roots=normal.filter(e=>!e.supervisor_id||!ids.has(e.supervisor_id));
+  const row=document.createElement("div");
+  row.className="org-tree-row";
+
+  for(const root of roots){
+   const node=await buildOrgNode(root,bySupervisor);
+   if(node)row.appendChild(node);
+  }
+  tree.appendChild(row);
+ }
+
+ box.appendChild(tree);
+
+ if(volante.length){
+  const section=document.createElement("section");
+  section.className="org-group-card";
+
+  const title=document.createElement("h3");
+  title.textContent="Equipe volante";
+  section.appendChild(title);
+
+  const row=document.createElement("div");
+  row.className="org-row";
+
+  for(const e of volante){
+   const card=document.createElement("div");
+   card.className="org-node";
+
+   const photoUrl=await signedEmployeePhoto(e.photo_path);
+
+   if(photoUrl){
+    const img=document.createElement("img");
+    img.src=photoUrl;
+    img.alt=e.full_name;
+    card.appendChild(img);
+   }else{
+    const ph=document.createElement("div");
+    ph.className="avatar-placeholder";
+    ph.textContent=(e.full_name||"?")
+     .split(/\s+/)
+     .slice(0,2)
+     .map(x=>x[0]||"")
+     .join("")
+     .toUpperCase();
+    card.appendChild(ph);
+   }
+
+   const name=document.createElement("strong");
+   name.textContent=e.full_name;
+   card.appendChild(name);
+
+   const role=document.createElement("div");
+   role.textContent=e.org_role||e.job_title||"Função não definida";
+   card.appendChild(role);
+
+   const units=document.createElement("div");
+   units.className="muted";
+   units.textContent=employeeUnitNames(e.unit_ids||[]);
+   card.appendChild(units);
+
+   row.appendChild(card);
+  }
+
+  section.appendChild(row);
+  box.appendChild(section);
+ }
+}
+
+/* INÍCIO */
+
+start();
+</script>
+</body>
+</html>
