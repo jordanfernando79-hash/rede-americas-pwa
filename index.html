@@ -266,6 +266,12 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .exec-card span{display:block;color:var(--muted);font-size:13px;font-weight:700}
 .exec-card strong{display:block;font-size:26px;color:var(--primary2);margin-top:5px}
 .exec-card small{display:block;color:var(--muted);margin-top:4px}
+.exec-budget-lines{display:grid;gap:9px;margin-top:9px}
+.exec-budget-line{display:grid;grid-template-columns:1fr 1.25fr;gap:8px;align-items:end;padding-top:8px;border-top:1px solid var(--border)}
+.exec-budget-line:first-child{border-top:0;padding-top:0}
+.exec-budget-line strong{font-size:17px;margin-top:2px;line-height:1.15}
+.exec-budget-line .exec-budget-value{text-align:right}
+.exec-budget-line .exec-budget-value strong{font-size:16px}
 .exec-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .exec-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px}
 .exec-panel h3{margin:0 0 12px}
@@ -697,6 +703,19 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="exec-card"><span>Custo realizado RDI</span><strong id="ovCostActual" style="font-size:21px">R$ 0</strong><small>Valor realizado</small></div>
 <div class="exec-card"><span>Documentos</span><strong id="ovDocuments">0</strong><small id="ovDocsAlert">0 vencidos / próximos</small></div>
 <div class="exec-card"><span>Qualidade da Água</span><strong id="ovWaterAnalyses">0</strong><small id="ovWaterOut">0 resultados fora da faixa</small></div>
+<div class="exec-card">
+<span>Orçamentos</span>
+<div class="exec-budget-lines">
+ <div class="exec-budget-line">
+  <div><small>Aprovados</small><strong id="ovBudgetApprovedCount">0</strong></div>
+  <div class="exec-budget-value"><small>Valor aprovado</small><strong id="ovBudgetApprovedValue">R$ 0</strong></div>
+ </div>
+ <div class="exec-budget-line">
+  <div><small>Enviados</small><strong id="ovBudgetSentCount">0</strong></div>
+  <div class="exec-budget-value"><small>Valor enviado</small><strong id="ovBudgetSentValue">R$ 0</strong></div>
+ </div>
+</div>
+</div>
 </div>
 
 
@@ -3346,6 +3365,7 @@ async function loadOverview(){
  const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
  const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
  const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
+ const canBudgets=profile?.role==="admin"||hasAccess("orcamentos","view");
 
 
  const safe=async(label,enabled,request)=>{
@@ -3370,7 +3390,8 @@ async function loadOverview(){
    employeesRes,
    rdiRes,
    docsRes,
-   waterReportsRes
+   waterReportsRes,
+   budgetsRes
   ]=await Promise.all([
    safe("vínculos da equipe",canCommunication,
     db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds)),
@@ -3381,12 +3402,14 @@ async function loadOverview(){
    safe("documentos",canDocuments,
     db.from("documents").select("id,unit_id,valid_until").in("unit_id",scopedUnitIds)),
    safe("qualidade da água",canWater,
-    db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds))
+    db.from("water_analysis_reports").select("id,unit_id,water_type,sample_date").in("unit_id",scopedUnitIds)),
+   safe("orçamentos",canBudgets,
+    db.from("budgets").select("id,unit_id,sent_on,purchase_order,amount,archived").in("unit_id",scopedUnitIds).eq("archived",false))
   ]);
 
 
   let partialErrors=[
-   employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes
+   employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes,budgetsRes
   ].filter(x=>x.error).length;
 
 
@@ -3396,6 +3419,7 @@ async function loadOverview(){
   const rdis=rdiRes.data||[];
   const docs=docsRes.data||[];
   const waterReports=waterReportsRes.data||[];
+  const overviewBudgets=budgetsRes.data||[];
 
 
   let waterResults=[];
@@ -3448,6 +3472,11 @@ async function loadOverview(){
    return false;
   });
 
+  const approvedBudgets=overviewBudgets.filter(b=>budgetIsApproved(b));
+  const sentBudgets=overviewBudgets.filter(b=>Boolean(b.sent_on));
+  const approvedBudgetValue=approvedBudgets.reduce((sum,b)=>sum+Number(b.amount||0),0);
+  const sentBudgetValue=sentBudgets.reduce((sum,b)=>sum+Number(b.amount||0),0);
+
 
   $("ovUnits").textContent=scope?1:scopedUnitIds.length;
   $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede disponível";
@@ -3470,6 +3499,11 @@ async function loadOverview(){
 
   $("ovWaterAnalyses").textContent=canWater?waterReports.length:"—";
   $("ovWaterOut").textContent=canWater?`${waterOut.length} resultado(s) fora da faixa`:"Sem acesso ao módulo";
+
+  $("ovBudgetApprovedCount").textContent=canBudgets?approvedBudgets.length:"—";
+  $("ovBudgetApprovedValue").textContent=canBudgets?moneyBr(approvedBudgetValue):"—";
+  $("ovBudgetSentCount").textContent=canBudgets?sentBudgets.length:"—";
+  $("ovBudgetSentValue").textContent=canBudgets?moneyBr(sentBudgetValue):"—";
 
 
   renderOverviewRdiChart(canRdi?rdis:[]);
