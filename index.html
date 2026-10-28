@@ -533,6 +533,44 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+/* ORÇAMENTOS */
+.budget-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 14px}
+.budget-kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
+.budget-kpi span{display:block;color:var(--muted);font-size:13px;font-weight:700}
+.budget-kpi strong{display:block;font-size:24px;line-height:1.15;color:var(--primary2);margin-top:5px}
+.budget-kpi small{display:block;color:var(--muted);margin-top:5px}
+.budget-filters{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:9px;margin-bottom:14px}
+.budget-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.budget-chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;min-width:0}
+.budget-chart-card h3{margin:0 0 4px;font-size:16px}
+.budget-chart-wrap{height:300px;position:relative;margin-top:8px}
+.budget-table-wrap{overflow:auto;background:#fff;border:1px solid var(--border);border-radius:14px}
+.budget-table{width:100%;border-collapse:collapse;min-width:1500px;font-size:13px}
+.budget-table th,.budget-table td{padding:9px 10px;border-bottom:1px solid #e4ebf0;text-align:left;vertical-align:top}
+.budget-table th{position:sticky;top:0;background:#eef5fa;color:var(--primary);font-size:12px;z-index:1}
+.budget-table td.scope{min-width:320px;max-width:430px;white-space:normal}
+.budget-table td.amount{white-space:nowrap;font-weight:800}
+.budget-status-approved{background:#e8f7ef;color:#17683f}
+.budget-status-pending{background:#fff4d5;color:#7d6400}
+.budget-mobile-list{display:none}
+.budget-mobile-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:13px}
+.budget-mobile-card h3{margin:0}
+.budget-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.budget-meta div{background:#f8fafc;border-radius:8px;padding:8px}
+.budget-meta span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
+@media(max-width:900px){
+ .budget-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .budget-filters{grid-template-columns:1fr 1fr}
+ .budget-charts{grid-template-columns:1fr}
+ .budget-chart-wrap{height:260px}
+}
+@media(max-width:700px){
+ .budget-filters{grid-template-columns:1fr}
+ .budget-table-wrap{display:none}
+ .budget-mobile-list{display:grid;gap:10px}
+ .budget-kpi strong{font-size:21px}
+}
+
 </style>
 </head>
 
@@ -604,6 +642,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="moduleUnits" class="module">Unidades</button>
 <button id="moduleAccess" class="module">Usuários e Acessos</button>
 <button id="moduleRdi" class="module">RDI</button>
+<button id="moduleBudgets" class="module">Orçamentos</button>
 <button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
 <button class="module" disabled>Relatórios</button>
@@ -838,6 +877,69 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 
+
+
+<!-- ORÇAMENTOS -->
+<div id="budgetModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Orçamentos</h2>
+<div class="muted">Gestão financeira de orçamentos • Aprovado = possui número de Pedido de Compra.</div>
+</div>
+<button id="newBudgetButton" class="primary">+ Novo orçamento</button>
+</div>
+
+<div class="budget-kpis">
+<div class="budget-kpi"><span>Total de orçamentos</span><strong id="budgetKpiTotal">0</strong><small id="budgetKpiTotalNote">No filtro atual</small></div>
+<div class="budget-kpi"><span>Valor total orçado</span><strong id="budgetKpiTotalAmount">R$ 0</strong><small>Soma dos orçamentos filtrados</small></div>
+<div class="budget-kpi"><span>Valor total aprovado</span><strong id="budgetKpiApprovedAmount">R$ 0</strong><small id="budgetKpiApprovedNote">0 aprovados</small></div>
+<div class="budget-kpi"><span>Orçamentos executados</span><strong id="budgetKpiExecuted">0</strong><small id="budgetKpiExecutedNote">0% do filtro</small></div>
+</div>
+
+<div class="budget-filters">
+<input id="budgetSearch" placeholder="Buscar orçamento, cliente, escopo, C.Custo ou pedido...">
+<select id="budgetUnitFilter"><option value="">Todas as unidades</option></select>
+<select id="budgetApprovalFilter">
+<option value="">Aprovados e não aprovados</option>
+<option value="approved">Aprovados</option>
+<option value="pending">Não aprovados</option>
+</select>
+<select id="budgetExecutedFilter">
+<option value="">Executados e não executados</option>
+<option value="yes">Executados</option>
+<option value="no">Não executados</option>
+</select>
+<input id="budgetMonthFilter" type="month" title="Filtrar pelo mês de emissão">
+</div>
+
+<div class="budget-charts">
+<div class="budget-chart-card">
+<h3>Aprovados x não aprovados por unidade</h3>
+<div class="muted">A aprovação considera a existência de um número de Pedido de Compra.</div>
+<div class="budget-chart-wrap"><canvas id="budgetApprovalChart"></canvas></div>
+</div>
+<div class="budget-chart-card">
+<h3>Valor orçado por unidade</h3>
+<div class="muted">O nome da unidade mostra também a quantidade de orçamentos no filtro.</div>
+<div class="budget-chart-wrap"><canvas id="budgetValueChart"></canvas></div>
+</div>
+</div>
+
+<h3>Lista de orçamentos</h3>
+<div class="budget-table-wrap">
+<table class="budget-table">
+<thead><tr>
+<th>Orçamento</th><th>Nome cliente (razão)</th><th>Unidade (Fantasia)</th><th>Emissão</th>
+<th>Orç. enviado?</th><th>Aprovado Em?</th><th>Já Executado?</th><th>C.custo</th>
+<th>Escopo</th><th>Valor</th><th>MO Extra COI</th><th>Pedido de Compra</th><th>Situação</th><th>Ação</th>
+</tr></thead>
+<tbody id="budgetTableBody"></tbody>
+</table>
+</div>
+<div id="budgetMobileList" class="budget-mobile-list"></div>
+
+</div>
 
 <!-- QUALIDADE DA ÁGUA -->
 <div id="waterModuleView" class="hidden">
@@ -1076,6 +1178,15 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 
+<div class="permission-row" data-module="orcamentos">
+<div class="perm-label">Orçamentos</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+
 <div class="permission-row" data-module="qualidade_agua">
 <div class="perm-label">Qualidade da Água</div>
 <input class="perm-view" type="checkbox">
@@ -1107,6 +1218,73 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="dialog-actions">
 <button id="cancelAccessUser" type="button" class="ghost">Cancelar</button>
 <button id="saveAccessUser" type="submit" class="primary">Enviar convite</button>
+</div>
+</form>
+</div>
+</dialog>
+
+
+
+<!-- MODAL ORÇAMENTO -->
+<dialog id="budgetDialog">
+<div class="dialog-body">
+<h2 id="budgetDialogTitle">Novo orçamento</h2>
+<form id="budgetForm">
+<input id="budgetIdField" type="hidden">
+<div class="form-grid">
+<div>
+<label>Orçamento *</label>
+<input id="budgetQuoteNumber" required maxlength="40">
+</div>
+<div>
+<label>Nome cliente (razão)</label>
+<input id="budgetClientName" maxlength="180">
+</div>
+<div>
+<label>Unidade (Fantasia) *</label>
+<select id="budgetUnitField" required></select>
+</div>
+<div>
+<label>Emissão</label>
+<input id="budgetIssuedOn" type="date">
+</div>
+<div>
+<label>Orçamento enviado?</label>
+<input id="budgetSentOn" type="date">
+</div>
+<div>
+<label>Aprovado Em?</label>
+<input id="budgetApprovedOn" type="date">
+</div>
+<div>
+<label>Já Executado?</label>
+<select id="budgetExecuted"><option value="false">Não</option><option value="true">Sim</option></select>
+</div>
+<div>
+<label>C.custo</label>
+<input id="budgetCostCenter" maxlength="80">
+</div>
+<div class="full">
+<label>Escopo</label>
+<textarea id="budgetScope"></textarea>
+</div>
+<div>
+<label>Valor *</label>
+<input id="budgetAmount" type="number" min="0" step="0.01" required>
+</div>
+<div>
+<label>MO Extra COI</label>
+<select id="budgetExtraLabor"><option value="false">Não</option><option value="true">Sim</option></select>
+</div>
+<div class="full">
+<label>Pedido de Compra</label>
+<input id="budgetPurchaseOrder" maxlength="100" placeholder="Ex.: 4504927226 ou C000708176">
+<div class="muted" style="margin-top:5px">O orçamento será considerado aprovado somente quando este campo contiver um número de pedido.</div>
+</div>
+</div>
+<div class="dialog-actions">
+<button id="cancelBudgetDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveBudgetButton" type="submit" class="primary">Salvar orçamento</button>
 </div>
 </form>
 </div>
@@ -1773,6 +1951,11 @@ let editingAccessUser=null;
 let records=[];
 let editingRecord=null;
 
+let budgets=[];
+let editingBudget=null;
+let budgetApprovalChartInstance=null;
+let budgetValueChartInstance=null;
+
 
 let documents=[];
 let editingDocument=null;
@@ -2072,7 +2255,7 @@ async function enterApp(){
 
 
 
-const ACCESS_MODULES=["rdi","qualidade_agua","documentos","comunicacao"];
+const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","documentos","comunicacao"];
 
 
 async function loadAccessGrantsForCurrentUser(){
@@ -2134,6 +2317,7 @@ function configureVisibleModules(){
 
 
  $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
+ $("moduleBudgets").classList.toggle("hidden",!hasAccess("orcamentos","view"));
  $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
@@ -2153,6 +2337,7 @@ function configureActionButtons(){
 
 
  $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
+ if($("newBudgetButton"))$("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
  $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
  $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
  $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
@@ -2580,6 +2765,7 @@ function switchModule(name){
  const isUnits=name==="units";
  const isAccess=name==="access";
  const isRdi=name==="rdi";
+ const isBudget=name==="budgets";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
  const isOrg=name==="org";
@@ -2590,6 +2776,7 @@ function switchModule(name){
  $("unitsModuleView").classList.toggle("hidden",!isUnits);
  $("accessModuleView").classList.toggle("hidden",!isAccess);
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
+ $("budgetModuleView").classList.toggle("hidden",!isBudget);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
@@ -2600,13 +2787,14 @@ function switchModule(name){
  $("moduleUnits").classList.toggle("active",isUnits);
  $("moduleAccess").classList.toggle("active",isAccess);
  $("moduleRdi").classList.toggle("active",isRdi);
+ $("moduleBudgets").classList.toggle("active",isBudget);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
 
- const needsUnit=!isOverview&&!isUnits&&!isAccess;
+ const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
 
 
@@ -2627,6 +2815,10 @@ function switchModule(name){
   return;
  }
 
+ if(isBudget){
+  loadBudgets();
+  return;
+ }
 
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
@@ -2652,6 +2844,7 @@ $("moduleOverview").onclick=()=>switchModule("overview");
 $("moduleUnits").onclick=()=>switchModule("units");
 $("moduleAccess").onclick=()=>switchModule("access");
 $("moduleRdi").onclick=()=>switchModule("rdi");
+$("moduleBudgets").onclick=()=>switchModule("budgets");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
@@ -2731,7 +2924,7 @@ async function loadAccessUsers(){
    ${p.role!=="admin"?`
    <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
    <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
-     rdi:"RDI",qualidade_agua:"Qualidade da Água",documentos:"Documentos",comunicacao:"Matriz / Organograma"
+     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",documentos:"Documentos",comunicacao:"Matriz / Organograma"
    }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
   `;
 
@@ -6075,6 +6268,323 @@ async function renderOrganogram(data){
   box.appendChild(section);
  }
 }
+
+
+
+/* ============================
+   ORÇAMENTOS
+============================ */
+
+function budgetIsApproved(row){
+ const s=String(row?.purchase_order||"").trim();
+ const digits=(s.match(/\d/g)||[]).length;
+ return digits>=6;
+}
+
+function budgetUnitName(row){
+ return row?.source_unit_name ||
+  allUnits.find(u=>u.id===row?.unit_id)?.name ||
+  "Unidade não informada";
+}
+
+function fillBudgetUnitControls(){
+ const filter=$("budgetUnitFilter");
+ const field=$("budgetUnitField");
+ if(!filter||!field)return;
+
+ const selectedFilter=filter.value;
+ filter.innerHTML='<option value="">Todas as unidades</option>';
+
+ allUnits.forEach(u=>{
+  if(profile?.role==="admin"||hasAccess("orcamentos","view",u.id)){
+   const o=document.createElement("option");
+   o.value=u.id;o.textContent=u.name;
+   o.selected=u.id===selectedFilter;
+   filter.appendChild(o);
+  }
+ });
+
+ field.replaceChildren();
+ allUnits.forEach(u=>{
+  if(profile?.role==="admin"||hasAccess("orcamentos","insert",u.id)||hasAccess("orcamentos","edit",u.id)){
+   const o=document.createElement("option");
+   o.value=u.id;o.textContent=u.name;
+   field.appendChild(o);
+  }
+ });
+}
+
+async function loadBudgets(){
+ fillBudgetUnitControls();
+ $("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
+
+ const {data,error}=await db
+  .from("budgets")
+  .select("*")
+  .eq("archived",false)
+  .order("issued_on",{ascending:false})
+  .order("quote_number",{ascending:false});
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível carregar os orçamentos.","err");
+  budgets=[];
+  renderBudgets();
+  return;
+ }
+
+ budgets=data||[];
+ renderBudgets();
+}
+
+function filteredBudgets(){
+ const term=$("budgetSearch").value.trim().toLowerCase();
+ const unit=$("budgetUnitFilter").value;
+ const approval=$("budgetApprovalFilter").value;
+ const executed=$("budgetExecutedFilter").value;
+ const month=$("budgetMonthFilter").value;
+
+ return budgets.filter(r=>{
+  if(unit&&r.unit_id!==unit)return false;
+  const approved=budgetIsApproved(r);
+  if(approval==="approved"&&!approved)return false;
+  if(approval==="pending"&&approved)return false;
+  if(executed==="yes"&&!r.executed)return false;
+  if(executed==="no"&&r.executed)return false;
+  if(month&&String(r.issued_on||"").slice(0,7)!==month)return false;
+
+  if(term){
+   const hay=[
+    r.quote_number,r.client_name,budgetUnitName(r),r.cost_center,
+    r.scope,r.purchase_order
+   ].join(" ").toLowerCase();
+   if(!hay.includes(term))return false;
+  }
+  return true;
+ });
+}
+
+function renderBudgetCharts(data){
+ if(budgetApprovalChartInstance)budgetApprovalChartInstance.destroy();
+ if(budgetValueChartInstance)budgetValueChartInstance.destroy();
+
+ const byUnit=new Map();
+ data.forEach(r=>{
+  const name=budgetUnitName(r);
+  if(!byUnit.has(name))byUnit.set(name,{approved:0,pending:0,count:0,value:0});
+  const x=byUnit.get(name);
+  if(budgetIsApproved(r))x.approved++;else x.pending++;
+  x.count++;
+  x.value+=Number(r.amount||0);
+ });
+
+ const entries=[...byUnit.entries()].sort((a,b)=>b[1].value-a[1].value);
+ const labels=entries.map(x=>x[0]);
+
+ budgetApprovalChartInstance=new Chart($("budgetApprovalChart"),{
+  type:"bar",
+  data:{
+   labels,
+   datasets:[
+    {label:"Aprovados",data:entries.map(x=>x[1].approved),stack:"status"},
+    {label:"Não aprovados",data:entries.map(x=>x[1].pending),stack:"status"}
+   ]
+  },
+  options:{
+   responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{position:"bottom"}},
+   scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}
+  }
+ });
+
+ const valueLabels=entries.map(x=>`${x[0]} (${x[1].count})`);
+ budgetValueChartInstance=new Chart($("budgetValueChart"),{
+  type:"bar",
+  data:{labels:valueLabels,datasets:[{label:"Valor orçado",data:entries.map(x=>x[1].value)}]},
+  options:{
+   indexAxis:labels.length>5?"y":"x",
+   responsive:true,maintainAspectRatio:false,
+   plugins:{
+    legend:{display:false},
+    tooltip:{callbacks:{label:ctx=>moneyBr(ctx.raw)}}
+   },
+   scales:{
+    y:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString("pt-BR",{notation:"compact",maximumFractionDigits:1})}}
+   }
+  }
+ });
+}
+
+function renderBudgets(){
+ const data=filteredBudgets();
+ const approved=data.filter(budgetIsApproved);
+ const executed=data.filter(r=>r.executed);
+ const totalAmount=data.reduce((s,r)=>s+Number(r.amount||0),0);
+ const approvedAmount=approved.reduce((s,r)=>s+Number(r.amount||0),0);
+
+ $("budgetKpiTotal").textContent=data.length;
+ $("budgetKpiTotalAmount").textContent=moneyBr(totalAmount);
+ $("budgetKpiApprovedAmount").textContent=moneyBr(approvedAmount);
+ $("budgetKpiApprovedNote").textContent=`${approved.length} orçamento(s) aprovado(s)`;
+ $("budgetKpiExecuted").textContent=executed.length;
+ $("budgetKpiExecutedNote").textContent=`${data.length?Math.round(executed.length/data.length*100):0}% do filtro`;
+ $("budgetKpiTotalNote").textContent=data.length===budgets.length?"Todos os registros visíveis":`${data.length} de ${budgets.length} registros`;
+
+ renderBudgetCharts(data);
+
+ const tbody=$("budgetTableBody");
+ const mobile=$("budgetMobileList");
+ tbody.replaceChildren();
+ mobile.replaceChildren();
+
+ if(!data.length){
+  tbody.innerHTML='<tr><td colspan="14"><div class="empty">Nenhum orçamento encontrado.</div></td></tr>';
+  mobile.innerHTML='<div class="empty">Nenhum orçamento encontrado.</div>';
+  return;
+ }
+
+ data.forEach(r=>{
+  const approvedFlag=budgetIsApproved(r);
+  const canEdit=hasAccess("orcamentos","edit",r.unit_id);
+
+  const tr=document.createElement("tr");
+  tr.innerHTML=`
+   <td><strong>${escapeHtml(r.quote_number||"")}</strong></td>
+   <td>${escapeHtml(r.client_name||"—")}</td>
+   <td>${escapeHtml(budgetUnitName(r))}</td>
+   <td>${formatDate(r.issued_on)}</td>
+   <td>${formatDate(r.sent_on)}</td>
+   <td>${formatDate(r.approved_on)}</td>
+   <td>${r.executed?"Sim":"Não"}</td>
+   <td>${escapeHtml(r.cost_center||"—")}</td>
+   <td class="scope">${escapeHtml(r.scope||"—")}</td>
+   <td class="amount">${moneyBr(r.amount||0)}</td>
+   <td>${r.extra_labor_coi?"Sim":"Não"}</td>
+   <td>${escapeHtml(r.purchase_order||"—")}</td>
+   <td><span class="badge ${approvedFlag?"budget-status-approved":"budget-status-pending"}">${approvedFlag?"Aprovado":"Não aprovado"}</span></td>
+   <td>${canEdit?'<button class="secondary budgetEditBtn" style="width:auto">Editar</button>':"—"}</td>
+  `;
+  const edit=tr.querySelector(".budgetEditBtn");
+  if(edit)edit.onclick=()=>openBudgetDialog(r);
+  tbody.appendChild(tr);
+
+  const card=document.createElement("article");
+  card.className="budget-mobile-card";
+  card.innerHTML=`
+   <div class="record-top">
+    <h3>Orçamento ${escapeHtml(r.quote_number||"")}</h3>
+    <span class="badge ${approvedFlag?"budget-status-approved":"budget-status-pending"}">${approvedFlag?"Aprovado":"Não aprovado"}</span>
+   </div>
+   <div class="muted">${escapeHtml(r.client_name||"")}</div>
+   <div class="budget-meta">
+    <div><span>Unidade</span><strong>${escapeHtml(budgetUnitName(r))}</strong></div>
+    <div><span>Valor</span><strong>${moneyBr(r.amount||0)}</strong></div>
+    <div><span>Emissão</span><strong>${formatDate(r.issued_on)}</strong></div>
+    <div><span>Executado</span><strong>${r.executed?"Sim":"Não"}</strong></div>
+    <div><span>C.Custo</span><strong>${escapeHtml(r.cost_center||"—")}</strong></div>
+    <div><span>Pedido</span><strong>${escapeHtml(r.purchase_order||"—")}</strong></div>
+   </div>
+   <p><strong>Escopo:</strong> ${escapeHtml(r.scope||"—")}</p>
+   ${canEdit?'<div class="actions"><button class="secondary budgetEditBtnMobile">Editar</button></div>':""}
+  `;
+  const editMobile=card.querySelector(".budgetEditBtnMobile");
+  if(editMobile)editMobile.onclick=()=>openBudgetDialog(r);
+  mobile.appendChild(card);
+ });
+}
+
+["budgetSearch","budgetUnitFilter","budgetApprovalFilter","budgetExecutedFilter","budgetMonthFilter"].forEach(id=>{
+ $(id).addEventListener(id==="budgetSearch"?"input":"change",renderBudgets);
+});
+
+$("newBudgetButton").onclick=()=>openBudgetDialog(null);
+$("cancelBudgetDialog").onclick=()=>$("budgetDialog").close();
+
+function openBudgetDialog(row){
+ editingBudget=row||null;
+ fillBudgetUnitControls();
+ $("budgetForm").reset();
+ $("budgetIdField").value=row?.id||"";
+ $("budgetDialogTitle").textContent=row?"Editar orçamento":"Novo orçamento";
+ $("saveBudgetButton").textContent=row?"Salvar alterações":"Salvar orçamento";
+
+ $("budgetQuoteNumber").value=row?.quote_number||"";
+ $("budgetClientName").value=row?.client_name||"";
+ $("budgetUnitField").value=row?.unit_id||$("budgetUnitField").value;
+ $("budgetIssuedOn").value=row?.issued_on||"";
+ $("budgetSentOn").value=row?.sent_on||"";
+ $("budgetApprovedOn").value=row?.approved_on||"";
+ $("budgetExecuted").value=String(!!row?.executed);
+ $("budgetCostCenter").value=row?.cost_center||"";
+ $("budgetScope").value=row?.scope||"";
+ $("budgetAmount").value=row?.amount??"";
+ $("budgetExtraLabor").value=String(!!row?.extra_labor_coi);
+ $("budgetPurchaseOrder").value=row?.purchase_order||"";
+
+ $("budgetDialog").showModal();
+}
+
+$("budgetForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const quoteNumber=$("budgetQuoteNumber").value.trim();
+ const selectedUnit=$("budgetUnitField").value;
+ if(!quoteNumber||!selectedUnit)return;
+
+ const action=editingBudget?"edit":"insert";
+ if(!hasAccess("orcamentos",action,selectedUnit)){
+  message($("appMessage"),"Seu perfil não possui permissão para esta operação.","err");
+  return;
+ }
+
+ const payload={
+  quote_number:quoteNumber,
+  client_name:$("budgetClientName").value.trim()||null,
+  unit_id:selectedUnit,
+  source_unit_name:allUnits.find(u=>u.id===selectedUnit)?.name||null,
+  issued_on:$("budgetIssuedOn").value||null,
+  sent_on:$("budgetSentOn").value||null,
+  approved_on:$("budgetApprovedOn").value||null,
+  executed:$("budgetExecuted").value==="true",
+  cost_center:$("budgetCostCenter").value.trim()||null,
+  scope:$("budgetScope").value.trim()||null,
+  amount:Number($("budgetAmount").value||0),
+  extra_labor_coi:$("budgetExtraLabor").value==="true",
+  purchase_order:$("budgetPurchaseOrder").value.trim()||null,
+  updated_by:session.user.id,
+  updated_at:new Date().toISOString()
+ };
+
+ const btn=$("saveBudgetButton");
+ btn.disabled=true;
+ btn.textContent="Salvando...";
+
+ let error;
+ if(editingBudget){
+  ({error}=await db.from("budgets").update(payload).eq("id",editingBudget.id));
+ }else{
+  ({error}=await db.from("budgets").insert({
+   ...payload,
+   source_key:quoteNumber,
+   source:"aplicativo",
+   created_by:session.user.id
+  }));
+ }
+
+ btn.disabled=false;
+ btn.textContent=editingBudget?"Salvar alterações":"Salvar orçamento";
+
+ if(error){
+  console.error(error);
+  const duplicate=String(error.message||"").toLowerCase().includes("duplicate");
+  message($("appMessage"),duplicate?"Já existe um orçamento com este número.":"Não foi possível salvar o orçamento.","err");
+  return;
+ }
+
+ $("budgetDialog").close();
+ message($("appMessage"),editingBudget?"Orçamento atualizado.":"Orçamento cadastrado.","ok");
+ await loadBudgets();
+});
 
 
 /* INÍCIO */
