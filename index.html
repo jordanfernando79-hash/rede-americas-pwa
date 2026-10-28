@@ -665,7 +665,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div>
 <label>Unidade deste módulo</label>
 <select id="moduleUnitSelect">
-<option value="">Selecione uma unidade</option>
+<option value="">Toda a Rede / selecione uma unidade</option>
 </select>
 </div>
 </div>
@@ -890,7 +890,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 <div id="rdiList" class="record-list">
-<div class="empty">Selecione uma unidade.</div>
+<div class="empty">Carregando RDI...</div>
 </div>
 
 
@@ -2328,6 +2328,15 @@ function accessibleUnitIds(){
  return [...new Set(accessGrants.filter(g=>g.can_view&&g.unit_id).map(g=>g.unit_id))];
 }
 
+function accessibleUnitIdsForModule(module){
+ if(profile?.role==="admin")return allUnits.map(u=>u.id);
+ return [...new Set(
+  accessGrants
+   .filter(g=>g.module===module&&g.can_view&&g.unit_id)
+   .map(g=>g.unit_id)
+ )];
+}
+
 
 function configureVisibleModules(){
  const admin=profile?.role==="admin";
@@ -2392,7 +2401,7 @@ async function loadUnits(){
  const selected=unitId;
 
 
- $("moduleUnitSelect").innerHTML='<option value="">Selecione uma unidade</option>';
+ $("moduleUnitSelect").innerHTML='<option value="">Toda a Rede / selecione uma unidade</option>';
  allUnits.forEach(u=>{
   const option=document.createElement("option");
   option.value=u.id;
@@ -2432,7 +2441,7 @@ async function applyModuleUnitSelection(){
  const unitName=unitId?option.textContent:"Selecione uma unidade.";
 
 
- $("rdiSubtitle").textContent=unitName;
+ $("rdiSubtitle").textContent=unitId?unitName:"Toda a Rede";
  $("documentSubtitle").textContent=unitName;
  $("communicationSubtitle").textContent=unitName;
  $("orgSubtitle").textContent=unitName;
@@ -2447,9 +2456,13 @@ async function applyModuleUnitSelection(){
 
 
  if(!unitId){
+  if(currentModule==="rdi"){
+   $("rdiSubtitle").textContent="Toda a Rede";
+   await loadRdi();
+   return;
+  }
+
   records=[];
-  if($("rdiExecutive"))renderRdiExecutive([]);
-  $("rdiList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
@@ -2841,15 +2854,21 @@ function switchModule(name){
   return;
  }
 
+ if(isRdi){
+  $("rdiSubtitle").textContent=unitId
+   ?($("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex]?.textContent||"Unidade")
+   :"Toda a Rede";
+  loadRdi();
+  return;
+ }
+
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
  }
 
 
- if(isRdi){
-  loadRdi();
- }else if(isDocuments){
+ if(isDocuments){
   loadDocuments();
  }else if(isCommunication){
   loadEmployees();
@@ -4538,8 +4557,9 @@ function renderRdiExecutive(data){
 
 
  $("rdiKpiTotal").textContent=rows.length;
+ const rdiScopeLabel=unitId?"da unidade":"do escopo disponível";
  $("rdiKpiTotalNote").textContent=rows.length===records.length
-  ?"Todas as demandas da unidade"
+  ?`Todas as demandas ${rdiScopeLabel}`
   :`${rows.length} de ${records.length} demandas após filtros`;
  $("rdiKpiCritical").textContent=critical.length;
  $("rdiKpiCriticalNote").textContent=`${criticalPct}% das demandas`;
@@ -4633,14 +4653,31 @@ function renderRdiExecutive(data){
 async function loadRdi(){
  $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
 
+ const scopeUnitIds=unitId
+  ?[unitId]
+  :accessibleUnitIdsForModule("rdi");
 
- const {data,error}=await db
+ if(!scopeUnitIds.length){
+  records=[];
+  renderRecords();
+  $("rdiList").innerHTML='<div class="empty">Nenhuma unidade com acesso ao RDI.</div>';
+  return;
+ }
+
+ let query=db
   .from("rdi_demands")
   .select("*")
-  .eq("unit_id",unitId)
   .eq("archived",false)
   .order("gut_score",{ascending:false})
   .order("recorded_on",{ascending:true});
+
+ if(unitId){
+  query=query.eq("unit_id",unitId);
+ }else{
+  query=query.in("unit_id",scopeUnitIds);
+ }
+
+ const {data,error}=await query;
 
 
  if(error){
