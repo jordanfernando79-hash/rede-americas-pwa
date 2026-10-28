@@ -269,28 +269,9 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .exec-card span{display:block;color:var(--muted);font-size:13px;font-weight:700}
 .exec-card strong{display:block;font-size:26px;color:var(--primary2);margin-top:5px;line-height:1.12}
 .exec-card small{display:block;color:var(--muted);margin-top:5px;line-height:1.25}
-.exec-card-budget{grid-column:span 2;min-height:150px}
-.exec-budget-lines{
- display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:11px
-}
-.exec-budget-line{
- display:grid;grid-template-columns:minmax(85px,.75fr) minmax(125px,1.25fr);
- gap:12px;align-items:end;padding:11px 12px;
- border:1px solid var(--border);border-radius:10px;background:#f8fafc
-}
-.exec-budget-line>div{min-width:0}
-.exec-budget-line strong{font-size:20px;margin-top:3px;line-height:1.1}
-.exec-budget-line .exec-budget-value{text-align:right}
-.exec-budget-line .exec-budget-value strong{font-size:18px;white-space:nowrap}
+.exec-card .exec-card-value{font-size:20px;white-space:nowrap}
 @media(max-width:760px){
  .exec-grid{grid-template-columns:1fr}
- .exec-card-budget{grid-column:auto}
- .exec-budget-lines{grid-template-columns:1fr}
- .exec-budget-line{grid-template-columns:1fr 1fr}
-}
-@media(min-width:761px) and (max-width:1050px){
- .exec-card-budget{grid-column:span 2}
- .exec-budget-lines{grid-template-columns:1fr}
 }
 .exec-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .exec-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px}
@@ -723,18 +704,19 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="exec-card"><span>Custo realizado RDI</span><strong id="ovCostActual" style="font-size:21px">R$ 0</strong><small>Valor realizado</small></div>
 <div class="exec-card"><span>Documentos</span><strong id="ovDocuments">0</strong><small id="ovDocsAlert">0 vencidos / próximos</small></div>
 <div class="exec-card"><span>Qualidade da Água</span><strong id="ovWaterAnalyses">0</strong><small id="ovWaterOut">0 resultados fora da faixa</small></div>
-<div class="exec-card exec-card-budget">
-<span>Orçamentos</span>
-<div class="exec-budget-lines">
- <div class="exec-budget-line">
-  <div><small>Aprovados</small><strong id="ovBudgetApprovedCount">0</strong></div>
-  <div class="exec-budget-value"><small>Valor aprovado</small><strong id="ovBudgetApprovedValue">R$ 0</strong></div>
- </div>
- <div class="exec-budget-line">
-  <div><small>Enviados</small><strong id="ovBudgetSentCount">0</strong></div>
-  <div class="exec-budget-value"><small>Valor enviado</small><strong id="ovBudgetSentValue">R$ 0</strong></div>
- </div>
+<div class="exec-card">
+<span>Orçamentos aprovados</span>
+<strong id="ovBudgetApprovedCount">0</strong>
+<small>Quantidade aprovada</small>
+<strong id="ovBudgetApprovedValue" class="exec-card-value">R$ 0</strong>
+<small>Valor aprovado</small>
 </div>
+<div class="exec-card">
+<span>Orçamentos enviados</span>
+<strong id="ovBudgetSentCount">0</strong>
+<small>Quantidade enviada</small>
+<strong id="ovBudgetSentValue" class="exec-card-value">R$ 0</strong>
+<small>Valor enviado</small>
 </div>
 </div>
 
