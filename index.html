@@ -6081,12 +6081,19 @@ $("employeeForm").addEventListener("submit",async e=>{
  }catch(err){
   console.error(err);
 
+  const errText=String(err?.message||"").toLowerCase();
+  const duplicatePerson=
+   err?.code==="23505" ||
+   errText.includes("employees_unique_name_employee_number") ||
+   errText.includes("duplicate key");
 
   message(
    $("appMessage"),
    err?.message==="Selecione pelo menos uma unidade."
     ?err.message
-    :"Não foi possível salvar o profissional.",
+    :duplicatePerson
+     ?"Já existe um profissional com este mesmo nome e matrícula. Edite o cadastro existente em vez de criar outro."
+     :"Não foi possível salvar o profissional.",
    "err"
   );
  }finally{
@@ -6097,42 +6104,48 @@ $("employeeForm").addEventListener("submit",async e=>{
 
 
 async function deleteEmployee(e){
+ const {count:subordinateCount,error:subordinateError}=await db
+  .from("employees")
+  .select("id",{count:"exact",head:true})
+  .eq("supervisor_id",e.id);
+
+ if(subordinateError){
+  console.error(subordinateError);
+  message($("appMessage"),"Não foi possível validar os vínculos hierárquicos deste profissional.","err");
+  return;
+ }
+
+ if((subordinateCount||0)>0){
+  message(
+   $("appMessage"),
+   `${e.full_name} não pode ser excluído porque ainda é superior de ${subordinateCount} profissional(is). Altere primeiro o superior desses profissionais.`,
+   "info"
+  );
+  return;
+ }
+
  if(!confirm(`Excluir ${e.full_name} da Matriz de Comunicação?`)){
   return;
  }
 
-
- const {error:linksError}=await db
-  .from("employee_units")
-  .delete()
-  .eq("employee_id",e.id);
-
-
- if(linksError){
-  message($("appMessage"),"Falha ao remover vínculos do profissional.","err");
-  return;
- }
-
-
  const photoPath=e.photo_path||null;
 
-
+ // employee_units possui FK com ON DELETE CASCADE:
+ // os vínculos são removidos somente se a exclusão do profissional for concluída.
  const {error}=await db
   .from("employees")
   .delete()
   .eq("id",e.id);
 
-
  if(error){
-  message($("appMessage"),"Falha ao excluir profissional.","err");
+  console.error(error);
+  message($("appMessage"),"Falha ao excluir profissional. Os vínculos foram preservados.","err");
   return;
  }
-
 
  if(photoPath){
   await db.storage.from("employee-photos").remove([photoPath]);
  }
-
 
  message($("appMessage"),"Profissional excluído.","ok");
  await loadEmployees();
