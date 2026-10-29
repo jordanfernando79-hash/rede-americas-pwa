@@ -653,7 +653,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="moduleBudgets" class="module">Orçamentos</button>
 <button id="moduleWater" class="module">Qualidade da Água</button>
 <button class="module" disabled>Neovero</button>
-<button class="module" disabled>Relatórios</button>
+<button id="moduleReports" class="module">Relatórios</button>
 <button id="moduleDocuments" class="module">Documentos</button>
 <button class="module" disabled>Inventário</button>
 <button class="module" disabled>Treinamentos</button>
@@ -1031,6 +1031,24 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 
+<!-- RELATÓRIOS -->
+<div id="reportsModuleView" class="hidden">
+
+<div class="section-title">
+<div>
+<h2>Relatórios</h2>
+<div class="muted">Relatórios enviados para consulta no sistema.</div>
+</div>
+<button id="newReportButton" class="primary">+ Upload de relatório</button>
+</div>
+
+<div id="reportList" class="record-list">
+<div class="empty">Carregando relatórios...</div>
+</div>
+
+</div>
+
+
 <!-- DOCUMENTOS -->
 <div id="documentModuleView" class="hidden">
 
@@ -1211,6 +1229,15 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div class="permission-row" data-module="qualidade_agua">
 <div class="perm-label">Qualidade da Água</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+
+<div class="permission-row" data-module="relatorios">
+<div class="perm-label">Relatórios</div>
 <input class="perm-view" type="checkbox">
 <input class="perm-insert" type="checkbox">
 <input class="perm-edit" type="checkbox">
@@ -1728,6 +1755,40 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </dialog>
 
 
+<!-- MODAL RELATÓRIOS -->
+<dialog id="reportDialog">
+<div class="dialog-body">
+<h2>Upload de relatório</h2>
+
+<form id="reportForm">
+<div class="form-grid">
+
+<div class="full">
+<label>Nome do relatório *</label>
+<input id="reportName" required maxlength="180" placeholder="Ex.: Relatório mensal de manutenção">
+</div>
+
+<div>
+<label>Mês de referência *</label>
+<input id="reportReferenceMonth" type="month" required>
+</div>
+
+<div class="full">
+<label>Arquivo do relatório *</label>
+<input id="reportFile" type="file" required accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt">
+</div>
+
+</div>
+
+<div class="dialog-actions">
+<button id="cancelReportDialog" type="button" class="ghost">Cancelar</button>
+<button id="saveReportButton" type="submit" class="primary">Enviar relatório</button>
+</div>
+</form>
+</div>
+</dialog>
+
+
 <!-- MODAL DOCUMENTOS -->
 <dialog id="documentDialog">
 <div class="dialog-body">
@@ -1982,6 +2043,7 @@ let budgetApprovalChartInstance=null;
 let budgetValueChartInstance=null;
 
 
+let reports=[];
 let documents=[];
 let editingDocument=null;
 
@@ -2308,7 +2370,7 @@ async function enterApp(){
 
 
 
-const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","documentos","comunicacao"];
+const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","relatorios","documentos","comunicacao"];
 
 
 async function loadAccessGrantsForCurrentUser(){
@@ -2381,6 +2443,8 @@ function configureVisibleModules(){
  $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
  $("moduleBudgets").classList.toggle("hidden",!hasAccess("orcamentos","view"));
  $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
+ $("moduleReports").classList.toggle("hidden",!hasAccess("relatorios","view"));
+ $("newReportButton").classList.toggle("hidden",!hasAccess("relatorios","insert"));
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
 
@@ -2840,6 +2904,7 @@ function switchModule(name){
  const isAccess=name==="access";
  const isRdi=name==="rdi";
  const isBudget=name==="budgets";
+ const isReports=name==="reports";
  const isDocuments=name==="documents";
  const isCommunication=name==="communication";
  const isOrg=name==="org";
@@ -2851,6 +2916,7 @@ function switchModule(name){
  $("accessModuleView").classList.toggle("hidden",!isAccess);
  $("rdiModuleView").classList.toggle("hidden",!isRdi);
  $("budgetModuleView").classList.toggle("hidden",!isBudget);
+ $("reportsModuleView").classList.toggle("hidden",!isReports);
  $("documentModuleView").classList.toggle("hidden",!isDocuments);
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
@@ -2862,13 +2928,14 @@ function switchModule(name){
  $("moduleAccess").classList.toggle("active",isAccess);
  $("moduleRdi").classList.toggle("active",isRdi);
  $("moduleBudgets").classList.toggle("active",isBudget);
+ $("moduleReports").classList.toggle("active",isReports);
  $("moduleDocuments").classList.toggle("active",isDocuments);
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
 
 
- const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget;
+ const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
 
 
@@ -2891,6 +2958,11 @@ function switchModule(name){
 
  if(isBudget){
   loadBudgets();
+  return;
+ }
+
+ if(isReports){
+  loadReports();
   return;
  }
 
@@ -2931,6 +3003,7 @@ $("moduleUnits").onclick=()=>switchModule("units");
 $("moduleAccess").onclick=()=>switchModule("access");
 $("moduleRdi").onclick=()=>switchModule("rdi");
 $("moduleBudgets").onclick=()=>switchModule("budgets");
+$("moduleReports").onclick=()=>switchModule("reports");
 $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
@@ -3010,7 +3083,7 @@ async function loadAccessUsers(){
    ${p.role!=="admin"?`
    <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
    <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
-     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",documentos:"Documentos",comunicacao:"Matriz / Organograma"
+     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",relatorios:"Relatórios",documentos:"Documentos",comunicacao:"Matriz / Organograma"
    }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
   `;
 
@@ -5113,6 +5186,166 @@ async function deleteRecord(r){
  message($("appMessage"),"Demanda excluída.","ok");
  await loadRdi();
 }
+
+
+/* ============================
+   RELATÓRIOS
+============================ */
+
+function formatReferenceMonth(value){
+ if(!value)return "—";
+ const parts=String(value).slice(0,7).split("-");
+ if(parts.length!==2)return value;
+ return `${parts[1]}/${parts[0]}`;
+}
+
+function safeFileName(name){
+ return String(name||"relatorio")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .replace(/[^a-zA-Z0-9._-]+/g,"_")
+  .replace(/_+/g,"_");
+}
+
+async function loadReports(){
+ const list=$("reportList");
+ list.innerHTML='<div class="empty">Carregando relatórios...</div>';
+
+ const {data,error}=await db
+  .from("reports")
+  .select("id,report_name,reference_month,original_filename,storage_path,mime_type,created_at")
+  .order("reference_month",{ascending:false})
+  .order("created_at",{ascending:false});
+
+ if(error){
+  console.error(error);
+  list.innerHTML='<div class="empty">Não foi possível carregar os relatórios.</div>';
+  return;
+ }
+
+ reports=data||[];
+ renderReports();
+}
+
+function renderReports(){
+ const list=$("reportList");
+ list.replaceChildren();
+
+ if(!reports.length){
+  list.innerHTML='<div class="empty">Nenhum relatório enviado.</div>';
+  return;
+ }
+
+ reports.forEach(r=>{
+  const el=document.createElement("article");
+  el.className="record";
+
+  el.innerHTML=`
+   <div class="record-top">
+    <div>
+     <h3>${escapeHtml(r.report_name)}</h3>
+     <div class="muted">Mês de referência: ${escapeHtml(formatReferenceMonth(r.reference_month))}</div>
+    </div>
+   </div>
+   <div class="actions">
+    <button class="primary openReport">Abrir relatório</button>
+   </div>
+  `;
+
+  el.querySelector(".openReport").onclick=()=>openReport(r);
+  list.appendChild(el);
+ });
+}
+
+async function openReport(report){
+ const {data,error}=await db.storage
+  .from("reports-private")
+  .createSignedUrl(report.storage_path,600);
+
+ if(error||!data?.signedUrl){
+  console.error(error);
+  message($("appMessage"),"Não foi possível abrir o relatório.","err");
+  return;
+ }
+
+ window.open(data.signedUrl,"_blank","noopener");
+}
+
+$("newReportButton").onclick=()=>{
+ $("reportForm").reset();
+ $("reportDialog").showModal();
+};
+
+$("cancelReportDialog").onclick=()=>$("reportDialog").close();
+
+$("reportForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn=$("saveReportButton");
+ btn.disabled=true;
+ btn.textContent="Enviando...";
+
+ let uploadedPath=null;
+
+ try{
+  const reportName=$("reportName").value.trim();
+  const referenceMonth=$("reportReferenceMonth").value;
+  const file=$("reportFile").files[0];
+
+  if(!reportName||!referenceMonth||!file){
+   throw new Error("Preencha nome, mês de referência e arquivo.");
+  }
+
+  const cleanName=safeFileName(file.name);
+  const storagePath=`${referenceMonth}/${Date.now()}_${cleanName}`;
+
+  const {error:uploadError}=await db.storage
+   .from("reports-private")
+   .upload(storagePath,file,{
+    cacheControl:"3600",
+    upsert:false,
+    contentType:file.type||undefined
+   });
+
+  if(uploadError)throw uploadError;
+  uploadedPath=storagePath;
+
+  const {error:insertError}=await db
+   .from("reports")
+   .insert({
+    report_name:reportName,
+    reference_month:`${referenceMonth}-01`,
+    original_filename:file.name,
+    storage_path:storagePath,
+    mime_type:file.type||null,
+    uploaded_by:session.user.id
+   });
+
+  if(insertError)throw insertError;
+
+  $("reportDialog").close();
+  message($("appMessage"),"Relatório enviado com sucesso.","ok");
+  await loadReports();
+
+ }catch(err){
+  console.error(err);
+
+  if(uploadedPath){
+   await db.storage.from("reports-private").remove([uploadedPath]);
+  }
+
+  message(
+   $("appMessage"),
+   err?.message==="Preencha nome, mês de referência e arquivo."
+    ?err.message
+    :"Não foi possível enviar o relatório.",
+   "err"
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Enviar relatório";
+ }
+});
 
 
 /* ============================
