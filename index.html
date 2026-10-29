@@ -1932,7 +1932,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="full">
 <label>Unidade(s) *</label>
 <div id="employeeUnits" class="card unit-checks"></div>
-<p class="muted">O profissional pode pertencer a uma ou mais unidades.</p>
+<p class="muted">Vinculado define onde o profissional aparece na Matriz e no Organograma. “Conta no efetivo” define em quais unidades ele entra no total e nas funções do card.</p>
 </div>
 
 
@@ -2561,7 +2561,7 @@ async function loadUnitsAdmin(){
 
  const [{data:links,error:linksError},{data:staff,error:staffError}]=await Promise.all([
   db.from("employee_units")
-   .select("employee_id,unit_id")
+   .select("employee_id,unit_id,count_in_headcount")
    .in("unit_id",unitIds),
   db.from("employees")
    .select("id,full_name,job_title,org_role,status")
@@ -2595,9 +2595,6 @@ async function loadUnitsAdmin(){
   if(!summary)return;
 
 
-  summary.totalEmployees++;
-
-
   const role=(employee.org_role||"").trim();
   const job=(employee.job_title||role||"Sem função definida").trim();
 
@@ -2608,7 +2605,10 @@ async function loadUnitsAdmin(){
   }
 
 
-  summary.functions.set(job,(summary.functions.get(job)||0)+1);
+  if(link.count_in_headcount!==false){
+   summary.totalEmployees++;
+   summary.functions.set(job,(summary.functions.get(job)||0)+1);
+  }
  });
 
 
@@ -3461,7 +3461,7 @@ async function loadOverview(){
    budgetsRes
   ]=await Promise.all([
    safe("vínculos da equipe",canCommunication,
-    db.from("employee_units").select("employee_id,unit_id").in("unit_id",scopedUnitIds)),
+    db.from("employee_units").select("employee_id,unit_id,count_in_headcount").in("unit_id",scopedUnitIds)),
    safe("funcionários",canCommunication,
     db.from("employees").select("id,job_title,org_role,status")),
    safe("RDI",canRdi,
@@ -3481,7 +3481,11 @@ async function loadOverview(){
 
 
   const employeeLinks=employeeLinksRes.data||[];
-  const scopedEmployeeIds=new Set(employeeLinks.map(x=>x.employee_id));
+  const scopedEmployeeIds=new Set(
+   employeeLinks
+    .filter(x=>x.count_in_headcount!==false)
+    .map(x=>x.employee_id)
+  );
   const employees=(employeesRes.data||[]).filter(e=>scopedEmployeeIds.has(e.id)&&e.status==="ativo");
   const rdis=rdiRes.data||[];
   const docs=docsRes.data||[];
@@ -5555,7 +5559,7 @@ async function loadEmployees(){
 
  const {data:allLinks,error:allLinksError}=await db
   .from("employee_units")
-  .select("employee_id,unit_id")
+  .select("employee_id,unit_id,count_in_headcount")
   .in("employee_id",ids);
 
 
@@ -5566,12 +5570,20 @@ async function loadEmployees(){
  }
 
 
- employees=(data||[]).map(emp=>({
-  ...emp,
-  unit_ids:(allLinks||[])
+ employees=(data||[]).map(emp=>{
+  const unit_links=(allLinks||[])
    .filter(link=>link.employee_id===emp.id)
-   .map(link=>link.unit_id)
- }));
+   .map(link=>({
+    unit_id:link.unit_id,
+    count_in_headcount:link.count_in_headcount!==false
+   }));
+
+  return {
+   ...emp,
+   unit_links,
+   unit_ids:unit_links.map(link=>link.unit_id)
+  };
+ });
 
 
  renderEmployees();
@@ -5670,6 +5682,9 @@ function renderEmployees(){
    <p><strong>Centro de custo:</strong> ${escapeHtml(e.cost_center||"—")}</p>
    <p><strong>Organograma:</strong> ${escapeHtml(e.org_role||"—")} • <strong>Grupo:</strong> ${escapeHtml(e.org_group||"—")}</p>
    <p><strong>Unidade(s):</strong> ${escapeHtml(employeeUnitNames(e.unit_ids)||"—")}</p>
+   <p><strong>Conta no efetivo:</strong> ${escapeHtml(
+    employeeUnitNames((e.unit_links||[]).filter(link=>link.count_in_headcount).map(link=>link.unit_id))||"Nenhuma"
+   )}</p>
    <div class="actions">
     ${(unitId
       ?hasAccess("comunicacao","edit",unitId)
@@ -5706,28 +5721,79 @@ function renderEmployees(){
 }
 
 
-function renderEmployeeUnitChecks(selected=[]){
+function renderEmployeeUnitChecks(selectedLinks=[]){
  const box=$("employeeUnits");
  box.replaceChildren();
 
+ const linkMap=new Map(
+  (selectedLinks||[]).map(link=>[
+   typeof link==="string"?link:link.unit_id,
+   typeof link==="string"?true:link.count_in_headcount!==false
+  ])
+ );
+
 
  allUnits.forEach(u=>{
-  const label=document.createElement("label");
-  label.className="unit-check-row";
+  const row=document.createElement("div");
+  row.className="unit-check-row";
+  row.style.display="grid";
+  row.style.gridTemplateColumns="minmax(0,1fr) auto";
+  row.style.gap="12px";
+  row.style.alignItems="center";
+
+
+  const linkedLabel=document.createElement("label");
+  linkedLabel.style.display="flex";
+  linkedLabel.style.alignItems="center";
+  linkedLabel.style.gap="8px";
+  linkedLabel.style.margin="0";
 
 
   const checkbox=document.createElement("input");
   checkbox.type="checkbox";
   checkbox.value=u.id;
   checkbox.className="employeeUnitCheck";
-  checkbox.checked=selected.includes(u.id);
+  checkbox.checked=linkMap.has(u.id);
 
 
-  label.appendChild(checkbox);
-  label.appendChild(document.createTextNode(u.name));
+  linkedLabel.appendChild(checkbox);
+  linkedLabel.appendChild(document.createTextNode(u.name));
 
 
-  box.appendChild(label);
+  const headcountLabel=document.createElement("label");
+  headcountLabel.style.display="flex";
+  headcountLabel.style.alignItems="center";
+  headcountLabel.style.gap="6px";
+  headcountLabel.style.margin="0";
+  headcountLabel.style.fontSize="12px";
+  headcountLabel.style.whiteSpace="nowrap";
+
+
+  const headcount=document.createElement("input");
+  headcount.type="checkbox";
+  headcount.className="employeeHeadcountCheck";
+  headcount.dataset.unitId=u.id;
+  headcount.checked=checkbox.checked ? linkMap.get(u.id)!==false : false;
+  headcount.disabled=!checkbox.checked;
+
+
+  headcountLabel.appendChild(headcount);
+  headcountLabel.appendChild(document.createTextNode("Conta no efetivo"));
+
+
+  checkbox.addEventListener("change",()=>{
+   headcount.disabled=!checkbox.checked;
+   if(!checkbox.checked){
+    headcount.checked=false;
+   }else if(!linkMap.has(u.id)){
+    headcount.checked=true;
+   }
+  });
+
+
+  row.appendChild(linkedLabel);
+  row.appendChild(headcountLabel);
+  box.appendChild(row);
  });
 }
 
@@ -5821,7 +5887,7 @@ $("newEmployeeButton").onclick=async()=>{
  await loadSupervisorOptions(null,null);
 
 
- renderEmployeeUnitChecks(unitId?[unitId]:[]);
+ renderEmployeeUnitChecks(unitId?[{unit_id:unitId,count_in_headcount:true}]:[]);
 
 
  $("employeeDialogTitle").textContent="Novo profissional";
@@ -5852,7 +5918,7 @@ async function openEmployeeEdit(e){
  await showEmployeeCurrentPhoto(e.photo_path||null);
 
 
- renderEmployeeUnitChecks(e.unit_ids||[]);
+ renderEmployeeUnitChecks(e.unit_links||[]);
 
 
  $("employeeDialogTitle").textContent="Editar profissional";
@@ -5895,9 +5961,11 @@ $("employeeForm").addEventListener("submit",async e=>{
 
 
  try{
-  const selectedUnits=[
+  const selectedUnitChecks=[
    ...document.querySelectorAll(".employeeUnitCheck:checked")
-  ].map(x=>x.value);
+  ];
+
+  const selectedUnits=selectedUnitChecks.map(x=>x.value);
 
 
   if(!selectedUnits.length){
@@ -5983,10 +6051,18 @@ $("employeeForm").addEventListener("submit",async e=>{
   }
 
 
-  const rows=selectedUnits.map(selectedUnitId=>({
-   employee_id:id,
-   unit_id:selectedUnitId
-  }));
+  const rows=selectedUnitChecks.map(unitCheck=>{
+   const selectedUnitId=unitCheck.value;
+   const headcountCheck=document.querySelector(
+    `.employeeHeadcountCheck[data-unit-id="${selectedUnitId}"]`
+   );
+
+   return {
+    employee_id:id,
+    unit_id:selectedUnitId,
+    count_in_headcount:!!headcountCheck?.checked
+   };
+  });
 
 
   const {error:linkError}=await db
