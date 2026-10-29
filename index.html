@@ -1062,7 +1062,14 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 </div>
 
-<div class="filters" style="grid-template-columns:minmax(220px,360px)">
+<div class="filters" style="grid-template-columns:minmax(300px,1fr) minmax(220px,360px)">
+<select id="reportNameFilter">
+<option value="">Todos os relatórios</option>
+<option>Relatório Mensal de Manutenção - Americas Medical City</option>
+<option>Relatório Mensal de Manutenção - Cois</option>
+<option>Relatório Mensal de Manutenção - Pró Cardíaco</option>
+<option>Relatório Mensal de Manutenção - Samaritano Botafogo</option>
+</select>
 <select id="reportMonthFilter">
 <option value="">Todos os meses</option>
 </select>
@@ -1791,7 +1798,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div class="full">
 <label>Nome do relatório *</label>
-<input id="reportName" required maxlength="180" placeholder="Ex.: Relatório mensal de manutenção">
+<select id="reportName" required>
+<option value="">Selecione o relatório</option>
+<option>Relatório Mensal de Manutenção - Americas Medical City</option>
+<option>Relatório Mensal de Manutenção - Cois</option>
+<option>Relatório Mensal de Manutenção - Pró Cardíaco</option>
+<option>Relatório Mensal de Manutenção - Samaritano Botafogo</option>
+</select>
 </div>
 
 <div>
@@ -5308,8 +5321,13 @@ function renderReportExecutive(){
 }
 
 function filteredReports(){
+ const reportName=$("reportNameFilter").value;
  const month=$("reportMonthFilter").value;
- return reports.filter(r=>!month||reportMonthKey(r.reference_month)===month);
+
+ return reports.filter(r=>{
+  return (!reportName||r.report_name===reportName)
+   &&(!month||reportMonthKey(r.reference_month)===month);
+ });
 }
 
 function renderReports(){
@@ -5344,6 +5362,7 @@ function renderReports(){
  });
 }
 
+$("reportNameFilter").addEventListener("change",renderReports);
 $("reportMonthFilter").addEventListener("change",renderReports);
 
 async function openReport(report){
@@ -5377,7 +5396,7 @@ $("reportForm").addEventListener("submit",async e=>{
  let uploadedPath=null;
 
  try{
-  const reportName=$("reportName").value.trim();
+  const reportName=$("reportName").value;
   const referenceMonth=$("reportReferenceMonth").value;
   const file=$("reportFile").files[0];
 
