@@ -1042,6 +1042,32 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="newReportButton" class="primary">+ Upload de relatório</button>
 </div>
 
+<div class="exec-grid" style="margin-bottom:16px">
+<div class="exec-card">
+<span>Total de relatórios</span>
+<strong id="reportKpiTotal">0</strong>
+<small>Arquivos cadastrados</small>
+</div>
+
+<div class="exec-card">
+<span>Último mês disponível</span>
+<strong id="reportKpiLatestMonth" style="font-size:21px">—</strong>
+<small>Referência mais recente</small>
+</div>
+
+<div class="exec-card">
+<span>Relatórios do último mês</span>
+<strong id="reportKpiLatestCount">0</strong>
+<small id="reportKpiLatestCountNote">Nenhum relatório</small>
+</div>
+</div>
+
+<div class="filters" style="grid-template-columns:minmax(220px,360px)">
+<select id="reportMonthFilter">
+<option value="">Todos os meses</option>
+</select>
+</div>
+
 <div id="reportList" class="record-list">
 <div class="empty">Carregando relatórios...</div>
 </div>
@@ -5224,19 +5250,80 @@ async function loadReports(){
  }
 
  reports=data||[];
+ populateReportMonthFilter();
+ renderReportExecutive();
  renderReports();
+}
+
+function reportMonthKey(value){
+ return value?String(value).slice(0,7):"";
+}
+
+function populateReportMonthFilter(){
+ const select=$("reportMonthFilter");
+ const current=select.value;
+
+ const months=[...new Set(
+  reports
+   .map(r=>reportMonthKey(r.reference_month))
+   .filter(Boolean)
+ )].sort().reverse();
+
+ select.innerHTML='<option value="">Todos os meses</option>';
+
+ months.forEach(month=>{
+  const option=document.createElement("option");
+  option.value=month;
+  option.textContent=formatReferenceMonth(`${month}-01`);
+  option.selected=month===current;
+  select.appendChild(option);
+ });
+
+ if(current&&!months.includes(current)){
+  select.value="";
+ }
+}
+
+function renderReportExecutive(){
+ const total=reports.length;
+ const months=reports
+  .map(r=>reportMonthKey(r.reference_month))
+  .filter(Boolean)
+  .sort()
+  .reverse();
+
+ const latestMonth=months[0]||"";
+ const latestCount=latestMonth
+  ?reports.filter(r=>reportMonthKey(r.reference_month)===latestMonth).length
+  :0;
+
+ $("reportKpiTotal").textContent=total;
+ $("reportKpiLatestMonth").textContent=latestMonth
+  ?formatReferenceMonth(`${latestMonth}-01`)
+  :"—";
+ $("reportKpiLatestCount").textContent=latestCount;
+ $("reportKpiLatestCountNote").textContent=latestMonth
+  ?`Referência ${formatReferenceMonth(`${latestMonth}-01`)}`
+  :"Nenhum relatório";
+}
+
+function filteredReports(){
+ const month=$("reportMonthFilter").value;
+ return reports.filter(r=>!month||reportMonthKey(r.reference_month)===month);
 }
 
 function renderReports(){
  const list=$("reportList");
  list.replaceChildren();
 
- if(!reports.length){
-  list.innerHTML='<div class="empty">Nenhum relatório enviado.</div>';
+ const data=filteredReports();
+
+ if(!data.length){
+  list.innerHTML='<div class="empty">Nenhum relatório encontrado para este período.</div>';
   return;
  }
 
- reports.forEach(r=>{
+ data.forEach(r=>{
   const el=document.createElement("article");
   el.className="record";
 
@@ -5256,6 +5343,8 @@ function renderReports(){
   list.appendChild(el);
  });
 }
+
+$("reportMonthFilter").addEventListener("change",renderReports);
 
 async function openReport(report){
  const {data,error}=await db.storage
