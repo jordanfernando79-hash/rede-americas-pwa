@@ -1078,7 +1078,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div class="section-title">
 <div>
 <h2>Matriz de Comunicação</h2>
-<div id="communicationSubtitle" class="muted">Selecione uma unidade.</div>
+<div id="communicationSubtitle" class="muted">Toda a Rede</div>
 </div>
 <button id="newEmployeeButton" class="primary" disabled>+ Novo profissional</button>
 </div>
@@ -2494,9 +2494,14 @@ async function applyModuleUnitSelection(){
    return;
   }
 
+  if(currentModule==="communication"){
+   $("communicationSubtitle").textContent="Toda a Rede";
+   await loadEmployees();
+   return;
+  }
+
   records=[];
   $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
-  $("employeeList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
@@ -2897,6 +2902,14 @@ function switchModule(name){
   return;
  }
 
+ if(isCommunication){
+  $("communicationSubtitle").textContent=unitId
+   ?($("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex]?.textContent||"Unidade")
+   :"Toda a Rede";
+  loadEmployees();
+  return;
+ }
+
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
@@ -2905,8 +2918,6 @@ function switchModule(name){
 
  if(isDocuments){
   loadDocuments();
- }else if(isCommunication){
-  loadEmployees();
  }else if(isOrg){
   loadOrganogram();
  }else{
@@ -5488,11 +5499,27 @@ $("deleteSelectedDocuments").onclick=async()=>{
 async function loadEmployees(){
  $("employeeList").innerHTML='<div class="empty">Carregando...</div>';
 
+ const scopeUnitIds=unitId
+  ?[unitId]
+  :accessibleUnitIdsForModule("comunicacao");
 
- const {data:links,error:linkError}=await db
+ if(!scopeUnitIds.length){
+  employees=[];
+  renderEmployees();
+  return;
+ }
+
+ let linkQuery=db
   .from("employee_units")
-  .select("employee_id,unit_id")
-  .eq("unit_id",unitId);
+  .select("employee_id,unit_id");
+
+ if(unitId){
+  linkQuery=linkQuery.eq("unit_id",unitId);
+ }else{
+  linkQuery=linkQuery.in("unit_id",scopeUnitIds);
+ }
+
+ const {data:links,error:linkError}=await linkQuery;
 
 
  if(linkError){
@@ -5551,17 +5578,27 @@ async function loadEmployees(){
 }
 
 
+function normalizeSearchText(value){
+ return String(value??"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase()
+  .replace(/\s+/g," ")
+  .trim();
+}
+
 function filteredEmployees(){
- const q=$("employeeSearch").value.trim().toLowerCase();
+ const q=normalizeSearchText($("employeeSearch").value);
  const status=$("employeeStatusFilter").value;
  const turn=$("employeeShiftFilter").value;
 
 
  return employees.filter(e=>{
-  const text=[
+  const text=normalizeSearchText([
    e.full_name,e.job_title,e.shift,e.work_hours,e.phone,
-   e.employee_number,e.cost_center,e.additional_info
-  ].filter(Boolean).join(" ").toLowerCase();
+   e.employee_number,e.cost_center,e.additional_info,
+   employeeUnitNames(e.unit_ids)
+  ].filter(Boolean).join(" "));
 
 
   return (!q||text.includes(q))
@@ -5593,7 +5630,11 @@ function renderEmployees(){
 
 
  if(!data.length){
-  list.innerHTML='<div class="empty">Nenhum profissional encontrado nesta unidade.</div>';
+  list.innerHTML=`<div class="empty">${
+   unitId
+    ?"Nenhum profissional encontrado nesta unidade."
+    :"Nenhum profissional encontrado no escopo disponível."
+  }</div>`;
   return;
  }
 
@@ -5630,8 +5671,14 @@ function renderEmployees(){
    <p><strong>Organograma:</strong> ${escapeHtml(e.org_role||"—")} • <strong>Grupo:</strong> ${escapeHtml(e.org_group||"—")}</p>
    <p><strong>Unidade(s):</strong> ${escapeHtml(employeeUnitNames(e.unit_ids)||"—")}</p>
    <div class="actions">
-    ${hasAccess("comunicacao","edit",unitId)?'<button class="secondary editEmployee">Editar</button>':""}
-    ${hasAccess("comunicacao","delete",unitId)?'<button class="danger deleteEmployee">Excluir</button>':""}
+    ${(unitId
+      ?hasAccess("comunicacao","edit",unitId)
+      :(e.unit_ids||[]).some(id=>hasAccess("comunicacao","edit",id))
+     )?'<button class="secondary editEmployee">Editar</button>':""}
+    ${(unitId
+      ?hasAccess("comunicacao","delete",unitId)
+      :(e.unit_ids||[]).some(id=>hasAccess("comunicacao","delete",id))
+     )?'<button class="danger deleteEmployee">Excluir</button>':""}
    </div>
   `;
 
