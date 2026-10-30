@@ -2669,7 +2669,7 @@ async function applyModuleUnitSelection(){
 
 
  $("rdiSubtitle").textContent=unitId?unitName:"Toda a Rede";
- $("documentSubtitle").textContent=unitName;
+ $("documentSubtitle").textContent=unitId?unitName:"Toda a Rede";
  $("communicationSubtitle").textContent=unitName;
  $("orgSubtitle").textContent=unitName;
  $("waterSubtitle").textContent=unitName;
@@ -2695,8 +2695,14 @@ async function applyModuleUnitSelection(){
    return;
   }
 
+  if(currentModule==="documents"){
+   $("documentSubtitle").textContent="Toda a Rede";
+   await loadDocuments();
+   return;
+  }
+
   records=[];
-  $("documentList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
+  $("documentList").innerHTML='<div class="empty">Nenhum documento disponível.</div>';
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
@@ -3113,15 +3119,21 @@ function switchModule(name){
   return;
  }
 
+ if(isDocuments){
+  $("documentSubtitle").textContent=unitId
+   ?($("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex]?.textContent||"Unidade")
+   :"Toda a Rede";
+  loadDocuments();
+  return;
+ }
+
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
  }
 
 
- if(isDocuments){
-  loadDocuments();
- }else if(isOrg){
+ if(isOrg){
   loadOrganogram();
  }else{
   loadWaterModule();
@@ -5923,12 +5935,26 @@ $("reportForm").addEventListener("submit",async e=>{
 async function loadDocuments(){
  $("documentList").innerHTML='<div class="empty">Carregando...</div>';
 
-
- const {data,error}=await db
+ let query=db
   .from("documents")
   .select("*")
-  .eq("unit_id",unitId)
   .order("created_at",{ascending:false});
+
+ if(unitId){
+  query=query.eq("unit_id",unitId);
+ }else{
+  const allowedUnitIds=accessibleUnitIdsForModule("documentos");
+
+  if(!allowedUnitIds.length){
+   documents=[];
+   renderDocuments();
+   return;
+  }
+
+  query=query.in("unit_id",allowedUnitIds);
+ }
+
+ const {data,error}=await query;
 
 
  if(error){
@@ -6000,6 +6026,11 @@ function validityInfo(d){
 }
 
 
+function documentUnitName(unitIdValue){
+ return allUnits.find(u=>u.id===unitIdValue)?.name||"Unidade";
+}
+
+
 function renderDocuments(){
  const list=$("documentList");
  list.replaceChildren();
@@ -6018,28 +6049,34 @@ function renderDocuments(){
   const el=document.createElement("article");
   el.className="record";
 
+  const canEdit=hasAccess("documentos","edit",d.unit_id);
+  const canDelete=hasAccess("documentos","delete",d.unit_id);
+
 
   el.innerHTML=`
    <div class="record-top">
-    <input type="checkbox" class="doc-check" data-id="${d.id}">
+    ${canDelete?`<input type="checkbox" class="doc-check" data-id="${d.id}">`:""}
     <h3>${escapeHtml(d.title)}</h3>
     <span class="badge">${escapeHtml(d.category)}</span>
    </div>
+   <p><strong>Unidade:</strong> ${escapeHtml(documentUnitName(d.unit_id))}</p>
    <p class="muted">${escapeHtml(d.description||"Sem descrição")}</p>
    <p><strong>Arquivo:</strong> ${escapeHtml(d.filename)}</p>
    <p><strong>Data:</strong> ${formatDate(d.document_date)}</p>
    <p>${validityInfo(d)}</p>
    <div class="actions">
     <button class="primary openDoc">Abrir</button>
-    <button class="secondary editDoc">Editar</button>
-    <button class="danger deleteDoc">Excluir</button>
+    ${canEdit?'<button class="secondary editDoc">Editar</button>':""}
+    ${canDelete?'<button class="danger deleteDoc">Excluir</button>':""}
    </div>
   `;
 
 
   el.querySelector(".openDoc").onclick=()=>openDocument(d);
-  el.querySelector(".editDoc").onclick=()=>openDocumentEdit(d);
-  el.querySelector(".deleteDoc").onclick=()=>deleteDocument(d);
+  const editButton=el.querySelector(".editDoc");
+  if(editButton)editButton.onclick=()=>openDocumentEdit(d);
+  const deleteButton=el.querySelector(".deleteDoc");
+  if(deleteButton)deleteButton.onclick=()=>deleteDocument(d);
 
 
   list.appendChild(el);
@@ -6132,8 +6169,15 @@ $("documentForm").addEventListener("submit",async e=>{
   }
 
 
+  const documentUnitId=editingDocument?.unit_id||unitId;
+
+  if(!documentUnitId){
+   throw new Error("Selecione uma unidade.");
+  }
+
+
   if(file){
-   const path=`${unitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
+   const path=`${documentUnitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
 
 
    const {error:uploadError}=await db.storage
@@ -6153,7 +6197,7 @@ $("documentForm").addEventListener("submit",async e=>{
 
 
   const payload={
-   unit_id:unitId,
+   unit_id:documentUnitId,
    category:$("documentCategory").value,
    title:$("documentTitle").value.trim(),
    description:textOrNull($("documentDescription").value),
@@ -6202,7 +6246,9 @@ $("documentForm").addEventListener("submit",async e=>{
 
   message(
    $("appMessage"),
-   err?.message==="Selecione um arquivo."?err.message:"Não foi possível salvar o documento.",
+   ["Selecione um arquivo.","Selecione uma unidade."].includes(err?.message)
+    ?err.message
+    :"Não foi possível salvar o documento.",
    "err"
   );
  }finally{
