@@ -1241,7 +1241,7 @@ header.main-app-header #headerStatus{
 
 <div class="water-actions">
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
-<button id="waterImportButton" class="primary" disabled>Importar análise</button>
+<button id="waterImportButton" class="primary" disabled>Importar tabela</button>
 <button id="waterSystemsButton" class="ghost">Sistemas</button>
 <button id="waterReferencesButton" class="ghost">Referências</button>
 </div>
@@ -1674,23 +1674,23 @@ header.main-app-header #headerStatus{
 <!-- MODAL QUALIDADE DA ÁGUA - IMPORTAR PDF -->
 <dialog id="waterImportDialog">
 <div class="dialog-body">
-<h2>Importar análise por PDF</h2>
+<h2>Importar tabela por imagem</h2>
 <p class="muted">
-O sistema considera somente tabelas digitadas/preenchidas do laudo. Textos corridos,
-anotações manuscritas, assinaturas e observações à mão são ignorados.
-Se o PDF for digitalizado como imagem, a leitura por OCR será feita automaticamente no navegador.
+Envie somente uma imagem da tabela analítica preenchida, incluindo o cabeçalho com R.A., cliente,
+data da coleta e os nomes das colunas do sistema. Este importador está ajustado ao layout da Interágua.
+Textos corridos, assinaturas e anotações manuscritas são ignorados.
 </p>
 
 <div class="form-grid">
 <div class="full">
-<label>Arquivo PDF *</label>
-<input id="waterImportFile" type="file" accept="application/pdf,.pdf">
+<label>Imagem da tabela *</label>
+<input id="waterImportFile" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg">
 </div>
 </div>
 
 <div class="dialog-actions">
 <button id="cancelWaterImport" type="button" class="ghost">Cancelar</button>
-<button id="readWaterPdfButton" type="button" class="secondary">Ler PDF</button>
+<button id="readWaterPdfButton" type="button" class="secondary">Ler imagem</button>
 </div>
 
 <div id="waterImportStatus" class="status"></div>
@@ -4659,7 +4659,7 @@ function renderWaterAnalysisList(){
   el.innerHTML=`
    <div class="record-top">
     <h3>${formatDate(report.sample_date)}</h3>
-    <span class="badge">${report.source==="pdf"?"PDF":"MANUAL"}</span>
+    <span class="badge">${report.source==="pdf"?"IMPORTADO":"MANUAL"}</span>
    </div>
    <p>
     <strong>${escapeHtml(currentUnitName())}</strong>
@@ -4885,14 +4885,14 @@ $("waterPeriodFilter").addEventListener("change",renderWaterChart);
 /* IMPORTAÇÃO DE PDF — SOMENTE TABELAS DIGITADAS */
 
 const WATER_IMPORT_PARAMETER_ALIASES=[
- {key:"alcalinidade total",name:"Alcalinidade Total"},
- {key:"condutividade a 25",name:"Condutividade"},
- {key:"cloreto",name:"Cloreto"},
- {key:"dureza total",name:"Dureza Total"},
- {key:"fosfonato",name:"Fosfonato"},
- {key:"nitrito",name:"Nitrito"},
- {key:"solidos totais dissolvidos",name:"Sólidos Totais Dissolvidos"},
- {key:"valor do ph a 25",name:"pH"}
+ {keys:["alcalinidade total"],name:"Alcalinidade Total"},
+ {keys:["condutividade a 25","condutividade à 25"],name:"Condutividade"},
+ {keys:["cloreto"],name:"Cloreto"},
+ {keys:["dureza total"],name:"Dureza Total"},
+ {keys:["fosfonato"],name:"Fosfonato"},
+ {keys:["nitrito"],name:"Nitrito"},
+ {keys:["solidos totais dissolvidos","sólidos totais dissolvidos"],name:"Sólidos Totais Dissolvidos"},
+ {keys:["valor do ph a 25","valor do p h a 25","ph a 25","p h a 25"],name:"pH"}
 ];
 
 function waterImportNormalize(v){
@@ -4955,7 +4955,10 @@ function numericPdfItems(row,limitX){
 }
 
 function detectInteraguaColumns(pageText){
- const n=waterImportNormalize(pageText);
+ const n=waterImportNormalize(pageText)
+  .replace(/[|]/g," ")
+  .replace(/\s+/g," ");
+
  const out=[];
 
  const add=(label,type,matcher)=>{
@@ -4963,10 +4966,29 @@ function detectInteraguaColumns(pageText){
   if(index>=0)out.push({label,type,index});
  };
 
- add("TORRE 01,02,03,04","condensada",/torre\s+01[,\s]+02[,\s]+03[,\s]+04/);
- add("TORRE 05 E 06","condensada",/torre\s+05\s+e\s+06/);
- add("GEL 01 E 02","conforto",/gel\.?\s*01\s+e\s+02/);
- add("GEL 03","conforto",/gel\.?\s*0?3(?:\s|$)/);
+ add(
+  "TORRE 01,02,03,04",
+  "condensada",
+  /torre\s*0?1[\s,.;:/-]*0?2[\s,.;:/-]*0?3[\s,.;:/-]*0?4/
+ );
+
+ add(
+  "TORRE 05 E 06",
+  "condensada",
+  /torre\s*0?5(?:\s*e\s*|[\s,.;:/-]+)0?6/
+ );
+
+ add(
+  "GEL 01 E 02",
+  "conforto",
+  /gel\.?\s*0?1(?:\s*e\s*|[\s,.;:/-]+)0?2/
+ );
+
+ add(
+  "GEL 03",
+  "conforto",
+  /gel\.?\s*0?3(?:\s|$)/
+ );
 
  return out.sort((a,b)=>a.index-b.index);
 }
@@ -5034,31 +5056,96 @@ function findWaterReferenceForImport(type,displayName){
 
 function detectParameterRow(rowText){
  const n=waterImportNormalize(rowText);
- const match=WATER_IMPORT_PARAMETER_ALIASES.find(p=>n.includes(p.key));
- return match||null;
+
+ for(const p of WATER_IMPORT_PARAMETER_ALIASES){
+  if((p.keys||[]).some(key=>n.includes(waterImportNormalize(key)))){
+   return p;
+  }
+ }
+
+ return null;
 }
 
 function pageLooksLikeAnalyticTable(text){
  const n=waterImportNormalize(text);
- return (
-  n.includes("testes analiticos") &&
-  (
-   n.includes("limites permitidos") ||
-   (n.includes("limites")&&n.includes("permitidos"))
-  )
- );
+
+ const hasTests=
+  n.includes("testes analiticos") ||
+  (n.includes("testes")&&n.includes("analiticos"));
+
+ const hasLimits=
+  n.includes("limites permitidos") ||
+  (n.includes("limites")&&n.includes("permitidos")) ||
+  n.includes("max 300") ||
+  n.includes("max 1500");
+
+ const hasKnownParameter=
+  n.includes("alcalinidade total") &&
+  n.includes("cloreto") &&
+  n.includes("dureza total");
+
+ return hasTests && hasLimits && hasKnownParameter;
 }
 
-async function renderPdfPageToCanvas(page,scale=2){
- const viewport=page.getViewport({scale});
+async function loadImageForOcr(file){
+ return await new Promise((resolve,reject)=>{
+  const img=new Image();
+  const url=URL.createObjectURL(file);
+
+  img.onload=()=>{
+   URL.revokeObjectURL(url);
+   resolve(img);
+  };
+
+  img.onerror=()=>{
+   URL.revokeObjectURL(url);
+   reject(new Error("Não foi possível abrir a imagem."));
+  };
+
+  img.src=url;
+ });
+}
+
+async function imageFileToCanvas(file){
+ const img=await loadImageForOcr(file);
+
+ const targetWidth=Math.min(2200,Math.max(1400,img.naturalWidth*2));
+ const scale=targetWidth/img.naturalWidth;
+ const width=Math.max(1,Math.round(img.naturalWidth*scale));
+ const height=Math.max(1,Math.round(img.naturalHeight*scale));
+
  const canvas=document.createElement("canvas");
- canvas.width=Math.ceil(viewport.width);
- canvas.height=Math.ceil(viewport.height);
+ canvas.width=width;
+ canvas.height=height;
 
  const ctx=canvas.getContext("2d",{willReadFrequently:true});
- await page.render({canvasContext:ctx,viewport}).promise;
+ ctx.fillStyle="#fff";
+ ctx.fillRect(0,0,width,height);
+ ctx.drawImage(img,0,0,width,height);
 
- return {canvas,viewport};
+ const imageData=ctx.getImageData(0,0,width,height);
+ const data=imageData.data;
+
+ for(let i=0;i<data.length;i+=4){
+  const gray=Math.round(
+   data[i]*0.299+
+   data[i+1]*0.587+
+   data[i+2]*0.114
+  );
+
+  // contraste suave para linhas e texto impresso
+  const value=gray<180
+   ?Math.max(0,gray-30)
+   :Math.min(255,gray+18);
+
+  data[i]=value;
+  data[i+1]=value;
+  data[i+2]=value;
+ }
+
+ ctx.putImageData(imageData,0,0);
+
+ return canvas;
 }
 
 function tesseractWordsToPdfItems(words,canvasHeight){
@@ -5080,27 +5167,29 @@ function tesseractWordsToPdfItems(words,canvasHeight){
   });
 }
 
-async function ocrPdfPage(page,pageNumber){
+async function extractStructuredWaterTablesFromImage(file){
  if(!window.Tesseract)throw new Error("OCR indisponível.");
 
  message(
   $("waterImportStatus"),
-  `PDF digitalizado: lendo página ${pageNumber} por OCR...`,
+  "Lendo a imagem da tabela...",
   "info"
  );
 
- const {canvas}=await renderPdfPageToCanvas(page,2);
+ const canvas=await imageFileToCanvas(file);
 
  const result=await Tesseract.recognize(
   canvas,
   "por",
   {
+   tessedit_pageseg_mode:"6",
+   preserve_interword_spaces:"1",
    logger:m=>{
     if(m.status==="recognizing text"&&Number.isFinite(m.progress)){
      const pct=Math.round(m.progress*100);
      message(
       $("waterImportStatus"),
-      `OCR da página ${pageNumber}: ${pct}%`,
+      `Leitura da tabela: ${pct}%`,
       "info"
      );
     }
@@ -5113,111 +5202,84 @@ async function ocrPdfPage(page,pageNumber){
  const rows=groupPdfRows(items);
  const pageText=rows.map(pdfRowText).join("\n");
 
- return {items,rows,pageText,usedOcr:true};
-}
-
-async function getPdfPageStructuredContent(page,pageNumber){
- const content=await page.getTextContent();
- const embeddedItems=content.items||[];
- const embeddedRows=groupPdfRows(embeddedItems);
- const embeddedText=embeddedRows.map(pdfRowText).join("\n");
-
- if(pageLooksLikeAnalyticTable(embeddedText)){
-  return {
-   items:embeddedItems,
-   rows:embeddedRows,
-   pageText:embeddedText,
-   usedOcr:false
-  };
+ if(!pageLooksLikeAnalyticTable(pageText)){
+  return [];
  }
 
- return await ocrPdfPage(page,pageNumber);
-}
+ const normalizedMeta=pageText
+  .replace(/[|]/g," ")
+  .replace(/\s+/g," ");
 
+ const raMatch=normalizedMeta.match(
+  /R\.?\s*A\.?\s*N[º°o.]?\s*[:.]?\s*(\d+\s*\/\s*\d{4})/i
+ );
 
-async function extractStructuredWaterTablesFromPdf(file){
- if(!window.pdfjsLib)throw new Error("Leitor de PDF indisponível.");
+ const sampleMatch=normalizedMeta.match(
+  /DATA\s+DA\s+COLETA\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})/i
+ );
 
- pdfjsLib.GlobalWorkerOptions.workerSrc=
-  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+ const reportMatch=normalizedMeta.match(
+  /DATA\s+DA\s+AN[ÁA]LISE\s+COMPLETADA\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})/i
+ );
 
- const bytes=new Uint8Array(await file.arrayBuffer());
- const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
- const candidates=[];
- let globalRa="";
- let globalSampleDate="";
- let globalReportDate="";
+ const ra=raMatch?raMatch[1].replace(/\s/g,""):"";
+ const sampleDate=sampleMatch
+  ?waterImportDateToIso(sampleMatch[1].replace(/\s/g,""))
+  :"";
 
- for(let p=1;p<=pdf.numPages;p++){
-  const page=await pdf.getPage(p);
-  const structured=await getPdfPageStructuredContent(page,p);
-  const rows=structured.rows;
-  const pageText=structured.pageText;
-  const pageItems=structured.items;
+ const reportDate=reportMatch
+  ?waterImportDateToIso(reportMatch[1].replace(/\s/g,""))
+  :"";
 
-  // Mesmo após OCR, somente páginas com a estrutura impressa da tabela
-  // analítica são consideradas. Páginas manuscritas ficam de fora.
-  if(!pageLooksLikeAnalyticTable(pageText)){
-   continue;
-  }
+ const columns=detectInteraguaColumns(pageText);
+ if(!columns.length)return [];
 
-  const raMatch=pageText.match(/R\.?\s*A\.?\s*N[º°o.]?\s*[:.]?\s*(\d+\s*\/\s*\d{4})/i);
-  if(raMatch)globalRa=raMatch[1].replace(/\s/g,"");
+ const limitHeaderItem=items.find(item=>
+  /LIMITES/i.test(String(item.str||""))
+ );
+ const limitX=limitHeaderItem?limitHeaderItem.transform[4]:null;
 
-  const sampleMatch=pageText.match(/DATA DA COLETA\s*:?\s*(\d{2}\/\d{2}\/\d{4})/i);
-  if(sampleMatch)globalSampleDate=waterImportDateToIso(sampleMatch[1]);
+ const candidates=columns.map(col=>({
+  page:1,
+  sourceLabel:col.label,
+  water_type:col.type,
+  system_id:suggestWaterSystemForPdfLabel(col.label)?.id||"",
+  sample_date:sampleDate,
+  report_date:reportDate,
+  laboratory:"Interágua",
+  ra_number:ra,
+  recognition_mode:"imagem",
+  results:[]
+ }));
 
-  const reportMatch=pageText.match(/DATA DA AN[ÁA]LISE COMPLETADA\s*:?\s*(\d{2}\/\d{2}\/\d{4})/i);
-  if(reportMatch)globalReportDate=waterImportDateToIso(reportMatch[1]);
+ rows.forEach(row=>{
+  const rowText=pdfRowText(row);
+  const param=detectParameterRow(rowText);
+  if(!param)return;
 
-  const columns=detectInteraguaColumns(pageText);
-  if(!columns.length)continue;
+  const values=numericPdfItems(row,limitX);
+  if(!values.length)return;
 
-  const limitHeaderItem=pageItems.find(item=>
-   /LIMITES/i.test(String(item.str||""))
-  );
-  const limitX=limitHeaderItem?limitHeaderItem.transform[4]:null;
+  // No layout da Interágua, o primeiro valor numérico após o nome do parâmetro
+  // pertence à primeira coluna de sistema preenchida, e o segundo à segunda.
+  values.forEach((entry,idx)=>{
+   if(idx>=candidates.length)return;
 
-  const pageCandidates=columns.map(col=>({
-   page:p,
-   sourceLabel:col.label,
-   water_type:col.type,
-   system_id:suggestWaterSystemForPdfLabel(col.label)?.id||"",
-   sample_date:globalSampleDate,
-   report_date:globalReportDate,
-   laboratory:"Interágua",
-   ra_number:globalRa,
-   recognition_mode:structured.usedOcr?"OCR":"texto do PDF",
-   results:[]
-  }));
-
-  rows.forEach(row=>{
-   const param=detectParameterRow(pdfRowText(row));
-   if(!param)return;
-
-   const values=numericPdfItems(row,limitX);
-   if(!values.length)return;
-
-   // Em tabelas multicoluna, os valores preenchidos aparecem da esquerda
-   // para a direita nas colunas de sistema. Colunas vazias não geram números.
-   // A associação é feita somente quando o valor está em uma coluna de resultado,
-   // nunca na coluna de limites permitidos.
-   values.forEach((entry,idx)=>{
-    if(idx>=pageCandidates.length)return;
-    pageCandidates[idx].results.push({
-     detected_name:param.name,
-     value:entry.value
-    });
+   candidates[idx].results.push({
+    detected_name:param.name,
+    value:entry.value
    });
   });
+ });
 
-  pageCandidates
-   .filter(c=>c.results.length)
-   .forEach(c=>candidates.push(c));
- }
-
- return candidates;
+ // Regra mínima de segurança para o layout Interágua:
+ // só aceita candidatos com pelo menos 4 parâmetros canônicos reconhecidos.
+ return candidates.filter(c=>{
+  const names=new Set(c.results.map(r=>r.detected_name));
+  return names.size>=4;
+ });
 }
+
 
 function renderWaterImportPreview(){
  const box=$("waterImportPreview");
@@ -5288,7 +5350,8 @@ function renderWaterImportPreview(){
 
    <p class="muted">
     ${candidate.ra_number?`R.A. ${escapeHtml(candidate.ra_number)} • `:""}
-    ${candidate.results.length} parâmetro(s) reconhecido(s) • leitura: ${escapeHtml(candidate.recognition_mode||"PDF")}.
+    ${candidate.results.length} parâmetro(s) reconhecido(s) •
+    layout Interágua reconhecido • leitura: ${escapeHtml(candidate.recognition_mode||"imagem")}.
    </p>
 
    <div class="water-analysis-params">
@@ -5359,19 +5422,19 @@ $("readWaterPdfButton").onclick=async()=>{
  btn.textContent="Lendo PDF...";
  message(
   $("waterImportStatus"),
-  "Procurando tabelas analíticas digitadas. PDFs digitalizados serão lidos por OCR...",
+  "Lendo somente a tabela analítica da imagem...",
   "info"
  );
 
  try{
   waterImportPdfFile=file;
-  waterImportCandidates=await extractStructuredWaterTablesFromPdf(file);
+  waterImportCandidates=await extractStructuredWaterTablesFromImage(file);
 
   if(!waterImportCandidates.length){
    renderWaterImportPreview();
    message(
     $("waterImportStatus"),
-    "Não encontrei tabela analítica digitada com estrutura reconhecível, mesmo após OCR. Nenhum dado foi lançado.",
+    "Não encontrei uma tabela analítica reconhecível nesta imagem. Nenhum dado foi lançado.",
     "err"
    );
    return;
@@ -5394,7 +5457,7 @@ $("readWaterPdfButton").onclick=async()=>{
   );
  }finally{
   btn.disabled=false;
-  btn.textContent="Ler PDF";
+  btn.textContent="Ler imagem";
  }
 };
 
@@ -5424,7 +5487,7 @@ async function saveImportedWaterCandidate(candidate,file,index){
   .upload(storagePath,file,{
    cacheControl:"3600",
    upsert:false,
-   contentType:file.type||"application/pdf"
+   contentType:file.type||"image/jpeg"
   });
 
  if(uploadError)throw uploadError;
@@ -5432,7 +5495,7 @@ async function saveImportedWaterCandidate(candidate,file,index){
  try{
   const notes=[
    candidate.ra_number?`R.A. ${candidate.ra_number}`:null,
-   `Importação automática de tabela digitada — página ${candidate.page} — leitura ${candidate.recognition_mode||"PDF"}`,
+   `Importação automática de tabela digitada por imagem — leitura ${candidate.recognition_mode||"imagem"}`,
    `Identificação no PDF: ${candidate.sourceLabel}`
   ].filter(Boolean).join(" • ");
 
