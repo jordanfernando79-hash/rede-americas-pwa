@@ -2785,6 +2785,24 @@ function accessibleUnitIdsForModule(module){
  )];
 }
 
+function isOperationalOverviewUnit(unit){
+ const name=String(unit?.name||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase()
+  .trim();
+
+ return ![
+  "backoffice",
+  "equipe volante i",
+  "equipe volante ii"
+ ].includes(name);
+}
+
+function overviewOperationalUnits(){
+ return allUnits.filter(isOperationalOverviewUnit);
+}
+
 
 function configureVisibleModules(){
  const admin=profile?.role==="admin";
@@ -2872,13 +2890,18 @@ async function loadUnits(){
  if($("overviewUnitSelect")){
   const overviewSelected=$("overviewUnitSelect").value;
   $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
-  allUnits.forEach(u=>{
+
+  overviewOperationalUnits().forEach(u=>{
    const option=document.createElement("option");
    option.value=u.id;
    option.textContent=u.name;
    option.selected=u.id===overviewSelected;
    $("overviewUnitSelect").appendChild(option);
   });
+
+  if(overviewSelected&&!overviewOperationalUnits().some(u=>u.id===overviewSelected)){
+   $("overviewUnitSelect").value="";
+  }
  }
 
 
@@ -4010,8 +4033,12 @@ async function loadOverview(){
   const sentBudgetValue=sentBudgets.reduce((sum,b)=>sum+Number(b.amount||0),0);
 
 
-  $("ovUnits").textContent=scope?1:scopedUnitIds.length;
-  $("ovUnitsNote").textContent=scope?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada"):"Rede disponível";
+  const operationalUnits=overviewOperationalUnits();
+
+  $("ovUnits").textContent=scope?1:operationalUnits.length;
+  $("ovUnitsNote").textContent=scope
+   ?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada")
+   :"Unidades operacionais";
 
 
   $("ovEmployees").textContent=canCommunication?employees.length:"—";
