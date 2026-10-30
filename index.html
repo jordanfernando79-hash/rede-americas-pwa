@@ -7502,19 +7502,40 @@ function renderBudgetCharts(data){
  });
 
  const valueLabels=entries.map(x=>`${x[0]} (${x[1].count})`);
+ const horizontalValueChart=valueLabels.length>5;
+
  budgetValueChartInstance=new Chart($("budgetValueChart"),{
   type:"bar",
   data:{labels:valueLabels,datasets:[{label:"Valor orçado",data:entries.map(x=>x[1].value)}]},
   options:{
-   indexAxis:labels.length>5?"y":"x",
+   indexAxis:horizontalValueChart?"y":"x",
    responsive:true,maintainAspectRatio:false,
    plugins:{
     legend:{display:false},
     tooltip:{callbacks:{label:ctx=>moneyBr(ctx.raw)}}
    },
-   scales:{
-    y:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString("pt-BR",{notation:"compact",maximumFractionDigits:1})}}
-   }
+   scales:horizontalValueChart
+    ?{
+      x:{
+       beginAtZero:true,
+       ticks:{
+        callback:v=>Number(v).toLocaleString("pt-BR",{notation:"compact",maximumFractionDigits:1})
+       }
+      },
+      y:{
+       ticks:{
+        autoSkip:false
+       }
+      }
+     }
+    :{
+      y:{
+       beginAtZero:true,
+       ticks:{
+        callback:v=>Number(v).toLocaleString("pt-BR",{notation:"compact",maximumFractionDigits:1})
+       }
+      }
+     }
   }
  });
 }
