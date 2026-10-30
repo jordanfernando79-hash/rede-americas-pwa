@@ -1031,6 +1031,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 
 
+<select id="waterMonthFilter">
+<option value="">Todos os meses</option>
+</select>
+
 <select id="waterPeriodFilter">
 <option value="12">Últimos 12 meses</option>
 <option value="24">Últimos 24 meses</option>
@@ -4124,6 +4128,7 @@ async function loadWaterModule(){
  if(!type){
   waterReports=[];
   waterResults=[];
+  $("waterMonthFilter").innerHTML='<option value="">Todos os meses</option>';
   updateWaterKpis();
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione o tipo de água.</div>';
   waterChartInstances.forEach(chart=>chart?.destroy());
@@ -4186,23 +4191,61 @@ async function loadWaterModule(){
   waterResults=results||[];
  }
 
+ populateWaterMonthFilter();
  updateWaterKpis();
  renderWaterAnalysisList();
  renderWaterChart();
 }
 
+function populateWaterMonthFilter(){
+ const select=$("waterMonthFilter");
+ const current=select.value;
+
+ const months=[...new Set(
+  waterReports
+   .map(r=>String(r.sample_date||"").slice(0,7))
+   .filter(Boolean)
+ )].sort().reverse();
+
+ select.innerHTML='<option value="">Todos os meses</option>';
+
+ months.forEach(month=>{
+  const [year,m]=month.split("-");
+  const option=document.createElement("option");
+  option.value=month;
+  option.textContent=`${m}/${year}`;
+  option.selected=month===current;
+  select.appendChild(option);
+ });
+
+ if(current&&!months.includes(current)){
+  select.value="";
+ }
+}
+
+function filteredWaterReports(){
+ const month=$("waterMonthFilter").value;
+ if(!month)return [...waterReports];
+ return waterReports.filter(r=>String(r.sample_date||"").slice(0,7)===month);
+}
+
+
 function updateWaterKpis(){
- $("waterAnalysisCount").textContent=waterReports.length;
+ const reports=filteredWaterReports();
+ const reportIds=new Set(reports.map(r=>r.id));
+ const results=waterResults.filter(r=>reportIds.has(r.report_id));
+
+ $("waterAnalysisCount").textContent=reports.length;
 
 
  $("waterLastDate").textContent=
-  waterReports.length
-   ?formatDate(waterReports[0].sample_date)
+  reports.length
+   ?formatDate(reports[0].sample_date)
    :"—";
 
 
  $("waterOutCount").textContent=
-  waterResults.filter(isWaterOutOfRange).length;
+  results.filter(isWaterOutOfRange).length;
 }
 
 
@@ -4240,13 +4283,15 @@ function renderWaterAnalysisList(){
  list.replaceChildren();
 
 
- if(!waterReports.length){
-  list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este tipo de água.</div>';
+ const visibleReports=filteredWaterReports();
+
+ if(!visibleReports.length){
+  list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este período.</div>';
   return;
  }
 
 
- waterReports.slice(0,20).forEach(report=>{
+ visibleReports.slice(0,20).forEach(report=>{
   const results=waterResults
    .filter(r=>r.report_id===report.id)
    .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
@@ -4353,8 +4398,9 @@ function selectedWaterReference(){
 function waterChartDataForReference(ref){
  const period=Number($("waterPeriodFilter").value||0);
 
- let reports=[...waterReports];
- if(period){
+ let reports=filteredWaterReports();
+
+ if(period && !$("waterMonthFilter").value){
   const limit=new Date();
   limit.setMonth(limit.getMonth()-period);
   reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
@@ -4505,6 +4551,11 @@ function renderWaterChart(){
 $("waterSystemFilter").addEventListener("change",loadWaterModule);
 $("waterTypeFilter").addEventListener("change",loadWaterModule);
 $("waterParameterFilter").addEventListener("change",renderWaterChart);
+$("waterMonthFilter").addEventListener("change",()=>{
+ updateWaterKpis();
+ renderWaterAnalysisList();
+ renderWaterChart();
+});
 $("waterPeriodFilter").addEventListener("change",renderWaterChart);
 
 
