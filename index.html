@@ -2765,7 +2765,7 @@ async function loadUnitsAdmin(){
    .select("employee_id,unit_id,count_in_headcount")
    .in("unit_id",unitIds),
   db.from("employees")
-   .select("id,full_name,job_title,org_role,shift,status")
+   .select("id,full_name,job_title,org_role,shift,day_night,status")
    .eq("status","ativo")
  ]);
 
@@ -2781,8 +2781,7 @@ async function loadUnitsAdmin(){
  data.forEach(u=>{
   summaries.set(u.id,{
    leader:"Não definido",
-   functions:new Map(),
-   shifts:new Map(),
+   composition:new Map(),
    totalEmployees:0
   });
  });
@@ -2809,10 +2808,11 @@ async function loadUnitsAdmin(){
 
   if(link.count_in_headcount!==false){
    summary.totalEmployees++;
-   summary.functions.set(job,(summary.functions.get(job)||0)+1);
 
-   const shift=(employee.shift||"Não informada").trim()||"Não informada";
-   summary.shifts.set(shift,(summary.shifts.get(shift)||0)+1);
+   const scale=(employee.shift||"Escala não informada").trim()||"Escala não informada";
+   const period=(employee.day_night||"Turno não informado").trim()||"Turno não informado";
+   const key=`${job}|||${scale}|||${period}`;
+   summary.composition.set(key,(summary.composition.get(key)||0)+1);
   }
  });
 
@@ -2838,30 +2838,30 @@ async function loadUnitsAdmin(){
   const initial=name.charAt(0).toUpperCase()||"U";
   const summary=summaries.get(u.id)||{
    leader:"Não definido",
-   functions:new Map(),
-   shifts:new Map(),
+   composition:new Map(),
    totalEmployees:0
   };
 
 
-  const functionEntries=[...summary.functions.entries()]
-   .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
+  const compositionEntries=[...summary.composition.entries()]
+   .map(([key,count])=>{
+    const [job,scale,period]=key.split("|||");
+    return {job,scale,period,count};
+   })
+   .sort((a,b)=>
+    a.job.localeCompare(b.job,"pt-BR") ||
+    a.scale.localeCompare(b.scale,"pt-BR") ||
+    a.period.localeCompare(b.period,"pt-BR")
+   );
 
 
-  const functionHtml=functionEntries.length
-   ?functionEntries.map(([role,count])=>
-      `<span class="unit-function-chip">${escapeHtml(role)}: ${count}</span>`
+  const compositionHtml=compositionEntries.length
+   ?compositionEntries.map(item=>
+      `<span class="unit-function-chip">`
+      +`${escapeHtml(item.job)} • ${escapeHtml(item.scale)} • ${escapeHtml(item.period)}: ${item.count}`
+      +`</span>`
     ).join("")
    :'<span class="muted">Nenhum funcionário ativo vinculado.</span>';
-
-  const shiftEntries=[...summary.shifts.entries()]
-   .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR"));
-
-  const shiftHtml=shiftEntries.length
-   ?shiftEntries.map(([shift,count])=>
-      `<span class="unit-function-chip">${escapeHtml(shift)}: ${count}</span>`
-    ).join("")
-   :'<span class="muted">Nenhuma escala informada.</span>';
 
 
   card.innerHTML=`
@@ -2889,13 +2889,8 @@ async function loadUnitsAdmin(){
 
 
     <div class="unit-function-box">
-     <div class="unit-function-title">Funcionários por função</div>
-     <div class="unit-function-list">${functionHtml}</div>
-    </div>
-
-    <div class="unit-function-box">
-     <div class="unit-function-title">Escalas do efetivo</div>
-     <div class="unit-function-list">${shiftHtml}</div>
+     <div class="unit-function-title">Composição do efetivo</div>
+     <div class="unit-function-list">${compositionHtml}</div>
     </div>
 
 
