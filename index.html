@@ -1676,9 +1676,9 @@ header.main-app-header #headerStatus{
 <div class="dialog-body">
 <h2>Importar tabela por imagem</h2>
 <p class="muted">
-Selecione primeiro o Sistema e o Tipo de água na tela principal e depois envie somente a imagem da tabela.
-O sistema usará esse contexto e procurará apenas os parâmetros e valores impressos da tabela.
-Textos corridos, assinaturas e anotações manuscritas são ignorados.
+Selecione primeiro o Sistema e o Tipo de água na tela principal e envie a imagem da tabela.
+A leitura automática serve apenas para pré-preencher os valores. Antes de salvar, você poderá conferir,
+corrigir ou completar cada parâmetro manualmente.
 </p>
 
 <div id="waterImportContext" class="card" style="margin-bottom:14px"></div>
@@ -5318,12 +5318,46 @@ async function extractStructuredWaterTablesFromImage(file){
   return !!ref && allowedNames.has(waterImportNormalize(ref.parameter_name));
  });
 
- // Segurança: aceita a leitura a partir de 3 parâmetros reconhecidos.
- if(candidate.results.length<3)return [];
-
+ // Mesmo que poucos valores sejam reconhecidos, a tela de validação será aberta.
+ // Os parâmetros ausentes poderão ser corrigidos/preenchidos antes da confirmação.
  return [candidate];
 }
 
+
+function buildWaterValidationRows(candidate){
+ const refs=waterReferences
+  .filter(ref=>ref.water_type===candidate.water_type)
+  .sort((a,b)=>{
+   const da=Number(a.display_order||0);
+   const db=Number(b.display_order||0);
+   if(da!==db)return da-db;
+   return (a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR");
+  });
+
+ return refs.map(ref=>{
+  const detected=candidate.results.find(r=>{
+   const matched=findWaterReferenceForImport(candidate.water_type,r.detected_name);
+   return matched?.id===ref.id;
+  });
+
+  return {
+   reference_id:ref.id,
+   parameter_name:ref.parameter_name,
+   unit:ref.unit,
+   min_value:ref.min_value,
+   max_value:ref.max_value,
+   value:detected?.value ?? null,
+   detected:!!detected
+  };
+ });
+}
+
+function waterValidationReferenceText(row){
+ const parts=[];
+ if(row.min_value!==null&&row.min_value!==undefined)parts.push(`≥ ${row.min_value}`);
+ if(row.max_value!==null&&row.max_value!==undefined)parts.push(`≤ ${row.max_value}`);
+ return parts.length?parts.join(" e "):"—";
+}
 
 function renderWaterImportPreview(){
  const box=$("waterImportPreview");
@@ -5349,12 +5383,32 @@ function renderWaterImportPreview(){
    )
   ].join("");
 
-  const rows=candidate.results.map(result=>`
+  const validationRows=buildWaterValidationRows(candidate);
+  candidate.validationRows=validationRows;
+
+  const rows=validationRows.map((row,rowIndex)=>`
    <div class="water-analysis-param">
-    <div><strong>${escapeHtml(result.detected_name)}</strong></div>
-    <div>${Number(result.value).toLocaleString("pt-BR",{maximumFractionDigits:4})}</div>
-    <div class="muted">Tabela digitada</div>
-    <div><span class="water-status-ok">Reconhecido</span></div>
+    <div>
+     <strong>${escapeHtml(row.parameter_name)}</strong>
+     <div class="muted">${escapeHtml(row.unit||"")}</div>
+    </div>
+    <div>
+     <input
+      class="waterImportValue"
+      data-index="${index}"
+      data-row-index="${rowIndex}"
+      type="number"
+      step="any"
+      value="${row.value!==null&&row.value!==undefined?String(row.value).replace(".",","):""}"
+      placeholder="Confirmar valor"
+     >
+    </div>
+    <div>${escapeHtml(waterValidationReferenceText(row))}</div>
+    <div>
+     <span class="${row.detected?"water-status-ok":"badge"}">
+      ${row.detected?"Lido da imagem":"Confirmar"}
+     </span>
+    </div>
    </div>
   `).join("");
 
@@ -5383,17 +5437,26 @@ function renderWaterImportPreview(){
 
    <p class="muted">
     ${candidate.ra_number?`R.A. ${escapeHtml(candidate.ra_number)} • `:""}
-    ${candidate.results.length} parâmetro(s) reconhecido(s) •
-    layout Interágua reconhecido • leitura: ${escapeHtml(candidate.recognition_mode||"imagem")}.
+    ${candidate.results.length} valor(es) pré-preenchido(s) pela leitura automática.
+    Confira todos os campos antes de confirmar o lançamento.
    </p>
 
    <div class="water-analysis-params">
     <div class="water-analysis-param water-analysis-param-head">
-     <div>Parâmetro</div><div>Valor</div><div>Origem</div><div>Status</div>
+     <div>Parâmetro</div><div>Valor confirmado</div><div>Referência</div><div>Status</div>
     </div>
     ${rows}
    </div>
   `;
+
+  card.querySelectorAll(".waterImportValue").forEach(input=>{
+   input.addEventListener("input",e=>{
+    const rowIndex=Number(e.target.dataset.rowIndex);
+    const raw=e.target.value;
+    waterImportCandidates[index].validationRows[rowIndex].value=
+     raw===""?null:parsePtNumber(raw);
+   });
+  });
 
   card.querySelector(".waterImportSampleDate").addEventListener("change",e=>{
    waterImportCandidates[index].sample_date=e.target.value;
@@ -5480,7 +5543,7 @@ $("readWaterPdfButton").onclick=async()=>{
    renderWaterImportPreview();
    message(
     $("waterImportStatus"),
-    "Não consegui reconhecer pelo menos 3 parâmetros com segurança nesta imagem. Nenhum dado foi lançado.",
+    "A imagem foi lida, mas nenhum valor pôde ser pré-preenchido. Você ainda poderá informar os valores manualmente na tela de validação.",
     "err"
    );
    return;
@@ -5489,7 +5552,7 @@ $("readWaterPdfButton").onclick=async()=>{
   renderWaterImportPreview();
   message(
    $("waterImportStatus"),
-   `${waterImportCandidates.length} análise(s) reconhecida(s). Confira sistema, tipo de água e valores antes de confirmar.`,
+   `${waterImportCandidates.length} análise(s) preparada(s). Confira e valide os valores antes de confirmar.`,
    "ok"
   );
  }catch(err){
@@ -5512,16 +5575,29 @@ async function saveImportedWaterCandidate(candidate,file,index){
  if(!candidate.water_type)throw new Error(`Selecione o tipo de água da análise ${index+1}.`);
  if(!candidate.sample_date)throw new Error(`Informe a data da coleta da análise ${index+1}.`);
 
- const resolvedResults=candidate.results.map(result=>{
-  const ref=findWaterReferenceForImport(candidate.water_type,result.detected_name);
+ const validationRows=(candidate.validationRows||[])
+  .filter(row=>row.value!==null&&row.value!==undefined);
+
+ if(!validationRows.length){
+  throw new Error(`Informe pelo menos um valor na análise ${index+1}.`);
+ }
+
+ const resolvedResults=validationRows.map(row=>{
+  const ref=waterReferences.find(r=>r.id===row.reference_id);
 
   if(!ref){
    throw new Error(
-    `O parâmetro "${result.detected_name}" não está cadastrado nas referências de ${WATER_LABELS[candidate.water_type]}.`
+    `O parâmetro "${row.parameter_name}" não está cadastrado nas referências de ${WATER_LABELS[candidate.water_type]}.`
    );
   }
 
-  return {result,ref};
+  return {
+   result:{
+    detected_name:row.parameter_name,
+    value:row.value
+   },
+   ref
+  };
  });
 
  const reportId=crypto.randomUUID();
