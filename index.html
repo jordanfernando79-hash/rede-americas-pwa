@@ -977,11 +977,16 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div class="water-actions">
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
+<button id="waterSystemsButton" class="ghost">Sistemas</button>
 <button id="waterReferencesButton" class="ghost">Referências</button>
 </div>
 
 
 <div class="filters">
+<select id="waterSystemFilter">
+<option value="">Todos os sistemas</option>
+</select>
+
 <select id="waterTypeFilter">
 <option value="conforto">Água gelada de conforto</option>
 <option value="processo">Água gelada de processo</option>
@@ -1409,6 +1414,13 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 <div class="form-grid">
 <div>
+<label>Sistema *</label>
+<select id="waterManualSystem" required>
+<option value="">Selecione um sistema</option>
+</select>
+</div>
+
+<div>
 <label>Tipo de água *</label>
 <select id="waterManualType" required>
 <option value="conforto">Água gelada de conforto</option>
@@ -1452,6 +1464,42 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <button id="saveWaterManual" type="submit" class="primary">Salvar análise</button>
 </div>
 </form>
+</div>
+</dialog>
+
+
+<!-- MODAL QUALIDADE DA ÁGUA - SISTEMAS -->
+<dialog id="waterSystemsDialog">
+<div class="dialog-body">
+<h2>Sistemas de climatização / água</h2>
+<p class="muted">Cadastre os sistemas técnicos da unidade. O sistema identifica o circuito ao qual a análise de água pertence.</p>
+
+<form id="waterSystemForm">
+<input id="waterSystemId" type="hidden">
+
+<div class="form-grid">
+<div class="full">
+<label>Nome do sistema *</label>
+<input id="waterSystemName" required maxlength="180" placeholder="Ex.: CAG – Chillers condensação a água">
+</div>
+
+<div class="full">
+<label>Equipamentos relacionados</label>
+<textarea id="waterSystemEquipment" rows="3" maxlength="500" placeholder="Ex.: Chillers 01 a 04 / Torres 01 a 05"></textarea>
+</div>
+</div>
+
+<div class="dialog-actions">
+<button id="clearWaterSystemForm" type="button" class="ghost">Limpar</button>
+<button id="saveWaterSystemButton" type="submit" class="primary">Salvar sistema</button>
+</div>
+</form>
+
+<div id="waterSystemList" class="record-list" style="margin-top:16px"></div>
+
+<div class="dialog-actions">
+<button id="closeWaterSystemsDialog" type="button" class="ghost">Fechar</button>
+</div>
 </div>
 </dialog>
 
@@ -2097,6 +2145,8 @@ let ovEmployeesChartInstance=null;
 let ovCostChartInstance=null;
 
 
+let waterSystems=[];
+let editingWaterSystem=null;
 let waterReferences=[];
 let waterReports=[];
 let waterResults=[];
@@ -2506,6 +2556,14 @@ function configureActionButtons(){
  $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
  $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
  $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
+ $("waterSystemsButton").classList.toggle(
+  "hidden",
+  !(
+   hasAccess("qualidade_agua","insert",unitId) ||
+   hasAccess("qualidade_agua","edit",unitId) ||
+   hasAccess("qualidade_agua","delete",unitId)
+  )
+ );
 
 
  // Referências de água permanecem administrativas.
@@ -3911,6 +3969,76 @@ function isWaterOutOfRange(result){
 }
 
 
+async function loadWaterSystems(){
+ if(!unitId){
+  waterSystems=[];
+  return [];
+ }
+
+ const {data,error}=await db
+  .from("water_systems")
+  .select("id,unit_id,system_name,equipment_description,active,created_at")
+  .eq("unit_id",unitId)
+  .eq("active",true)
+  .order("system_name");
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Falha ao carregar os sistemas da unidade.","err");
+  waterSystems=[];
+  return [];
+ }
+
+ waterSystems=data||[];
+ return waterSystems;
+}
+
+function populateWaterSystemFilter(){
+ const select=$("waterSystemFilter");
+ const current=select.value;
+
+ select.innerHTML='<option value="">Todos os sistemas</option>';
+
+ waterSystems.forEach(system=>{
+  const option=document.createElement("option");
+  option.value=system.id;
+  option.textContent=system.system_name;
+  option.selected=system.id===current;
+  select.appendChild(option);
+ });
+
+ select.appendChild(new Option("Histórico sem sistema definido","__legacy__"));
+
+ if(current && current!=="__legacy__" && !waterSystems.some(s=>s.id===current)){
+  select.value="";
+ }
+}
+
+function populateWaterManualSystem(selectedId=""){
+ const select=$("waterManualSystem");
+ select.innerHTML='<option value="">Selecione um sistema</option>';
+
+ waterSystems.forEach(system=>{
+  const option=document.createElement("option");
+  option.value=system.id;
+  option.textContent=system.system_name;
+  option.selected=system.id===selectedId;
+  select.appendChild(option);
+ });
+}
+
+function currentWaterSystemName(){
+ const value=$("waterSystemFilter")?.value||"";
+ if(value==="__legacy__")return "Histórico sem sistema definido";
+ if(!value)return "Todos os sistemas";
+ return waterSystems.find(s=>s.id===value)?.system_name||"Sistema";
+}
+
+function waterSystemNameById(id){
+ return waterSystems.find(s=>s.id===id)?.system_name||"Histórico sem sistema definido";
+}
+
+
 async function loadWaterReferences(type=null){
  let query=db
   .from("water_reference_parameters")
@@ -3941,19 +4069,19 @@ async function loadWaterReferences(type=null){
 async function loadWaterModule(){
  if(!unitId)return;
 
-
  const type=$("waterTypeFilter").value;
 
+ await Promise.all([
+  loadWaterReferences(),
+  loadWaterSystems()
+ ]);
 
- await loadWaterReferences();
-
+ populateWaterSystemFilter();
 
  const refs=waterReferences.filter(r=>r.water_type===type);
 
-
  $("waterParameterFilter").innerHTML=
   '<option value="">Selecione um parâmetro</option>';
-
 
  refs.forEach(ref=>{
   const option=document.createElement("option");
@@ -3962,14 +4090,22 @@ async function loadWaterModule(){
   $("waterParameterFilter").appendChild(option);
  });
 
+ const selectedSystem=$("waterSystemFilter").value;
 
- const {data:reports,error}=await db
+ let query=db
   .from("water_analysis_reports")
   .select("*")
   .eq("unit_id",unitId)
   .eq("water_type",type)
   .order("sample_date",{ascending:false});
 
+ if(selectedSystem==="__legacy__"){
+  query=query.is("system_id",null);
+ }else if(selectedSystem){
+  query=query.eq("system_id",selectedSystem);
+ }
+
+ const {data:reports,error}=await query;
 
  if(error){
   console.error(error);
@@ -3977,13 +4113,10 @@ async function loadWaterModule(){
   return;
  }
 
-
  waterReports=reports||[];
-
 
  const ids=waterReports.map(r=>r.id);
  waterResults=[];
-
 
  if(ids.length){
   const {data:results,error:resultsError}=await db
@@ -3991,23 +4124,19 @@ async function loadWaterModule(){
    .select("*")
    .in("report_id",ids);
 
-
   if(resultsError){
    console.error(resultsError);
    message($("appMessage"),"Falha ao carregar resultados de água.","err");
    return;
   }
 
-
   waterResults=results||[];
  }
-
 
  updateWaterKpis();
  renderWaterAnalysisList();
  renderWaterChart();
 }
-
 
 function updateWaterKpis(){
  $("waterAnalysisCount").textContent=waterReports.length;
@@ -4113,6 +4242,7 @@ function renderWaterAnalysisList(){
    </div>
    <p>
     <strong>${escapeHtml(currentUnitName())}</strong>
+    • <strong>${escapeHtml(waterSystemNameById(report.system_id))}</strong>
     • ${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}
    </p>
    <p class="muted">${escapeHtml(report.laboratory||"Laboratório não informado")}</p>
@@ -4219,7 +4349,7 @@ function renderWaterChart(){
  }));
 
 
- $("waterChartTitle").textContent=`${currentUnitName()} — ${ref.parameter_name}`;
+ $("waterChartTitle").textContent=`${currentUnitName()} — ${currentWaterSystemName()} — ${ref.parameter_name}`;
 
 
  const limits=[];
@@ -4283,6 +4413,7 @@ function renderWaterChart(){
 }
 
 
+$("waterSystemFilter").addEventListener("change",loadWaterModule);
 $("waterTypeFilter").addEventListener("change",loadWaterModule);
 $("waterParameterFilter").addEventListener("change",renderWaterChart);
 $("waterPeriodFilter").addEventListener("change",renderWaterChart);
@@ -4342,6 +4473,21 @@ $("waterManualButton").onclick=async()=>{
  $("waterManualForm").reset();
  $("waterReportId").value="";
  $("waterManualDialogTitle").textContent="Lançamento manual";
+
+ await loadWaterSystems();
+
+ if(!waterSystems.length){
+  message($("appMessage"),"Cadastre primeiro um sistema para esta unidade.","info");
+  return;
+ }
+
+ const selectedFilter=$("waterSystemFilter").value;
+ const selectedSystem=
+  selectedFilter && selectedFilter!=="__legacy__"
+   ?selectedFilter
+   :"";
+
+ populateWaterManualSystem(selectedSystem);
  $("waterManualType").value=$("waterTypeFilter").value;
  $("waterSampleDate").value=new Date().toISOString().slice(0,10);
  await renderWaterManualResults($("waterManualType").value);
@@ -4364,6 +4510,8 @@ async function openWaterEdit(report){
  $("waterManualForm").reset();
  $("waterReportId").value=report.id;
  $("waterManualDialogTitle").textContent="Editar análise";
+ await loadWaterSystems();
+ populateWaterManualSystem(report.system_id||"");
  $("waterManualType").value=report.water_type;
  $("waterSampleDate").value=report.sample_date||"";
  $("waterReportDate").value=report.report_date||"";
@@ -4390,10 +4538,16 @@ $("waterManualForm").addEventListener("submit",async e=>{
 
  try{
   const type=$("waterManualType").value;
+  const systemId=$("waterManualSystem").value;
+
+  if(!systemId){
+   throw new Error("Selecione o sistema.");
+  }
 
 
   const payload={
    unit_id:unitId,
+   system_id:systemId,
    water_type:type,
    sample_date:$("waterSampleDate").value,
    report_date:$("waterReportDate").value||null,
@@ -4474,7 +4628,13 @@ $("waterManualForm").addEventListener("submit",async e=>{
 
  }catch(err){
   console.error(err);
-  message($("appMessage"),"Não foi possível salvar a análise.","err");
+  message(
+   $("appMessage"),
+   err?.message==="Selecione o sistema."
+    ?err.message
+    :"Não foi possível salvar a análise.",
+   "err"
+  );
  }finally{
   btn.disabled=false;
   btn.textContent="Salvar análise";
@@ -4505,6 +4665,165 @@ async function deleteWaterReport(report){
 
  message($("appMessage"),"Análise excluída.","ok");
  await loadWaterModule();
+}
+
+
+/* SISTEMAS */
+
+async function renderWaterSystemList(){
+ await loadWaterSystems();
+
+ const list=$("waterSystemList");
+ list.replaceChildren();
+
+ if(!waterSystems.length){
+  list.innerHTML='<div class="empty">Nenhum sistema cadastrado nesta unidade.</div>';
+  return;
+ }
+
+ waterSystems.forEach(system=>{
+  const el=document.createElement("article");
+  el.className="record";
+
+  el.innerHTML=`
+   <div class="record-top">
+    <h3>${escapeHtml(system.system_name)}</h3>
+   </div>
+   <p class="muted">${escapeHtml(system.equipment_description||"Equipamentos não informados")}</p>
+   <div class="actions">
+    ${hasAccess("qualidade_agua","edit",unitId)?'<button class="secondary editWaterSystem">Editar</button>':""}
+    ${hasAccess("qualidade_agua","delete",unitId)?'<button class="danger deleteWaterSystem">Excluir</button>':""}
+   </div>
+  `;
+
+  const edit=el.querySelector(".editWaterSystem");
+  if(edit)edit.onclick=()=>editWaterSystem(system);
+
+  const del=el.querySelector(".deleteWaterSystem");
+  if(del)del.onclick=()=>deleteWaterSystem(system);
+
+  list.appendChild(el);
+ });
+}
+
+$("waterSystemsButton").onclick=async()=>{
+ editingWaterSystem=null;
+ $("waterSystemForm").reset();
+ $("waterSystemId").value="";
+ $("saveWaterSystemButton").classList.toggle(
+  "hidden",
+  !hasAccess("qualidade_agua","insert",unitId) &&
+  !hasAccess("qualidade_agua","edit",unitId)
+ );
+ await renderWaterSystemList();
+ $("waterSystemsDialog").showModal();
+};
+
+$("closeWaterSystemsDialog").onclick=async()=>{
+ $("waterSystemsDialog").close();
+ await loadWaterModule();
+};
+
+$("clearWaterSystemForm").onclick=()=>{
+ editingWaterSystem=null;
+ $("waterSystemForm").reset();
+ $("waterSystemId").value="";
+};
+
+function editWaterSystem(system){
+ editingWaterSystem=system;
+ $("waterSystemId").value=system.id;
+ $("waterSystemName").value=system.system_name||"";
+ $("waterSystemEquipment").value=system.equipment_description||"";
+}
+
+$("waterSystemForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const id=$("waterSystemId").value;
+ const system_name=$("waterSystemName").value.trim();
+ const equipment_description=textOrNull($("waterSystemEquipment").value);
+
+ if(!system_name)return;
+
+ const payload={
+  unit_id:unitId,
+  system_name,
+  equipment_description,
+  active:true,
+  updated_by:session.user.id,
+  updated_at:new Date().toISOString()
+ };
+
+ let error;
+
+ if(id){
+  ({error}=await db
+   .from("water_systems")
+   .update(payload)
+   .eq("id",id));
+ }else{
+  ({error}=await db
+   .from("water_systems")
+   .insert({...payload,created_by:session.user.id}));
+ }
+
+ if(error){
+  console.error(error);
+  const duplicate=String(error?.message||"").toLowerCase().includes("duplicate");
+  message(
+   $("appMessage"),
+   duplicate
+    ?"Já existe um sistema com este nome nesta unidade."
+    :"Não foi possível salvar o sistema.",
+   "err"
+  );
+  return;
+ }
+
+ editingWaterSystem=null;
+ $("waterSystemForm").reset();
+ $("waterSystemId").value="";
+ message($("appMessage"),"Sistema salvo com sucesso.","ok");
+ await renderWaterSystemList();
+});
+
+async function deleteWaterSystem(system){
+ const {count,error:countError}=await db
+  .from("water_analysis_reports")
+  .select("id",{count:"exact",head:true})
+  .eq("system_id",system.id);
+
+ if(countError){
+  console.error(countError);
+  message($("appMessage"),"Não foi possível verificar as análises do sistema.","err");
+  return;
+ }
+
+ if((count||0)>0){
+  message(
+   $("appMessage"),
+   `O sistema "${system.system_name}" possui ${count} análise(s) vinculada(s) e não pode ser excluído.`,
+   "info"
+  );
+  return;
+ }
+
+ if(!confirm(`Excluir o sistema "${system.system_name}"?`))return;
+
+ const {error}=await db
+  .from("water_systems")
+  .delete()
+  .eq("id",system.id);
+
+ if(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível excluir o sistema.","err");
+  return;
+ }
+
+ message($("appMessage"),"Sistema excluído.","ok");
+ await renderWaterSystemList();
 }
 
 
