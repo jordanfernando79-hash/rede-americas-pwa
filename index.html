@@ -1676,10 +1676,12 @@ header.main-app-header #headerStatus{
 <div class="dialog-body">
 <h2>Importar tabela por imagem</h2>
 <p class="muted">
-Envie somente uma imagem da tabela analítica preenchida, incluindo o cabeçalho com R.A., cliente,
-data da coleta e os nomes das colunas do sistema. Este importador está ajustado ao layout da Interágua.
+Selecione primeiro o Sistema e o Tipo de água na tela principal e depois envie somente a imagem da tabela.
+O sistema usará esse contexto e procurará apenas os parâmetros e valores impressos da tabela.
 Textos corridos, assinaturas e anotações manuscritas são ignorados.
 </p>
+
+<div id="waterImportContext" class="card" style="margin-bottom:14px"></div>
 
 <div class="form-grid">
 <div class="full">
@@ -5054,6 +5056,28 @@ function findWaterReferenceForImport(type,displayName){
  return null;
 }
 
+function waterImportTokens(value){
+ return waterImportNormalize(value)
+  .replace(/[^a-z0-9\s]/g," ")
+  .split(/\s+/)
+  .filter(Boolean);
+}
+
+function tokenCoverage(text,target){
+ const sourceTokens=new Set(waterImportTokens(text));
+ const targetTokens=waterImportTokens(target);
+ if(!targetTokens.length)return 0;
+
+ const hits=targetTokens.filter(t=>
+  [...sourceTokens].some(s=>
+   s===t ||
+   (s.length>=4&&t.length>=4&&(s.includes(t)||t.includes(s)))
+  )
+ ).length;
+
+ return hits/targetTokens.length;
+}
+
 function detectParameterRow(rowText){
  const n=waterImportNormalize(rowText);
 
@@ -5063,7 +5087,21 @@ function detectParameterRow(rowText){
   }
  }
 
- return null;
+ // fallback tolerante a pequenas falhas do OCR
+ let best=null;
+ let bestScore=0;
+
+ for(const p of WATER_IMPORT_PARAMETER_ALIASES){
+  for(const key of (p.keys||[])){
+   const score=tokenCoverage(rowText,key);
+   if(score>bestScore){
+    best=p;
+    bestScore=score;
+   }
+  }
+ }
+
+ return bestScore>=0.6?best:null;
 }
 
 function pageLooksLikeAnalyticTable(text){
@@ -5170,9 +5208,20 @@ function tesseractWordsToPdfItems(words,canvasHeight){
 async function extractStructuredWaterTablesFromImage(file){
  if(!window.Tesseract)throw new Error("OCR indisponível.");
 
+ const selectedSystem=$("waterSystemFilter").value;
+ const selectedType=$("waterTypeFilter").value;
+
+ if(!selectedSystem||selectedSystem==="__legacy__"){
+  throw new Error("Selecione primeiro o sistema na tela principal.");
+ }
+
+ if(!selectedType){
+  throw new Error("Selecione primeiro o tipo de água na tela principal.");
+ }
+
  message(
   $("waterImportStatus"),
-  "Lendo a imagem da tabela...",
+  "Lendo os parâmetros e valores da tabela...",
   "info"
  );
 
@@ -5200,84 +5249,79 @@ async function extractStructuredWaterTablesFromImage(file){
  const words=result?.data?.words||[];
  const items=tesseractWordsToPdfItems(words,canvas.height);
  const rows=groupPdfRows(items);
+
+ const candidate={
+  page:1,
+  sourceLabel:waterSystems.find(s=>s.id===selectedSystem)?.system_name||"Sistema selecionado",
+  water_type:selectedType,
+  system_id:selectedSystem,
+  sample_date:"",
+  report_date:"",
+  laboratory:"Interágua",
+  ra_number:"",
+  recognition_mode:"imagem",
+  results:[]
+ };
+
+ // Tentativa opcional de extrair datas/R.A., mas isso não é mais obrigatório.
  const pageText=rows.map(pdfRowText).join("\n");
-
- if(!pageLooksLikeAnalyticTable(pageText)){
-  return [];
- }
-
- const normalizedMeta=pageText
-  .replace(/[|]/g," ")
-  .replace(/\s+/g," ");
+ const normalizedMeta=pageText.replace(/[|]/g," ").replace(/\s+/g," ");
 
  const raMatch=normalizedMeta.match(
   /R\.?\s*A\.?\s*N[º°o.]?\s*[:.]?\s*(\d+\s*\/\s*\d{4})/i
  );
+ if(raMatch)candidate.ra_number=raMatch[1].replace(/\s/g,"");
 
  const sampleMatch=normalizedMeta.match(
   /DATA\s+DA\s+COLETA\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})/i
  );
+ if(sampleMatch){
+  candidate.sample_date=waterImportDateToIso(sampleMatch[1].replace(/\s/g,""));
+ }
 
  const reportMatch=normalizedMeta.match(
   /DATA\s+DA\s+AN[ÁA]LISE\s+COMPLETADA\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})/i
  );
-
- const ra=raMatch?raMatch[1].replace(/\s/g,""):"";
- const sampleDate=sampleMatch
-  ?waterImportDateToIso(sampleMatch[1].replace(/\s/g,""))
-  :"";
-
- const reportDate=reportMatch
-  ?waterImportDateToIso(reportMatch[1].replace(/\s/g,""))
-  :"";
-
- const columns=detectInteraguaColumns(pageText);
- if(!columns.length)return [];
-
- const limitHeaderItem=items.find(item=>
-  /LIMITES/i.test(String(item.str||""))
- );
- const limitX=limitHeaderItem?limitHeaderItem.transform[4]:null;
-
- const candidates=columns.map(col=>({
-  page:1,
-  sourceLabel:col.label,
-  water_type:col.type,
-  system_id:suggestWaterSystemForPdfLabel(col.label)?.id||"",
-  sample_date:sampleDate,
-  report_date:reportDate,
-  laboratory:"Interágua",
-  ra_number:ra,
-  recognition_mode:"imagem",
-  results:[]
- }));
+ if(reportMatch){
+  candidate.report_date=waterImportDateToIso(reportMatch[1].replace(/\s/g,""));
+ }
 
  rows.forEach(row=>{
   const rowText=pdfRowText(row);
   const param=detectParameterRow(rowText);
   if(!param)return;
 
-  const values=numericPdfItems(row,limitX);
+  const values=numericPdfItems(row,null);
   if(!values.length)return;
 
-  // No layout da Interágua, o primeiro valor numérico após o nome do parâmetro
-  // pertence à primeira coluna de sistema preenchida, e o segundo à segunda.
-  values.forEach((entry,idx)=>{
-   if(idx>=candidates.length)return;
+  // Para este fluxo, interessa somente o primeiro valor analítico encontrado
+  // na mesma linha do parâmetro. Limites de referência vêm do cadastro do app.
+  const first=values[0];
 
-   candidates[idx].results.push({
-    detected_name:param.name,
-    value:entry.value
-   });
+  // evita duplicidade caso OCR divida a mesma linha
+  if(candidate.results.some(r=>r.detected_name===param.name))return;
+
+  candidate.results.push({
+   detected_name:param.name,
+   value:first.value
   });
  });
 
- // Regra mínima de segurança para o layout Interágua:
- // só aceita candidatos com pelo menos 4 parâmetros canônicos reconhecidos.
- return candidates.filter(c=>{
-  const names=new Set(c.results.map(r=>r.detected_name));
-  return names.size>=4;
+ const allowedNames=new Set(
+  waterReferences
+   .filter(ref=>ref.water_type===selectedType)
+   .map(ref=>waterImportNormalize(ref.parameter_name))
+ );
+
+ candidate.results=candidate.results.filter(result=>{
+  const ref=findWaterReferenceForImport(selectedType,result.detected_name);
+  return !!ref && allowedNames.has(waterImportNormalize(ref.parameter_name));
  });
+
+ // Segurança: aceita a leitura a partir de 3 parâmetros reconhecidos.
+ if(candidate.results.length<3)return [];
+
+ return [candidate];
 }
 
 
@@ -5287,7 +5331,7 @@ function renderWaterImportPreview(){
 
  if(!waterImportCandidates.length){
   box.innerHTML=
-   '<div class="empty">Nenhuma tabela analítica digitada foi reconhecida neste PDF.</div>';
+   '<div class="empty">Nenhum conjunto de parâmetros foi reconhecido nesta imagem.</div>';
   $("waterImportConfirmActions").classList.add("hidden");
   return;
  }
@@ -5321,20 +5365,9 @@ function renderWaterImportPreview(){
    </div>
 
    <div class="form-grid">
-    <div>
-     <label>Sistema *</label>
-     <select class="waterImportSystem" data-index="${index}">
-      ${systemOptions}
-     </select>
-    </div>
-
-    <div>
-     <label>Tipo de água *</label>
-     <select class="waterImportType" data-index="${index}">
-      <option value="condensada" ${candidate.water_type==="condensada"?"selected":""}>Água condensada</option>
-      <option value="conforto" ${candidate.water_type==="conforto"?"selected":""}>Água gelada de conforto</option>
-      <option value="processo" ${candidate.water_type==="processo"?"selected":""}>Água gelada de processo</option>
-     </select>
+    <div class="full">
+     <strong>${escapeHtml(waterSystemNameById(candidate.system_id))}</strong>
+     <div class="muted">${escapeHtml(WATER_LABELS[candidate.water_type]||candidate.water_type)}</div>
     </div>
 
     <div>
@@ -5362,14 +5395,6 @@ function renderWaterImportPreview(){
    </div>
   `;
 
-  card.querySelector(".waterImportSystem").addEventListener("change",e=>{
-   waterImportCandidates[index].system_id=e.target.value;
-  });
-
-  card.querySelector(".waterImportType").addEventListener("change",e=>{
-   waterImportCandidates[index].water_type=e.target.value;
-  });
-
   card.querySelector(".waterImportSampleDate").addEventListener("change",e=>{
    waterImportCandidates[index].sample_date=e.target.value;
   });
@@ -5390,6 +5415,19 @@ $("waterImportButton").onclick=async()=>{
   return;
  }
 
+ const selectedSystem=$("waterSystemFilter").value;
+ const selectedType=$("waterTypeFilter").value;
+
+ if(!selectedSystem||selectedSystem==="__legacy__"){
+  message($("appMessage"),"Selecione primeiro o sistema na Qualidade da Água.","info");
+  return;
+ }
+
+ if(!selectedType){
+  message($("appMessage"),"Selecione primeiro o tipo de água na Qualidade da Água.","info");
+  return;
+ }
+
  waterImportCandidates=[];
  waterImportPdfFile=null;
  $("waterImportFile").value="";
@@ -5401,6 +5439,14 @@ $("waterImportButton").onclick=async()=>{
   loadWaterSystems(),
   loadWaterReferences()
  ]);
+
+ const selectedSystemName=
+  waterSystems.find(s=>s.id===selectedSystem)?.system_name||"Sistema";
+
+ $("waterImportContext").innerHTML=`
+  <strong>${escapeHtml(currentUnitName())}</strong><br>
+  <span class="muted">${escapeHtml(selectedSystemName)} • ${escapeHtml(WATER_LABELS[selectedType]||selectedType)}</span>
+ `;
 
  $("waterImportDialog").showModal();
 };
@@ -5434,7 +5480,7 @@ $("readWaterPdfButton").onclick=async()=>{
    renderWaterImportPreview();
    message(
     $("waterImportStatus"),
-    "Não encontrei uma tabela analítica reconhecível nesta imagem. Nenhum dado foi lançado.",
+    "Não consegui reconhecer pelo menos 3 parâmetros com segurança nesta imagem. Nenhum dado foi lançado.",
     "err"
    );
    return;
