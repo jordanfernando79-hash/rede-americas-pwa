@@ -186,6 +186,37 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .water-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
 .water-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
 .water-kpi strong{display:block;font-size:24px;color:var(--primary2);margin-top:4px}
+.water-charts-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:16px;
+ margin-bottom:20px;
+}
+.water-chart-card.exec-water-chart{
+ min-width:0;
+}
+.water-chart-card.exec-water-chart .water-chart-wrap{
+ height:260px;
+}
+.water-chart-card.exec-water-chart.featured{
+ grid-column:1/-1;
+}
+.water-chart-card.exec-water-chart.featured .water-chart-wrap{
+ height:360px;
+}
+@media(max-width:900px){
+ .water-charts-grid{
+  grid-template-columns:1fr;
+ }
+ .water-chart-card.exec-water-chart.featured{
+  grid-column:auto;
+ }
+ .water-chart-card.exec-water-chart .water-chart-wrap,
+ .water-chart-card.exec-water-chart.featured .water-chart-wrap{
+  height:280px;
+ }
+}
+
 .water-chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:14px}
 .water-chart-wrap{height:320px;position:relative}
 .water-ref-list{display:grid;gap:8px;margin-top:14px}
@@ -996,7 +1027,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 <select id="waterParameterFilter">
-<option value="">Selecione um parâmetro</option>
+<option value="">Todos os parâmetros</option>
 </select>
 
 
@@ -1015,17 +1046,14 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 
-<div class="water-chart-card">
-<div class="section-title" style="margin-top:0">
+<div class="section-title" style="margin-top:18px">
 <div>
 <h3 id="waterChartTitle" style="margin:0">Acompanhamento mensal</h3>
-<div id="waterChartReference" class="muted">Selecione um parâmetro.</div>
+<div id="waterChartReference" class="muted">Selecione o sistema e o tipo de água.</div>
 </div>
 </div>
-<div class="water-chart-wrap">
-<canvas id="waterChart"></canvas>
-</div>
-</div>
+
+<div id="waterChartsGrid" class="water-charts-grid"></div>
 
 
 <h3>Últimas análises</h3>
@@ -2152,7 +2180,7 @@ let editingWaterSystem=null;
 let waterReferences=[];
 let waterReports=[];
 let waterResults=[];
-let waterChartInstance=null;
+let waterChartInstances=[];
 let editingWaterReport=null;
 
 
@@ -4091,19 +4119,18 @@ async function loadWaterModule(){
  populateWaterSystemFilter();
 
  $("waterParameterFilter").innerHTML=
-  '<option value="">Selecione um parâmetro</option>';
+  '<option value="">Todos os parâmetros</option>';
 
  if(!type){
   waterReports=[];
   waterResults=[];
   updateWaterKpis();
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione o tipo de água.</div>';
-  if(waterChartInstance){
-   waterChartInstance.destroy();
-   waterChartInstance=null;
-  }
+  waterChartInstances.forEach(chart=>chart?.destroy());
+  waterChartInstances=[];
+  $("waterChartsGrid").innerHTML="";
   $("waterChartTitle").textContent="Acompanhamento mensal";
-  $("waterChartReference").textContent="Selecione o tipo de água e um parâmetro.";
+  $("waterChartReference").textContent="Selecione o sistema e o tipo de água.";
   return;
  }
 
@@ -4323,27 +4350,8 @@ function selectedWaterReference(){
  return waterReferences.find(r=>r.id===id)||null;
 }
 
-
-function renderWaterChart(){
- if(waterChartInstance){
-  waterChartInstance.destroy();
-  waterChartInstance=null;
- }
-
-
- const ref=selectedWaterReference();
- const canvas=$("waterChart");
-
-
- if(!ref){
-  $("waterChartTitle").textContent="Acompanhamento mensal";
-  $("waterChartReference").textContent="Selecione um parâmetro.";
-  return;
- }
-
-
+function waterChartDataForReference(ref){
  const period=Number($("waterPeriodFilter").value||0);
-
 
  let reports=[...waterReports];
  if(period){
@@ -4351,7 +4359,6 @@ function renderWaterChart(){
   limit.setMonth(limit.getMonth()-period);
   reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
  }
-
 
  const reportMap=new Map(reports.map(r=>[r.id,r]));
  const rows=waterResults
@@ -4362,9 +4369,7 @@ function renderWaterChart(){
   }))
   .sort((a,b)=>a.date.localeCompare(b.date));
 
-
  const monthly=new Map();
-
 
  rows.forEach(row=>{
   const month=row.date.slice(0,7);
@@ -4372,35 +4377,44 @@ function renderWaterChart(){
   monthly.get(month).push(row.value);
  });
 
-
- const data=[...monthly.entries()].map(([month,values])=>({
+ return [...monthly.entries()].map(([month,values])=>({
   month,
   value:values.reduce((a,b)=>a+b,0)/values.length
  }));
+}
 
-
- $("waterChartTitle").textContent=`${currentUnitName()} — ${currentWaterSystemName()} — ${ref.parameter_name}`;
-
+function renderSingleWaterChart(ref,featured=false){
+ const card=document.createElement("div");
+ card.className=`water-chart-card exec-water-chart${featured?" featured":""}`;
 
  const limits=[];
  if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
  if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
 
+ card.innerHTML=`
+  <div class="section-title" style="margin-top:0">
+   <div>
+    <h3 style="margin:0">${escapeHtml(ref.parameter_name)}</h3>
+    <div class="muted">
+     ${escapeHtml(ref.unit||"sem unidade")}
+     ${limits.length?` • ${escapeHtml(limits.join(" • "))}`:""}
+    </div>
+   </div>
+  </div>
+  <div class="water-chart-wrap">
+   <canvas></canvas>
+  </div>
+ `;
 
- const equipment=currentWaterSystemEquipment();
+ $("waterChartsGrid").appendChild(card);
 
- $("waterChartReference").textContent=
-  `${WATER_LABELS[$("waterTypeFilter").value]}`
-  +`${equipment?` • Equipamentos: ${equipment}`:""}`
-  +` • ${ref.unit||"sem unidade"}`
-  +`${limits.length?" • "+limits.join(" • "):""}`;
-
+ const canvas=card.querySelector("canvas");
+ const data=waterChartDataForReference(ref);
 
  const labels=data.map(d=>{
   const [year,month]=d.month.split("-");
   return `${month}/${year}`;
  });
-
 
  const datasets=[{
   label:ref.parameter_name,
@@ -4408,7 +4422,6 @@ function renderWaterChart(){
   borderWidth:2,
   tension:.25
  }];
-
 
  if(ref.min_value!==null){
   datasets.push({
@@ -4420,7 +4433,6 @@ function renderWaterChart(){
   });
  }
 
-
  if(ref.max_value!==null){
   datasets.push({
    label:"Máximo",
@@ -4431,8 +4443,7 @@ function renderWaterChart(){
   });
  }
 
-
- waterChartInstance=new Chart(canvas,{
+ const chart=new Chart(canvas,{
   type:"line",
   data:{labels,datasets},
   options:{
@@ -4445,8 +4456,51 @@ function renderWaterChart(){
    }
   }
  });
+
+ waterChartInstances.push(chart);
 }
 
+function renderWaterChart(){
+ waterChartInstances.forEach(chart=>chart?.destroy());
+ waterChartInstances=[];
+ $("waterChartsGrid").replaceChildren();
+
+ const type=$("waterTypeFilter").value;
+ const selected=selectedWaterReference();
+
+ if(!type){
+  $("waterChartTitle").textContent="Acompanhamento mensal";
+  $("waterChartReference").textContent="Selecione o sistema e o tipo de água.";
+  return;
+ }
+
+ const equipment=currentWaterSystemEquipment();
+ $("waterChartTitle").textContent=
+  `${currentUnitName()} — ${currentWaterSystemName()}`;
+
+ $("waterChartReference").textContent=
+  `${WATER_LABELS[type]||type}`
+  +`${equipment?` • Equipamentos: ${equipment}`:""}`;
+
+ const refs=waterReferences
+  .filter(r=>r.water_type===type)
+  .sort((a,b)=>{
+   const da=Number(a.display_order||0);
+   const db=Number(b.display_order||0);
+   if(da!==db)return da-db;
+   return (a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR");
+  });
+
+ const visibleRefs=selected?[selected]:refs;
+
+ if(!visibleRefs.length){
+  $("waterChartsGrid").innerHTML=
+   '<div class="empty">Nenhum parâmetro de referência cadastrado para este tipo de água.</div>';
+  return;
+ }
+
+ visibleRefs.forEach(ref=>renderSingleWaterChart(ref,!!selected));
+}
 
 $("waterSystemFilter").addEventListener("change",loadWaterModule);
 $("waterTypeFilter").addEventListener("change",loadWaterModule);
