@@ -988,6 +988,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 </select>
 
 <select id="waterTypeFilter">
+<option value="">Selecione o tipo de água</option>
 <option value="conforto">Água gelada de conforto</option>
 <option value="processo">Água gelada de processo</option>
 <option value="condensada">Água condensada</option>
@@ -1423,6 +1424,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 <div>
 <label>Tipo de água *</label>
 <select id="waterManualType" required>
+<option value="">Selecione o tipo de água</option>
 <option value="conforto">Água gelada de conforto</option>
 <option value="processo">Água gelada de processo</option>
 <option value="condensada">Água condensada</option>
@@ -4088,10 +4090,24 @@ async function loadWaterModule(){
 
  populateWaterSystemFilter();
 
- const refs=waterReferences.filter(r=>r.water_type===type);
-
  $("waterParameterFilter").innerHTML=
   '<option value="">Selecione um parâmetro</option>';
+
+ if(!type){
+  waterReports=[];
+  waterResults=[];
+  updateWaterKpis();
+  $("waterAnalysisList").innerHTML='<div class="empty">Selecione o tipo de água.</div>';
+  if(waterChartInstance){
+   waterChartInstance.destroy();
+   waterChartInstance=null;
+  }
+  $("waterChartTitle").textContent="Acompanhamento mensal";
+  $("waterChartReference").textContent="Selecione o tipo de água e um parâmetro.";
+  return;
+ }
+
+ const refs=waterReferences.filter(r=>r.water_type===type);
 
  refs.forEach(ref=>{
   const option=document.createElement("option");
@@ -4507,7 +4523,7 @@ $("waterManualButton").onclick=async()=>{
    :"";
 
  populateWaterManualSystem(selectedSystem);
- $("waterManualType").value=$("waterTypeFilter").value;
+ $("waterManualType").value=$("waterTypeFilter").value||"";
  $("waterSampleDate").value=new Date().toISOString().slice(0,10);
  await renderWaterManualResults($("waterManualType").value);
  $("waterManualDialog").showModal();
