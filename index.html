@@ -4038,6 +4038,16 @@ function waterSystemNameById(id){
  return waterSystems.find(s=>s.id===id)?.system_name||"Histórico sem sistema definido";
 }
 
+function waterSystemEquipmentById(id){
+ return waterSystems.find(s=>s.id===id)?.equipment_description||"";
+}
+
+function currentWaterSystemEquipment(){
+ const value=$("waterSystemFilter")?.value||"";
+ if(!value||value==="__legacy__")return "";
+ return waterSystems.find(s=>s.id===value)?.equipment_description||"";
+}
+
 
 async function loadWaterReferences(type=null){
  let query=db
@@ -4245,6 +4255,10 @@ function renderWaterAnalysisList(){
     • <strong>${escapeHtml(waterSystemNameById(report.system_id))}</strong>
     • ${escapeHtml(WATER_LABELS[report.water_type]||report.water_type)}
    </p>
+   ${waterSystemEquipmentById(report.system_id)
+     ?`<p class="muted"><strong>Equipamentos:</strong> ${escapeHtml(waterSystemEquipmentById(report.system_id))}</p>`
+     :""
+   }
    <p class="muted">${escapeHtml(report.laboratory||"Laboratório não informado")}</p>
    <p><strong>${results.length}</strong> parâmetro(s) • <strong>${outCount}</strong> fora da faixa</p>
    ${parameterRows}
@@ -4357,8 +4371,13 @@ function renderWaterChart(){
  if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
 
 
+ const equipment=currentWaterSystemEquipment();
+
  $("waterChartReference").textContent=
-  `${WATER_LABELS[$("waterTypeFilter").value]} • ${ref.unit||"sem unidade"}${limits.length?" • "+limits.join(" • "):""}`;
+  `${WATER_LABELS[$("waterTypeFilter").value]}`
+  +`${equipment?` • Equipamentos: ${equipment}`:""}`
+  +` • ${ref.unit||"sem unidade"}`
+  +`${limits.length?" • "+limits.join(" • "):""}`;
 
 
  const labels=data.map(d=>{
