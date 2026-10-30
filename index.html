@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 
 <style>
@@ -1677,6 +1678,7 @@ header.main-app-header #headerStatus{
 <p class="muted">
 O sistema considera somente tabelas digitadas/preenchidas do laudo. Textos corridos,
 anotações manuscritas, assinaturas e observações à mão são ignorados.
+Se o PDF for digitalizado como imagem, a leitura por OCR será feita automaticamente no navegador.
 </p>
 
 <div class="form-grid">
@@ -5036,6 +5038,103 @@ function detectParameterRow(rowText){
  return match||null;
 }
 
+function pageLooksLikeAnalyticTable(text){
+ const n=waterImportNormalize(text);
+ return (
+  n.includes("testes analiticos") &&
+  (
+   n.includes("limites permitidos") ||
+   (n.includes("limites")&&n.includes("permitidos"))
+  )
+ );
+}
+
+async function renderPdfPageToCanvas(page,scale=2){
+ const viewport=page.getViewport({scale});
+ const canvas=document.createElement("canvas");
+ canvas.width=Math.ceil(viewport.width);
+ canvas.height=Math.ceil(viewport.height);
+
+ const ctx=canvas.getContext("2d",{willReadFrequently:true});
+ await page.render({canvasContext:ctx,viewport}).promise;
+
+ return {canvas,viewport};
+}
+
+function tesseractWordsToPdfItems(words,canvasHeight){
+ return (words||[])
+  .filter(w=>String(w.text||"").trim())
+  .map(w=>{
+   const box=w.bbox||{};
+   const x0=Number(box.x0||0);
+   const x1=Number(box.x1||x0);
+   const y0=Number(box.y0||0);
+   const y1=Number(box.y1||y0);
+
+   return {
+    str:String(w.text||"").trim(),
+    transform:[1,0,0,1,x0,canvasHeight-y0],
+    width:Math.max(0,x1-x0),
+    height:Math.max(0,y1-y0)
+   };
+  });
+}
+
+async function ocrPdfPage(page,pageNumber){
+ if(!window.Tesseract)throw new Error("OCR indisponível.");
+
+ message(
+  $("waterImportStatus"),
+  `PDF digitalizado: lendo página ${pageNumber} por OCR...`,
+  "info"
+ );
+
+ const {canvas}=await renderPdfPageToCanvas(page,2);
+
+ const result=await Tesseract.recognize(
+  canvas,
+  "por",
+  {
+   logger:m=>{
+    if(m.status==="recognizing text"&&Number.isFinite(m.progress)){
+     const pct=Math.round(m.progress*100);
+     message(
+      $("waterImportStatus"),
+      `OCR da página ${pageNumber}: ${pct}%`,
+      "info"
+     );
+    }
+   }
+  }
+ );
+
+ const words=result?.data?.words||[];
+ const items=tesseractWordsToPdfItems(words,canvas.height);
+ const rows=groupPdfRows(items);
+ const pageText=rows.map(pdfRowText).join("\n");
+
+ return {items,rows,pageText,usedOcr:true};
+}
+
+async function getPdfPageStructuredContent(page,pageNumber){
+ const content=await page.getTextContent();
+ const embeddedItems=content.items||[];
+ const embeddedRows=groupPdfRows(embeddedItems);
+ const embeddedText=embeddedRows.map(pdfRowText).join("\n");
+
+ if(pageLooksLikeAnalyticTable(embeddedText)){
+  return {
+   items:embeddedItems,
+   rows:embeddedRows,
+   pageText:embeddedText,
+   usedOcr:false
+  };
+ }
+
+ return await ocrPdfPage(page,pageNumber);
+}
+
+
 async function extractStructuredWaterTablesFromPdf(file){
  if(!window.pdfjsLib)throw new Error("Leitor de PDF indisponível.");
 
@@ -5051,16 +5150,14 @@ async function extractStructuredWaterTablesFromPdf(file){
 
  for(let p=1;p<=pdf.numPages;p++){
   const page=await pdf.getPage(p);
-  const content=await page.getTextContent();
-  const rows=groupPdfRows(content.items);
-  const pageText=rows.map(pdfRowText).join("\n");
-  const normalized=waterImportNormalize(pageText);
+  const structured=await getPdfPageStructuredContent(page,p);
+  const rows=structured.rows;
+  const pageText=structured.pageText;
+  const pageItems=structured.items;
 
-  // Somente páginas com tabela analítica digitada.
-  if(
-   !normalized.includes("testes analiticos") ||
-   !normalized.includes("limites permitidos")
-  ){
+  // Mesmo após OCR, somente páginas com a estrutura impressa da tabela
+  // analítica são consideradas. Páginas manuscritas ficam de fora.
+  if(!pageLooksLikeAnalyticTable(pageText)){
    continue;
   }
 
@@ -5076,7 +5173,7 @@ async function extractStructuredWaterTablesFromPdf(file){
   const columns=detectInteraguaColumns(pageText);
   if(!columns.length)continue;
 
-  const limitHeaderItem=content.items.find(item=>
+  const limitHeaderItem=pageItems.find(item=>
    /LIMITES/i.test(String(item.str||""))
   );
   const limitX=limitHeaderItem?limitHeaderItem.transform[4]:null;
@@ -5090,6 +5187,7 @@ async function extractStructuredWaterTablesFromPdf(file){
    report_date:globalReportDate,
    laboratory:"Interágua",
    ra_number:globalRa,
+   recognition_mode:structured.usedOcr?"OCR":"texto do PDF",
    results:[]
   }));
 
@@ -5157,7 +5255,7 @@ function renderWaterImportPreview(){
   card.innerHTML=`
    <div class="record-top">
     <h3>Página ${candidate.page} • ${escapeHtml(candidate.sourceLabel)}</h3>
-    <span class="badge">PDF</span>
+    <span class="badge">${escapeHtml(candidate.recognition_mode||"PDF")}</span>
    </div>
 
    <div class="form-grid">
@@ -5190,7 +5288,7 @@ function renderWaterImportPreview(){
 
    <p class="muted">
     ${candidate.ra_number?`R.A. ${escapeHtml(candidate.ra_number)} • `:""}
-    ${candidate.results.length} parâmetro(s) reconhecido(s).
+    ${candidate.results.length} parâmetro(s) reconhecido(s) • leitura: ${escapeHtml(candidate.recognition_mode||"PDF")}.
    </p>
 
    <div class="water-analysis-params">
@@ -5261,7 +5359,7 @@ $("readWaterPdfButton").onclick=async()=>{
  btn.textContent="Lendo PDF...";
  message(
   $("waterImportStatus"),
-  "Procurando somente tabelas analíticas digitadas...",
+  "Procurando tabelas analíticas digitadas. PDFs digitalizados serão lidos por OCR...",
   "info"
  );
 
@@ -5273,7 +5371,7 @@ $("readWaterPdfButton").onclick=async()=>{
    renderWaterImportPreview();
    message(
     $("waterImportStatus"),
-    "Não encontrei tabela analítica digitada com estrutura reconhecível. Nenhum dado foi lançado.",
+    "Não encontrei tabela analítica digitada com estrutura reconhecível, mesmo após OCR. Nenhum dado foi lançado.",
     "err"
    );
    return;
@@ -5334,7 +5432,7 @@ async function saveImportedWaterCandidate(candidate,file,index){
  try{
   const notes=[
    candidate.ra_number?`R.A. ${candidate.ra_number}`:null,
-   `Importação automática de tabela digitada — página ${candidate.page}`,
+   `Importação automática de tabela digitada — página ${candidate.page} — leitura ${candidate.recognition_mode||"PDF"}`,
    `Identificação no PDF: ${candidate.sourceLabel}`
   ].filter(Boolean).join(" • ");
 
