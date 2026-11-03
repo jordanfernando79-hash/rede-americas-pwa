@@ -960,7 +960,12 @@ header.main-app-header #headerStatus{
 
 <div class="exec-grid">
 <div class="exec-card"><span>Unidades</span><strong id="ovUnits">0</strong><small id="ovUnitsNote">Rede ativa</small></div>
-<div class="exec-card"><span>Funcionários ativos</span><strong id="ovEmployees">0</strong><small>Equipe cadastrada</small></div>
+<div class="exec-card">
+<span>Funcionários ativos</span>
+<strong id="ovEmployees">0</strong>
+<small id="ovEmployeesActiveNote">Efetivo ativo: 0</small>
+<small id="ovEmployeesExpectedNote">Efetivo esperado: 58</small>
+</div>
 <div class="exec-card"><span>RDI em aberto</span><strong id="ovRdiOpen">0</strong><small id="ovRdiCritical">0 críticas</small></div>
 <div class="exec-card"><span>RDI concluídas</span><strong id="ovRdiDone">0</strong><small id="ovRdiRate">0% de conclusão</small></div>
 <div class="exec-card"><span>Custo estimado RDI</span><strong id="ovCostEstimated" style="font-size:21px">R$ 0</strong><small>Demandas do escopo</small></div>
@@ -3880,6 +3885,8 @@ function moneyBr(value){
 }
 
 
+const OVERVIEW_EXPECTED_HEADCOUNT=58;
+
 function overviewScopeId(){
  return $("overviewUnitSelect")?.value||"";
 }
@@ -4042,6 +4049,14 @@ async function loadOverview(){
 
 
   $("ovEmployees").textContent=canCommunication?employees.length:"—";
+
+  $("ovEmployeesActiveNote").textContent=canCommunication
+   ?`Efetivo ativo: ${employees.length}`
+   :"Sem acesso ao módulo";
+
+  $("ovEmployeesExpectedNote").textContent=scope
+   ?"Efetivo esperado: não definido para esta unidade"
+   :`Efetivo esperado: ${OVERVIEW_EXPECTED_HEADCOUNT}`;
 
 
   $("ovRdiOpen").textContent=canRdi?openRdi.length:"—";
