@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -7,6 +7,8 @@
 <title>Central de Gestão de Manutenção Rede Americas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+
 
 
 <style>
@@ -128,6 +130,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .unit-check-row input{width:auto}
 
 
+
+
 .org-chart{display:grid;gap:14px}
 .org-level{display:grid;gap:8px}
 .org-level-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
@@ -136,6 +140,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .org-card strong{display:block;font-size:17px;margin-bottom:4px}
 .org-group-card{background:#eef5fa;border:1px solid #c7dce9;border-radius:14px;padding:16px}
 .org-group-card h3{margin:0 0 10px}
+
+
+
+
 
 
 
@@ -151,6 +159,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .org-children:before{content:"";position:absolute;top:0;left:50%;width:2px;height:18px;background:#b8c9d5}
 .org-node-wrap>.org-children:after{content:"";position:absolute;top:18px;left:12%;right:12%;height:2px;background:#b8c9d5}
 .org-node-wrap>.org-children>.org-node-wrap:before{content:"";position:absolute;top:-6px;left:50%;width:2px;height:12px;background:#b8c9d5}
+
+
 
 
 dialog{width:min(900px,96vw);max-height:92vh;border:0;border-radius:15px;padding:0;overflow:auto}
@@ -175,6 +185,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .section-title button{width:100%}
  .document-tools{display:grid}
 }
+
+
 
 
 .employee-photo-box{
@@ -211,6 +223,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 
+
+
+
+
 .water-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
 .water-actions button{width:auto}
 .water-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
@@ -234,6 +250,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .water-chart-card.exec-water-chart.featured .water-chart-wrap{
  height:360px;
 }
+
 
 @media(max-width:760px){
  .app-header{align-items:flex-start}
@@ -259,6 +276,7 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  }
 }
 
+
 .water-chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:14px}
 .water-chart-wrap{height:320px;position:relative}
 .water-ref-list{display:grid;gap:8px;margin-top:14px}
@@ -274,6 +292,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .water-ref-row,.water-result-row{grid-template-columns:1fr}
  .water-chart-wrap{height:280px}
 }
+
+
+
+
 
 
 
@@ -331,6 +353,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 
+
+
+
+
 .overview-filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
 .overview-filter>div{min-width:240px}
 .overview-filter select{min-width:240px}
@@ -361,6 +387,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .overview-filter,.overview-filter>div,.overview-filter select{width:100%;min-width:0}
  .exec-chart{height:250px}
 }
+
+
+
+
 
 
 
@@ -501,6 +531,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+
+
 .access-list{display:grid;gap:10px}
 .access-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
 .access-card-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
@@ -519,11 +551,15 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 .access-unit-item input{width:20px;height:20px}
 
 
+
+
 .org-leader-row{display:flex;justify-content:center;margin-bottom:26px;position:relative}
 .org-leader-row:after{content:"";position:absolute;left:50%;bottom:-20px;width:2px;height:20px;background:#b8c9d5}
 .org-team-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start;position:relative;padding-top:18px}
 .org-team-row:before{content:"";position:absolute;top:0;left:12%;right:12%;height:2px;background:#b8c9d5}
 .org-team-row>.org-node-wrap:before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:#b8c9d5}
+
+
 
 
 @media(max-width:700px){
@@ -532,6 +568,10 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
  .permission-row .perm-label{grid-column:1/-1;font-weight:800}
  .access-card-head{display:grid}
 }
+
+
+
+
 
 
 
@@ -613,6 +653,8 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+
+
 /* ORÇAMENTOS */
 .budget-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 14px}
 .budget-kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
@@ -652,6 +694,54 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 }
 
 
+
+
+
+
+/* TREINAMENTOS */
+.training-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:10px;margin-bottom:14px}
+.training-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.training-kpi,.training-card,.training-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
+.training-kpi span{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase}
+.training-kpi strong{display:block;color:var(--primary2);font-size:25px;margin-top:5px}
+.training-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.training-card{display:flex;flex-direction:column;gap:10px}
+.training-card h3{font-size:16px;margin:0;line-height:1.3}
+.training-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.training-pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:800;background:#eef5fa;color:var(--primary)}
+.training-progress{height:9px;background:#e7eef3;border-radius:999px;overflow:hidden}
+.training-progress>span{display:block;height:100%;background:#2c8a5a;border-radius:999px}
+.training-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.training-metrics div{background:#f7fafc;border-radius:9px;padding:8px}
+.training-metrics span{display:block;color:var(--muted);font-size:11px}
+.training-metrics strong{display:block;margin-top:2px}
+.training-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.training-actions button,.training-actions a{width:auto}
+.training-youtube{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:9px;padding:9px 12px;background:#123b5c;color:#fff;font-weight:800;font-size:13px}
+.training-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+.training-tab{width:auto;background:#fff;color:var(--primary);border:1px solid var(--border)}
+.training-tab.active{background:var(--primary);color:#fff}
+.training-table-wrap{overflow:auto;background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:16px}
+.training-table{width:100%;border-collapse:collapse;min-width:850px;font-size:13px}
+.training-table th,.training-table td{padding:10px;border-bottom:1px solid #e4ebf0;text-align:left}
+.training-table th{background:#eef5fa;color:var(--primary);position:sticky;top:0}
+.training-pct-good{color:#18794e;font-weight:800}.training-pct-mid{color:#9a6b00;font-weight:800}.training-pct-low{color:#a63333;font-weight:800}
+.training-pending{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.training-pending summary{cursor:pointer;font-weight:800;color:var(--primary)}
+.training-pending-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.training-pending-list span{background:#fff4d5;color:#6c5600;border-radius:999px;padding:5px 8px;font-size:12px}
+.training-question-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.training-question-box{padding:12px;border-radius:10px;background:#f8fafc;text-align:center}
+.training-question-box strong{display:block;font-size:20px;color:var(--primary2)}
+.training-question-box span{font-size:11px;color:var(--muted)}
+@media(max-width:850px){
+ .training-toolbar,.training-grid{grid-template-columns:1fr}
+ .training-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .training-question-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:500px){.training-kpis{grid-template-columns:1fr}}
+
+
 /* ===== IDENTIDADE VISUAL SIMPLIFICADA ===== */
 :root{
   --primary:#123b5c;
@@ -665,9 +755,11 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
   --header-bg:#123b5c;
 }
 
+
 body{
   background:var(--bg);
 }
+
 
 .splash-screen.splash-simple{
   position:fixed;
@@ -681,11 +773,13 @@ body{
   transition:opacity .45s ease,visibility .45s ease;
 }
 
+
 .splash-screen.splash-simple.hidden{
   opacity:0;
   visibility:hidden;
   pointer-events:none;
 }
+
 
 .splash-simple-content{
   display:flex;
@@ -696,6 +790,7 @@ body{
   text-align:center;
 }
 
+
 .ecg-pulse{
   width:82px;
   height:82px;
@@ -704,6 +799,7 @@ body{
   filter:drop-shadow(0 5px 12px rgba(31,120,173,.14));
 }
 
+
 .splash-simple-title{
   font-size:clamp(29px,6vw,40px);
   line-height:1.1;
@@ -711,6 +807,7 @@ body{
   color:#173f5f;
   letter-spacing:.01em;
 }
+
 
 @keyframes ecgPulse{
   0%,100%{
@@ -727,12 +824,14 @@ body{
   }
 }
 
+
 header.main-app-header{
   background:#123b5c;
   color:#fff;
   padding:18px 20px;
   box-shadow:0 5px 18px rgba(18,59,92,.18);
 }
+
 
 .main-header-inner{
   max-width:1200px;
@@ -743,12 +842,14 @@ header.main-app-header{
   gap:18px;
 }
 
+
 .main-brand-simple{
   display:flex;
   align-items:center;
   gap:15px;
   min-width:0;
 }
+
 
 .main-brand-ecg{
   width:52px;
@@ -758,6 +859,7 @@ header.main-app-header{
   filter:brightness(1.35) drop-shadow(0 3px 8px rgba(0,0,0,.12));
 }
 
+
 header.main-app-header h1{
   margin:0;
   color:#fff;
@@ -766,6 +868,7 @@ header.main-app-header h1{
   font-weight:750;
   letter-spacing:-.02em;
 }
+
 
 header.main-app-header #headerStatus{
   flex:0 0 auto;
@@ -780,6 +883,7 @@ header.main-app-header #headerStatus{
   text-transform:uppercase;
 }
 
+
 /* Remove visualmente elementos da identidade anterior que não são mais usados. */
 .app-header,
 .app-brand,
@@ -790,18 +894,22 @@ header.main-app-header #headerStatus{
   all:unset;
 }
 
+
 @media(max-width:720px){
   header.main-app-header{
     padding:15px 14px;
   }
 
+
   .main-header-inner{
     align-items:flex-start;
   }
 
+
   .main-brand-simple{
     gap:11px;
   }
+
 
   .main-brand-ecg{
     width:42px;
@@ -809,13 +917,16 @@ header.main-app-header #headerStatus{
     flex-basis:42px;
   }
 
+
   header.main-app-header h1{
     font-size:20px;
   }
 
+
   header.main-app-header #headerStatus{
     display:none;
   }
+
 
   .ecg-pulse{
     width:74px;
@@ -823,14 +934,18 @@ header.main-app-header #headerStatus{
   }
 }
 
+
 @media(prefers-reduced-motion:reduce){
   .ecg-pulse{
     animation:none;
   }
 }
 
+
 </style>
 </head>
+
+
 
 
 <body class="splash-active">
@@ -840,6 +955,7 @@ header.main-app-header #headerStatus{
     <div class="splash-simple-title">Rede Americas</div>
   </div>
 </div>
+
 
 <header class="main-app-header">
   <div class="main-header-inner">
@@ -852,7 +968,11 @@ header.main-app-header #headerStatus{
 </header>
 
 
+
+
 <main>
+
+
 
 
 <section id="loginView" class="card login">
@@ -867,6 +987,7 @@ header.main-app-header #headerStatus{
 <button id="forgotPasswordButton" type="button" class="login-link">Esqueci minha senha</button>
 </form>
 
+
 <div id="recoveryBox" class="recovery-box hidden">
 <h3>Definir nova senha</h3>
 <p class="muted">Informe e confirme sua nova senha de acesso.</p>
@@ -879,13 +1000,18 @@ header.main-app-header #headerStatus{
 </form>
 </div>
 
+
 <div id="loginMessage" class="status"></div>
 <hr>
 <p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
 </section>
 
 
+
+
 <section id="appView" class="hidden">
+
+
 
 
 <div class="toolbar">
@@ -899,12 +1025,20 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="appMessage" class="status"></div>
 
 
 
 
+
+
+
+
 <h2>Módulos</h2>
+
+
 
 
 <div class="modules">
@@ -918,10 +1052,12 @@ header.main-app-header #headerStatus{
 <button id="moduleReports" class="module">Relatórios</button>
 <button id="moduleDocuments" class="module">Documentos</button>
 <button class="module" disabled>Inventário</button>
-<button class="module" disabled>Treinamentos</button>
+<button id="moduleTrainings" class="module">Treinamentos</button>
 <button id="moduleOrg" class="module">Organograma</button>
 <button id="moduleCommunication" class="module">Matriz de Comunicação</button>
 </div>
+
+
 
 
 <div id="moduleUnitBar" class="module-unit-bar hidden">
@@ -936,8 +1072,14 @@ header.main-app-header #headerStatus{
 
 
 
+
+
+
+
 <!-- VISÃO GERAL -->
 <div id="overviewModuleView">
+
+
 
 
 <div class="section-title">
@@ -948,6 +1090,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="overview-filter">
 <div>
 <label>Escopo</label>
@@ -956,6 +1100,8 @@ header.main-app-header #headerStatus{
 </select>
 </div>
 </div>
+
+
 
 
 <div class="exec-grid">
@@ -989,11 +1135,15 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="exec-sections">
 <div class="exec-panel">
 <h3>RDI por status</h3>
 <div class="exec-chart"><canvas id="ovRdiChart"></canvas></div>
 </div>
+
+
 
 
 <div class="exec-panel">
@@ -1003,11 +1153,15 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="exec-sections">
 <div class="exec-panel">
 <h3>Custos RDI por unidade</h3>
 <div class="exec-chart"><canvas id="ovCostChart"></canvas></div>
 </div>
+
+
 
 
 <div class="exec-panel">
@@ -1019,13 +1173,21 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </div>
+
+
+
+
 
 
 
 
 <!-- UNIDADES -->
 <div id="unitsModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1037,18 +1199,28 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="unitsList" class="units-grid">
 <div class="empty">Carregando unidades...</div>
 </div>
 
 
+
+
 </div>
+
+
+
+
 
 
 
 
 <!-- USUÁRIOS E ACESSOS -->
 <div id="accessModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1060,16 +1232,24 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="accessUsersList" class="access-list">
 <div class="empty">Carregando usuários...</div>
 </div>
 
 
+
+
 </div>
+
+
 
 
 <!-- RDI -->
 <div id="rdiModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1079,6 +1259,8 @@ header.main-app-header #headerStatus{
 </div>
 <button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
 </div>
+
+
 
 
 <div id="rdiExecutive">
@@ -1106,12 +1288,16 @@ header.main-app-header #headerStatus{
  </div>
 
 
+
+
  <div class="rdi-analysis-title">
   <div>
    <h3>Análise executiva</h3>
    <div class="muted">Indicadores da unidade e dos filtros selecionados.</div>
   </div>
  </div>
+
+
 
 
  <div class="rdi-analysis-grid">
@@ -1132,6 +1318,8 @@ header.main-app-header #headerStatus{
   </div>
  </div>
 </div>
+
+
 
 
 <div class="filters">
@@ -1157,12 +1345,21 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="rdiList" class="record-list">
 <div class="empty">Carregando RDI...</div>
 </div>
 
 
+
+
 </div>
+
+
+
+
+
 
 
 
@@ -1170,6 +1367,7 @@ header.main-app-header #headerStatus{
 
 <!-- ORÇAMENTOS -->
 <div id="budgetModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -1179,12 +1377,14 @@ header.main-app-header #headerStatus{
 <button id="newBudgetButton" class="primary">+ Novo orçamento</button>
 </div>
 
+
 <div class="budget-kpis">
 <div class="budget-kpi"><span>Total de orçamentos</span><strong id="budgetKpiTotal">0</strong><small id="budgetKpiTotalNote">No filtro atual</small></div>
 <div class="budget-kpi"><span>Valor total orçado</span><strong id="budgetKpiTotalAmount">R$ 0</strong><small>Soma dos orçamentos filtrados</small></div>
 <div class="budget-kpi"><span>Valor total aprovado</span><strong id="budgetKpiApprovedAmount">R$ 0</strong><small id="budgetKpiApprovedNote">0 aprovados</small></div>
 <div class="budget-kpi"><span>Orçamentos executados</span><strong id="budgetKpiExecuted">0</strong><small id="budgetKpiExecutedNote">0% do filtro</small></div>
 </div>
+
 
 <div class="budget-filters">
 <input id="budgetSearch" placeholder="Buscar orçamento, cliente, escopo, C.Custo ou pedido...">
@@ -1202,6 +1402,7 @@ header.main-app-header #headerStatus{
 <input id="budgetMonthFilter" type="month" title="Filtrar pelo mês de emissão">
 </div>
 
+
 <div class="budget-charts">
 <div class="budget-chart-card">
 <h3>Aprovados x não aprovados por unidade</h3>
@@ -1214,6 +1415,7 @@ header.main-app-header #headerStatus{
 <div class="budget-chart-wrap"><canvas id="budgetValueChart"></canvas></div>
 </div>
 </div>
+
 
 <h3>Lista de orçamentos</h3>
 <div class="budget-table-wrap">
@@ -1228,10 +1430,14 @@ header.main-app-header #headerStatus{
 </div>
 <div id="budgetMobileList" class="budget-mobile-list"></div>
 
+
 </div>
+
 
 <!-- QUALIDADE DA ÁGUA -->
 <div id="waterModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1242,6 +1448,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="water-actions">
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
 <button id="waterSystemsButton" class="ghost">Sistemas</button>
@@ -1249,10 +1457,13 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="filters">
 <select id="waterSystemFilter">
 <option value="">Todos os sistemas</option>
 </select>
+
 
 <select id="waterTypeFilter">
 <option value="">Selecione o tipo de água</option>
@@ -1262,14 +1473,19 @@ header.main-app-header #headerStatus{
 </select>
 
 
+
+
 <select id="waterParameterFilter">
 <option value="">Todos os parâmetros</option>
 </select>
 
 
+
+
 <select id="waterMonthFilter">
 <option value="">Todos os meses</option>
 </select>
+
 
 <select id="waterPeriodFilter">
 <option value="12">Últimos 12 meses</option>
@@ -1279,11 +1495,15 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="water-kpis">
 <div class="water-kpi"><span>Análises</span><strong id="waterAnalysisCount">0</strong></div>
 <div class="water-kpi"><span>Última análise</span><strong id="waterLastDate" style="font-size:18px">—</strong></div>
 <div class="water-kpi"><span>Resultados fora da faixa</span><strong id="waterOutCount">0</strong></div>
 </div>
+
+
 
 
 <div class="section-title" style="margin-top:18px">
@@ -1293,7 +1513,10 @@ header.main-app-header #headerStatus{
 </div>
 </div>
 
+
 <div id="waterChartsGrid" class="water-charts-grid"></div>
+
+
 
 
 <h3>Últimas análises</h3>
@@ -1302,11 +1525,16 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </div>
+
+
 
 
 <!-- RELATÓRIOS -->
 <div id="reportsModuleView" class="hidden">
+
 
 <div class="section-title">
 <div>
@@ -1316,6 +1544,7 @@ header.main-app-header #headerStatus{
 <button id="newReportButton" class="primary">+ Upload de relatório</button>
 </div>
 
+
 <div class="exec-grid" style="margin-bottom:16px">
 <div class="exec-card">
 <span>Total de relatórios</span>
@@ -1323,11 +1552,13 @@ header.main-app-header #headerStatus{
 <small>Arquivos cadastrados</small>
 </div>
 
+
 <div class="exec-card">
 <span>Último mês disponível</span>
 <strong id="reportKpiLatestMonth" style="font-size:21px">—</strong>
 <small>Referência mais recente</small>
 </div>
+
 
 <div class="exec-card">
 <span>Relatórios do último mês</span>
@@ -1335,6 +1566,7 @@ header.main-app-header #headerStatus{
 <small id="reportKpiLatestCountNote">Nenhum relatório</small>
 </div>
 </div>
+
 
 <div class="filters" style="grid-template-columns:minmax(300px,1fr) minmax(220px,360px)">
 <select id="reportNameFilter">
@@ -1349,15 +1581,21 @@ header.main-app-header #headerStatus{
 </select>
 </div>
 
+
 <div id="reportList" class="record-list">
 <div class="empty">Carregando relatórios...</div>
 </div>
 
+
 </div>
+
+
 
 
 <!-- DOCUMENTOS -->
 <div id="documentModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1367,6 +1605,8 @@ header.main-app-header #headerStatus{
 </div>
 <button id="newDocumentButton" class="primary" disabled>+ Novo documento</button>
 </div>
+
+
 
 
 <div class="filters">
@@ -1388,16 +1628,24 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="documentList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
 
+
+
 </div>
+
+
 
 
 <!-- MATRIZ DE COMUNICAÇÃO -->
 <div id="communicationModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1407,6 +1655,8 @@ header.main-app-header #headerStatus{
 </div>
 <button id="newEmployeeButton" class="primary" disabled>+ Novo profissional</button>
 </div>
+
+
 
 
 <div class="filters">
@@ -1426,18 +1676,70 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="employeeList" class="record-list">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
 
+
+
 </div>
 
 
 
 
+
+
+
+
+
+
+<!-- TREINAMENTOS -->
+<div id="trainingModuleView" class="hidden">
+  <div class="section-title">
+    <div>
+      <h2>Treinamentos</h2>
+      <div class="muted">Trilhas, aderência, pendências e desempenho da equipe.</div>
+    </div>
+  </div>
+
+
+  <div class="training-toolbar">
+    <div><label>Trilha</label><select id="trainingTrackFilter"></select></div>
+    <div><label>Unidade</label><select id="trainingUnitFilter"><option value="">Toda a Rede</option></select></div>
+  </div>
+
+
+  <div class="training-kpis">
+    <div class="training-kpi"><span>Treinamentos</span><strong id="trainingKpiCount">0</strong><small>Na trilha selecionada</small></div>
+    <div class="training-kpi"><span>Colaboradores esperados</span><strong id="trainingKpiExpected">0</strong><small>Ativos no aplicativo</small></div>
+    <div class="training-kpi"><span>Aderência média</span><strong id="trainingKpiAdherence">0%</strong><small>Conclusões esperadas</small></div>
+    <div class="training-kpi"><span>Aproveitamento</span><strong id="trainingKpiAccuracy">0%</strong><small>Respostas corretas</small></div>
+  </div>
+
+
+  <div id="trainingCards" class="training-grid"><div class="empty">Carregando treinamentos...</div></div>
+
+
+  <div class="training-tabs">
+    <button class="training-tab active" data-training-view="units">Por unidade</button>
+    <button class="training-tab" data-training-view="ranking">Ranking individual</button>
+    <button class="training-tab" data-training-view="questions">Análise das questões</button>
+  </div>
+
+
+  <div id="trainingUnitsView"></div>
+  <div id="trainingRankingView" class="hidden"></div>
+  <div id="trainingQuestionsView" class="hidden"></div>
+</div>
+
+
 <!-- ORGANOGRAMA -->
 <div id="orgModuleView" class="hidden">
+
+
 
 
 <div class="section-title">
@@ -1448,16 +1750,30 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="orgContent">
 <div class="empty">Selecione uma unidade.</div>
 </div>
 
 
+
+
 </div>
+
+
 
 
 </section>
 </main>
+
+
+
+
+
+
+
+
 
 
 
@@ -1472,8 +1788,12 @@ header.main-app-header #headerStatus{
 <h2 id="accessUserDialogTitle">Novo usuário</h2>
 
 
+
+
 <form id="accessUserForm">
 <input id="accessUserId" type="hidden">
+
+
 
 
 <div class="form-grid">
@@ -1502,18 +1822,26 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <h3>Unidades permitidas</h3>
 <div id="accessUnits" class="access-unit-grid"></div>
+
+
 
 
 <h3>Permissões</h3>
 <p id="clientReadOnlyNotice" class="muted hidden">Perfil Cliente: somente visualização. Inclusão, edição e exclusão ficam bloqueadas.</p>
 
 
+
+
 <div class="permission-table">
 <div class="permission-head">
 <div>Módulo</div><div>Ver</div><div>Inserir</div><div>Editar</div><div>Excluir</div>
 </div>
+
+
 
 
 <div class="permission-row" data-module="rdi">
@@ -1525,6 +1853,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="permission-row" data-module="orcamentos">
 <div class="perm-label">Orçamentos</div>
 <input class="perm-view" type="checkbox">
@@ -1532,6 +1862,8 @@ header.main-app-header #headerStatus{
 <input class="perm-edit" type="checkbox">
 <input class="perm-delete" type="checkbox">
 </div>
+
+
 
 
 <div class="permission-row" data-module="qualidade_agua">
@@ -1543,6 +1875,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="permission-row" data-module="relatorios">
 <div class="perm-label">Relatórios</div>
 <input class="perm-view" type="checkbox">
@@ -1552,8 +1886,23 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="permission-row" data-module="documentos">
 <div class="perm-label">Documentos</div>
+<input class="perm-view" type="checkbox">
+<input class="perm-insert" type="checkbox">
+<input class="perm-edit" type="checkbox">
+<input class="perm-delete" type="checkbox">
+</div>
+
+
+
+
+
+
+<div class="permission-row" data-module="treinamentos">
+<div class="perm-label">Treinamentos</div>
 <input class="perm-view" type="checkbox">
 <input class="perm-insert" type="checkbox">
 <input class="perm-edit" type="checkbox">
@@ -1571,6 +1920,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="dialog-actions">
 <button id="cancelAccessUser" type="button" class="ghost">Cancelar</button>
 <button id="saveAccessUser" type="submit" class="primary">Enviar convite</button>
@@ -1578,6 +1929,9 @@ header.main-app-header #headerStatus{
 </form>
 </div>
 </dialog>
+
+
+
 
 
 
@@ -1647,21 +2001,30 @@ header.main-app-header #headerStatus{
 </dialog>
 
 
+
+
 <!-- MODAL UNIDADE -->
 <dialog id="unitDialog">
 <div class="dialog-body">
 <h2 id="unitDialogTitle">Nova unidade</h2>
 
 
+
+
 <form id="unitForm">
 <input id="unitIdField" type="hidden">
+
+
 
 
 <label>Nome da unidade *</label>
 <input id="unitNameField" required maxlength="120" placeholder="Ex.: Hospital Pasteur">
 
+
 <label>Endereço da unidade</label>
 <textarea id="unitAddressField" rows="3" maxlength="300" placeholder="Ex.: Rua General Polidoro, 192 — Botafogo, Rio de Janeiro/RJ"></textarea>
+
+
 
 
 <div class="dialog-actions">
@@ -1673,12 +2036,16 @@ header.main-app-header #headerStatus{
 </dialog>
 
 
+
+
 <!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
 <dialog id="waterManualDialog">
 <div class="dialog-body">
 <h2 id="waterManualDialogTitle">Lançamento manual</h2>
 <form id="waterManualForm">
 <input id="waterReportId" type="hidden">
+
+
 
 
 <div class="form-grid">
@@ -1688,6 +2055,7 @@ header.main-app-header #headerStatus{
 <option value="">Selecione um sistema</option>
 </select>
 </div>
+
 
 <div>
 <label>Tipo de água *</label>
@@ -1700,10 +2068,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Data da coleta *</label>
 <input id="waterSampleDate" type="date" required>
 </div>
+
+
 
 
 <div>
@@ -1712,10 +2084,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Laboratório</label>
 <input id="waterLaboratory">
 </div>
+
+
 
 
 <div class="full">
@@ -1725,8 +2101,12 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <h3>Resultados</h3>
 <div id="waterManualResults" class="water-result-grid"></div>
+
+
 
 
 <div class="dialog-actions">
@@ -1738,14 +2118,18 @@ header.main-app-header #headerStatus{
 </dialog>
 
 
+
+
 <!-- MODAL QUALIDADE DA ÁGUA - SISTEMAS -->
 <dialog id="waterSystemsDialog">
 <div class="dialog-body">
 <h2>Sistemas de climatização / água</h2>
 <p class="muted">Cadastre os sistemas técnicos da unidade. O sistema identifica o circuito ao qual a análise de água pertence.</p>
 
+
 <form id="waterSystemForm">
 <input id="waterSystemId" type="hidden">
+
 
 <div class="form-grid">
 <div class="full">
@@ -1753,11 +2137,13 @@ header.main-app-header #headerStatus{
 <input id="waterSystemName" required maxlength="180" placeholder="Ex.: CAG – Chillers condensação a água">
 </div>
 
+
 <div class="full">
 <label>Equipamentos relacionados</label>
 <textarea id="waterSystemEquipment" rows="3" maxlength="500" placeholder="Ex.: Chillers 01 a 04 / Torres 01 a 05"></textarea>
 </div>
 </div>
+
 
 <div class="dialog-actions">
 <button id="clearWaterSystemForm" type="button" class="ghost">Limpar</button>
@@ -1765,13 +2151,17 @@ header.main-app-header #headerStatus{
 </div>
 </form>
 
+
 <div id="waterSystemList" class="record-list" style="margin-top:16px"></div>
+
 
 <div class="dialog-actions">
 <button id="closeWaterSystemsDialog" type="button" class="ghost">Fechar</button>
 </div>
 </div>
 </dialog>
+
+
 
 
 <!-- MODAL QUALIDADE DA ÁGUA - REFERÊNCIAS -->
@@ -1781,8 +2171,12 @@ header.main-app-header #headerStatus{
 <p class="muted">Cadastre apenas os parâmetros realmente acompanhados. Mínimo e máximo podem ficar em branco quando não se aplicarem.</p>
 
 
+
+
 <form id="waterReferenceForm">
 <input id="waterReferenceId" type="hidden">
+
+
 
 
 <div class="form-grid">
@@ -1796,10 +2190,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Parâmetro *</label>
 <input id="waterReferenceName" required placeholder="Ex.: pH">
 </div>
+
+
 
 
 <div>
@@ -1808,10 +2206,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Mínimo desejado</label>
 <input id="waterReferenceMin" type="number" step="any">
 </div>
+
+
 
 
 <div>
@@ -1821,6 +2223,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="dialog-actions">
 <button id="cancelWaterReferenceEdit" type="button" class="ghost">Limpar</button>
 <button id="saveWaterReference" type="submit" class="primary">Salvar parâmetro</button>
@@ -1828,7 +2232,11 @@ header.main-app-header #headerStatus{
 </form>
 
 
+
+
 <div id="waterReferenceList" class="water-ref-list"></div>
+
+
 
 
 <div class="dialog-actions">
@@ -1838,17 +2246,25 @@ header.main-app-header #headerStatus{
 </dialog>
 
 
+
+
 <!-- MODAL RDI -->
 <dialog id="rdiDialog">
 <div class="dialog-body">
 <h2 id="dialogTitle">Nova demanda RDI</h2>
 
 
+
+
 <form id="rdiForm">
 <input id="recordId" type="hidden">
 
 
+
+
 <div class="form-grid">
+
+
 
 
 <div>
@@ -1857,10 +2273,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Oficina</label>
 <input id="workshop">
 </div>
+
+
 
 
 <div class="full">
@@ -1869,10 +2289,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Local</label>
 <input id="location">
 </div>
+
+
 
 
 <div>
@@ -1881,10 +2305,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="full">
 <label>Desvio operacional *</label>
 <textarea id="operationalDeviation" required></textarea>
 </div>
+
+
 
 
 <div class="full">
@@ -1893,15 +2321,21 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="full">
 <label>Ação a ser tomada</label>
 <textarea id="recommendedAction"></textarea>
 </div>
 
 
+
+
 <div class="full">
 <h3>GUT</h3>
 <div class="gut-grid">
+
+
 
 
 <div>
@@ -1912,12 +2346,16 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Urgência *</label>
 <select id="urgency" required>
 <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
 </select>
 </div>
+
+
 
 
 <div>
@@ -1928,6 +2366,8 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="gut-result">
 <div>Pontuação</div>
 <div id="gutScore">1</div>
@@ -1935,8 +2375,12 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </div>
 </div>
+
+
 
 
 <div>
@@ -1945,10 +2389,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Dano</label>
 <input id="damage">
 </div>
+
+
 
 
 <div>
@@ -1957,16 +2405,22 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Orçamento</label>
 <input id="budgetReference">
 </div>
 
 
+
+
 <div class="full">
 <label>Parecer técnico</label>
 <textarea id="technicalOpinion"></textarea>
 </div>
+
+
 
 
 <div>
@@ -1983,10 +2437,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Data de execução</label>
 <input id="executionDate" type="date">
 </div>
+
+
 
 
 <div>
@@ -1995,10 +2453,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Prazo</label>
 <input id="dueDate" type="date">
 </div>
+
+
 
 
 <div>
@@ -2007,10 +2469,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Fornecedor</label>
 <input id="supplier">
 </div>
+
+
 
 
 <div>
@@ -2023,16 +2489,22 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Custo aprovado (R$)</label>
 <input id="approvedCost" type="number" step="0.01" min="0">
 </div>
 
 
+
+
 <div>
 <label>Custo realizado (R$)</label>
 <input id="actualCost" type="number" step="0.01" min="0">
 </div>
+
+
 
 
 <div>
@@ -2043,6 +2515,8 @@ header.main-app-header #headerStatus{
 <option>não</option>
 </select>
 </div>
+
+
 
 
 <div>
@@ -2056,10 +2530,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Prioridade manual</label>
 <input id="manualPriority">
 </div>
+
+
 
 
 <div class="full">
@@ -2068,16 +2546,22 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="full">
 <label>Observações de gestão</label>
 <textarea id="managementNotes"></textarea>
 </div>
 
 
+
+
 <div class="full">
 <hr>
 <h3>Fotos da ocorrência</h3>
 <p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+
+
 
 
 <div class="photo-grid">
@@ -2088,11 +2572,17 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div id="currentPhotos" class="photo-grid"></div>
 </div>
 
 
+
+
 </div>
+
+
 
 
 <div class="dialog-actions">
@@ -2101,9 +2591,13 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </form>
 </div>
 </dialog>
+
+
 
 
 <!-- MODAL RELATÓRIOS -->
@@ -2111,8 +2605,10 @@ header.main-app-header #headerStatus{
 <div class="dialog-body">
 <h2>Upload de relatório</h2>
 
+
 <form id="reportForm">
 <div class="form-grid">
+
 
 <div class="full">
 <label>Nome do relatório *</label>
@@ -2125,17 +2621,21 @@ header.main-app-header #headerStatus{
 </select>
 </div>
 
+
 <div>
 <label>Mês de referência *</label>
 <input id="reportReferenceMonth" type="month" required>
 </div>
+
 
 <div class="full">
 <label>Arquivo do relatório *</label>
 <input id="reportFile" type="file" required accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt">
 </div>
 
+
 </div>
+
 
 <div class="dialog-actions">
 <button id="cancelReportDialog" type="button" class="ghost">Cancelar</button>
@@ -2146,17 +2646,25 @@ header.main-app-header #headerStatus{
 </dialog>
 
 
+
+
 <!-- MODAL DOCUMENTOS -->
 <dialog id="documentDialog">
 <div class="dialog-body">
 <h2 id="documentDialogTitle">Novo documento</h2>
 
 
+
+
 <form id="documentForm">
 <input id="documentId" type="hidden">
 
 
+
+
 <div class="form-grid">
+
+
 
 
 <div>
@@ -2173,10 +2681,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Título *</label>
 <input id="documentTitle" required>
 </div>
+
+
 
 
 <div>
@@ -2185,16 +2697,22 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Validade</label>
 <input id="documentValidUntil" type="date">
 </div>
 
 
+
+
 <div class="full">
 <label>Descrição</label>
 <textarea id="documentDescription"></textarea>
 </div>
+
+
 
 
 <div class="full">
@@ -2204,7 +2722,11 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </div>
+
+
 
 
 <div class="dialog-actions">
@@ -2213,9 +2735,13 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </form>
 </div>
 </dialog>
+
+
 
 
 <!-- MODAL MATRIZ DE COMUNICAÇÃO -->
@@ -2224,8 +2750,12 @@ header.main-app-header #headerStatus{
 <h2 id="employeeDialogTitle">Novo profissional</h2>
 
 
+
+
 <form id="employeeForm">
 <input id="employeeId" type="hidden">
+
+
 
 
 <div class="employee-photo-box">
@@ -2239,7 +2769,11 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div class="form-grid">
+
+
 
 
 <div class="full">
@@ -2248,10 +2782,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Função</label>
 <input id="employeeJobTitle">
 </div>
+
+
 
 
 <div>
@@ -2260,10 +2798,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Horário</label>
 <input id="employeeWorkHours" placeholder="Ex.: 07:00 às 19:00">
 </div>
+
+
 
 
 <div>
@@ -2276,10 +2818,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Celular</label>
 <input id="employeePhone" type="tel">
 </div>
+
+
 
 
 <div>
@@ -2288,10 +2834,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Adicional</label>
 <input id="employeeAdditionalInfo" placeholder="Ex.: Periculosidade">
 </div>
+
+
 
 
 <div>
@@ -2300,10 +2850,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Centro de custo</label>
 <input id="employeeCostCenter">
 </div>
+
+
 
 
 <div>
@@ -2315,6 +2869,8 @@ header.main-app-header #headerStatus{
 <option value="desligado">Desligado</option>
 </select>
 </div>
+
+
 
 
 <div>
@@ -2331,10 +2887,14 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 <div>
 <label>Grupo</label>
 <input id="employeeOrgGroup" placeholder="Ex.: Equipe volante">
 </div>
+
+
 
 
 <div>
@@ -2347,6 +2907,10 @@ header.main-app-header #headerStatus{
 
 
 
+
+
+
+
 <div class="full">
 <label>Unidade(s) *</label>
 <div id="employeeUnits" class="card unit-checks"></div>
@@ -2354,7 +2918,11 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </div>
+
+
 
 
 <div class="dialog-actions">
@@ -2363,9 +2931,13 @@ header.main-app-header #headerStatus{
 </div>
 
 
+
+
 </form>
 </div>
 </dialog>
+
+
 
 
 <script>
@@ -2373,9 +2945,13 @@ const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
 
 
+
+
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
  auth:{persistSession:true,autoRefreshToken:true}
 });
+
+
 
 
 let session=null;
@@ -2391,8 +2967,11 @@ let accessGrants=[];
 let editingAccessUser=null;
 
 
+
+
 let records=[];
 let editingRecord=null;
+
 
 let budgets=[];
 let editingBudget=null;
@@ -2400,19 +2979,27 @@ let budgetApprovalChartInstance=null;
 let budgetValueChartInstance=null;
 
 
+
+
 let reports=[];
 let documents=[];
 let editingDocument=null;
+
+
 
 
 let employees=[];
 let editingEmployee=null;
 
 
+
+
 let currentModule="overview";
 let ovRdiChartInstance=null;
 let ovEmployeesChartInstance=null;
 let ovCostChartInstance=null;
+
+
 
 
 let waterSystems=[];
@@ -2426,11 +3013,17 @@ let editingWaterReport=null;
 
 
 
+
+
+
+
 const $=id=>document.getElementById(id);
+
 
 function updateCurrentDateTime(){
  const el=$("currentDateTime");
  if(!el)return;
+
 
  const now=new Date();
  const date=now.toLocaleDateString("pt-BR",{
@@ -2444,10 +3037,13 @@ function updateCurrentDateTime(){
   hour12:false
  });
 
+
  el.textContent=`${date} • ${time}`;
 }
 
+
 let dateTimeTimer=null;
+
 
 function startDateTimeClock(){
  updateCurrentDateTime();
@@ -2456,10 +3052,14 @@ function startDateTimeClock(){
 }
 
 
+
+
 function message(el,text,type="info"){
  el.textContent=text;
  el.className=text?`status show ${type}`:"status";
 }
+
+
 
 
 function numberOrNull(v){
@@ -2467,10 +3067,14 @@ function numberOrNull(v){
 }
 
 
+
+
 function textOrNull(v){
  v=v.trim();
  return v||null;
 }
+
+
 
 
 function escapeHtml(v){
@@ -2480,7 +3084,10 @@ function escapeHtml(v){
 }
 
 
+
+
 /* LOGIN */
+
 
 function showRecoveryMode(){
  recoveryMode=true;
@@ -2492,6 +3099,7 @@ function showRecoveryMode(){
  message($("loginMessage"),"Crie uma nova senha para concluir a recuperação.","info");
 }
 
+
 function finishRecoveryMode(){
  recoveryMode=false;
  $("recoveryBox").classList.add("hidden");
@@ -2502,8 +3110,10 @@ function finishRecoveryMode(){
  $("headerStatus").textContent="Acesso controlado";
 }
 
+
 $("forgotPasswordButton").onclick=async()=>{
  const email=$("email").value.trim().toLowerCase();
+
 
  if(!email){
   message($("loginMessage"),"Informe primeiro o e-mail do administrador.","info");
@@ -2511,17 +3121,21 @@ $("forgotPasswordButton").onclick=async()=>{
   return;
  }
 
+
  const btn=$("forgotPasswordButton");
  const original=btn.textContent;
  btn.disabled=true;
  btn.textContent="Enviando...";
+
 
  try{
   const {error}=await db.auth.resetPasswordForEmail(email,{
    redirectTo:AUTH_REDIRECT_URL
   });
 
+
   if(error)throw error;
+
 
   message(
    $("loginMessage"),
@@ -2541,37 +3155,46 @@ $("forgotPasswordButton").onclick=async()=>{
  }
 };
 
+
 $("recoveryForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
+
  const password=$("newPassword").value;
  const confirmPassword=$("confirmNewPassword").value;
+
 
  if(password.length<8){
   message($("loginMessage"),"A nova senha deve ter pelo menos 8 caracteres.","err");
   return;
  }
 
+
  if(password!==confirmPassword){
   message($("loginMessage"),"As duas senhas não são iguais.","err");
   return;
  }
 
+
  const btn=$("saveNewPasswordButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
+
 
  try{
   const {error}=await db.auth.updateUser({password});
   if(error)throw error;
 
+
   await db.auth.signOut();
   session=null;
   finishRecoveryMode();
 
+
   if(history.replaceState){
    history.replaceState({},document.title,location.pathname);
   }
+
 
   message(
    $("loginMessage"),
@@ -2592,8 +3215,12 @@ $("recoveryForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const btn=$("adminLoginButton");
@@ -2602,10 +3229,14 @@ $("loginForm").addEventListener("submit",async e=>{
  message($("loginMessage"),"Validando acesso administrativo...","info");
 
 
+
+
  const {data,error}=await db.auth.signInWithPassword({
   email:$("email").value.trim().toLowerCase(),
   password:$("password").value
  });
+
+
 
 
  if(error||!data?.session){
@@ -2616,11 +3247,15 @@ $("loginForm").addEventListener("submit",async e=>{
  }
 
 
+
+
  const {data:adminProfile,error:profileError}=await db
   .from("profiles")
   .select("role,active")
   .eq("user_id",data.session.user.id)
   .single();
+
+
 
 
  if(profileError||!adminProfile?.active||adminProfile.role!=="admin"){
@@ -2637,13 +3272,19 @@ $("loginForm").addEventListener("submit",async e=>{
  }
 
 
+
+
  session=data.session;
  await enterApp();
+
+
 
 
  btn.disabled=false;
  btn.textContent="Entrar como administrador";
 });
+
+
 
 
 $("logoutButton").onclick=async()=>{
@@ -2652,13 +3293,17 @@ $("logoutButton").onclick=async()=>{
 };
 
 
+
+
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
+
 
  if(event==="PASSWORD_RECOVERY"){
   showRecoveryMode();
   return;
  }
+
 
  if(event==="SIGNED_IN"&&newSession&&!recoveryMode){
   const appHidden=$("appView").classList.contains("hidden");
@@ -2667,18 +3312,23 @@ db.auth.onAuthStateChange(async(event,newSession)=>{
 });
 
 
+
+
 async function start(){
  const recoveryInUrl=
   location.hash.includes("type=recovery") ||
   location.search.includes("type=recovery");
 
+
  const {data}=await db.auth.getSession();
  session=data.session;
+
 
  if(recoveryInUrl){
   showRecoveryMode();
   return;
  }
+
 
  if(session&&!recoveryMode){
   await enterApp();
@@ -2686,14 +3336,20 @@ async function start(){
 }
 
 
+
+
 async function enterApp(){
  if(enteringApp)return;
  enteringApp=true;
 
 
+
+
  $("loginView").classList.add("hidden");
  $("appView").classList.remove("hidden");
  $("headerStatus").textContent="Ambiente autenticado";
+
+
 
 
  const {data,error}=await db
@@ -2703,11 +3359,15 @@ async function enterApp(){
   .single();
 
 
+
+
  if(error||!data?.active){
   message($("appMessage"),"Perfil sem autorização.","err");
   enteringApp=false;
   return;
  }
+
+
 
 
  profile=data;
@@ -2716,6 +3376,8 @@ async function enterApp(){
   data.role==="admin"?"Administrador Geral":
   data.role==="client"?"Cliente":"Equipe";
  startDateTimeClock();
+
+
 
 
  await loadAccessGrantsForCurrentUser();
@@ -2729,7 +3391,13 @@ async function enterApp(){
 
 
 
+
+
+
+
 const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","relatorios","documentos","comunicacao"];
+
+
 
 
 async function loadAccessGrantsForCurrentUser(){
@@ -2739,10 +3407,14 @@ async function loadAccessGrantsForCurrentUser(){
  }
 
 
+
+
  const {data,error}=await db
   .from("access_grants")
   .select("*")
   .eq("user_id",session.user.id);
+
+
 
 
  if(error){
@@ -2752,12 +3424,18 @@ async function loadAccessGrantsForCurrentUser(){
  }
 
 
+
+
  accessGrants=data||[];
 }
 
 
+
+
 function hasAccess(module,action="view",targetUnit=null){
  if(profile?.role==="admin")return true;
+
+
 
 
  const key={
@@ -2768,6 +3446,8 @@ function hasAccess(module,action="view",targetUnit=null){
  }[action]||"can_view";
 
 
+
+
  return accessGrants.some(g=>
   g.module===module &&
   (targetUnit===null || g.unit_id===targetUnit || g.unit_id===null) &&
@@ -2776,10 +3456,13 @@ function hasAccess(module,action="view",targetUnit=null){
 }
 
 
+
+
 function accessibleUnitIds(){
  if(profile?.role==="admin")return allUnits.map(u=>u.id);
  return [...new Set(accessGrants.filter(g=>g.can_view&&g.unit_id).map(g=>g.unit_id))];
 }
+
 
 function accessibleUnitIdsForModule(module){
  if(profile?.role==="admin")return allUnits.map(u=>u.id);
@@ -2790,12 +3473,14 @@ function accessibleUnitIdsForModule(module){
  )];
 }
 
+
 function isOperationalOverviewUnit(unit){
  const name=String(unit?.name||"")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g,"")
   .toLowerCase()
   .trim();
+
 
  return ![
   "backoffice",
@@ -2804,17 +3489,24 @@ function isOperationalOverviewUnit(unit){
  ].includes(name);
 }
 
+
 function overviewOperationalUnits(){
  return allUnits.filter(isOperationalOverviewUnit);
 }
+
+
 
 
 function configureVisibleModules(){
  const admin=profile?.role==="admin";
 
 
+
+
  $("moduleUnits").classList.toggle("hidden",!admin);
  $("moduleAccess").classList.toggle("hidden",!admin);
+
+
 
 
  $("moduleRdi").classList.toggle("hidden",!hasAccess("rdi","view"));
@@ -2825,9 +3517,13 @@ function configureVisibleModules(){
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
 
+
+
  const communicationVisible=hasAccess("comunicacao","view");
  $("moduleCommunication").classList.toggle("hidden",!communicationVisible);
  $("moduleOrg").classList.toggle("hidden",!communicationVisible);
+
+
 
 
  // Visão Geral permanece disponível e respeita o RLS das permissões.
@@ -2835,8 +3531,12 @@ function configureVisibleModules(){
 }
 
 
+
+
 function configureActionButtons(){
  if(!unitId)return;
+
+
 
 
  $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
@@ -2854,12 +3554,18 @@ function configureActionButtons(){
  );
 
 
+
+
  // Referências de água permanecem administrativas.
  $("waterReferencesButton").classList.toggle("hidden",profile?.role!=="admin");
 }
 
 
+
+
 /* UNIDADES */
+
+
 
 
 async function loadUnits(){
@@ -2870,16 +3576,24 @@ async function loadUnits(){
   .order("name");
 
 
+
+
  if(error){
   message($("appMessage"),"Falha ao carregar unidades.","err");
   return;
  }
 
 
+
+
  allUnits=data||[];
 
 
+
+
  const selected=unitId;
+
+
 
 
  $("moduleUnitSelect").innerHTML='<option value="">Toda a Rede / selecione uma unidade</option>';
@@ -2892,9 +3606,12 @@ async function loadUnits(){
  });
 
 
+
+
  if($("overviewUnitSelect")){
   const overviewSelected=$("overviewUnitSelect").value;
   $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
+
 
   overviewOperationalUnits().forEach(u=>{
    const option=document.createElement("option");
@@ -2904,10 +3621,13 @@ async function loadUnits(){
    $("overviewUnitSelect").appendChild(option);
   });
 
+
   if(overviewSelected&&!overviewOperationalUnits().some(u=>u.id===overviewSelected)){
    $("overviewUnitSelect").value="";
   }
  }
+
+
 
 
  if(unitId&&!allUnits.some(u=>u.id===unitId)){
@@ -2915,16 +3635,24 @@ async function loadUnits(){
  }
 
 
+
+
  configureVisibleModules();
 }
+
+
 
 
 async function applyModuleUnitSelection(){
  unitId=$("moduleUnitSelect").value;
 
 
+
+
  const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
  const unitName=unitId?option.textContent:"Selecione uma unidade.";
+
+
 
 
  $("rdiSubtitle").textContent=unitId?unitName:"Toda a Rede";
@@ -2934,11 +3662,15 @@ async function applyModuleUnitSelection(){
  $("waterSubtitle").textContent=unitName;
 
 
+
+
  $("newRdiButton").disabled=!unitId;
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
  $("waterManualButton").disabled=!unitId;
  configureActionButtons();
+
+
 
 
  if(!unitId){
@@ -2948,11 +3680,13 @@ async function applyModuleUnitSelection(){
    return;
   }
 
+
   if(currentModule==="communication"){
    $("communicationSubtitle").textContent="Toda a Rede";
    await loadEmployees();
    return;
   }
+
 
   if(currentModule==="documents"){
    $("documentSubtitle").textContent="Toda a Rede";
@@ -2960,12 +3694,15 @@ async function applyModuleUnitSelection(){
    return;
   }
 
+
   records=[];
   $("documentList").innerHTML='<div class="empty">Nenhum documento disponível.</div>';
   $("waterAnalysisList").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   $("orgContent").innerHTML='<div class="empty">Selecione uma unidade.</div>';
   return;
  }
+
+
 
 
  if(currentModule==="rdi"){
@@ -2982,15 +3719,23 @@ async function applyModuleUnitSelection(){
 }
 
 
+
+
 $("moduleUnitSelect").onchange=applyModuleUnitSelection;
+
+
 
 
 /* ADMINISTRAÇÃO DE UNIDADES */
 
 
+
+
 async function loadUnitsAdmin(){
  const list=$("unitsList");
  list.innerHTML='<div class="empty">Carregando unidades...</div>';
+
+
 
 
  const {data,error}=await db
@@ -3000,6 +3745,8 @@ async function loadUnitsAdmin(){
   .order("name");
 
 
+
+
  if(error){
   console.error(error);
   list.innerHTML='<div class="empty">Não foi possível carregar as unidades.</div>';
@@ -3007,7 +3754,11 @@ async function loadUnitsAdmin(){
  }
 
 
+
+
  list.replaceChildren();
+
+
 
 
  if(!data?.length){
@@ -3016,7 +3767,11 @@ async function loadUnitsAdmin(){
  }
 
 
+
+
  const unitIds=data.map(u=>u.id);
+
+
 
 
  const [{data:links,error:linksError},{data:staff,error:staffError}]=await Promise.all([
@@ -3029,12 +3784,18 @@ async function loadUnitsAdmin(){
  ]);
 
 
+
+
  if(linksError)console.error(linksError);
  if(staffError)console.error(staffError);
 
 
+
+
  const employeeById=new Map((staff||[]).map(e=>[e.id,e]));
  const summaries=new Map();
+
+
 
 
  data.forEach(u=>{
@@ -3046,17 +3807,25 @@ async function loadUnitsAdmin(){
  });
 
 
+
+
  (links||[]).forEach(link=>{
   const employee=employeeById.get(link.employee_id);
   if(!employee)return;
+
+
 
 
   const summary=summaries.get(link.unit_id);
   if(!summary)return;
 
 
+
+
   const role=(employee.org_role||"").trim();
   const job=(employee.job_title||role||"Sem função definida").trim();
+
+
 
 
   const roleNormalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -3065,8 +3834,11 @@ async function loadUnitsAdmin(){
   }
 
 
+
+
   if(link.count_in_headcount!==false){
    summary.totalEmployees++;
+
 
    const scale=(employee.shift||"Escala não informada").trim()||"Escala não informada";
    const period=(employee.day_night||"Turno não informado").trim()||"Turno não informado";
@@ -3076,12 +3848,18 @@ async function loadUnitsAdmin(){
  });
 
 
+
+
  data.forEach(u=>{
   const card=document.createElement("article");
 
 
+
+
   const name=(u.name||"").trim();
   const normalized=name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+
+
 
 
   const typeClass=normalized.startsWith("COI")
@@ -3091,7 +3869,11 @@ async function loadUnitsAdmin(){
     :"unit-default";
 
 
+
+
   card.className=`unit-admin-card ${typeClass}`;
+
+
 
 
   const initial=name.charAt(0).toUpperCase()||"U";
@@ -3100,6 +3882,8 @@ async function loadUnitsAdmin(){
    composition:new Map(),
    totalEmployees:0
   };
+
+
 
 
   const compositionEntries=[...summary.composition.entries()]
@@ -3114,6 +3898,8 @@ async function loadUnitsAdmin(){
    );
 
 
+
+
   const compositionHtml=compositionEntries.length
    ?compositionEntries.map(item=>
       `<span class="unit-function-chip">`
@@ -3121,6 +3907,8 @@ async function loadUnitsAdmin(){
       +`</span>`
     ).join("")
    :'<span class="muted">Nenhum funcionário ativo vinculado.</span>';
+
+
 
 
   card.innerHTML=`
@@ -3134,11 +3922,15 @@ async function loadUnitsAdmin(){
    </div>
 
 
+
+
    <div class="unit-card-summary">
     <div class="unit-summary-line">
      <span>Líder</span>
      <strong>${escapeHtml(summary.leader)}</strong>
     </div>
+
+
 
 
     <div class="unit-summary-line">
@@ -3147,10 +3939,14 @@ async function loadUnitsAdmin(){
     </div>
 
 
+
+
     <div class="unit-function-box">
      <div class="unit-function-title">Composição do efetivo</div>
      <div class="unit-function-list">${compositionHtml}</div>
     </div>
+
+
 
 
     <div class="unit-summary-line">
@@ -3160,6 +3956,8 @@ async function loadUnitsAdmin(){
    </div>
 
 
+
+
    <div class="unit-card-footer">
     <button class="unit-edit-btn editUnit">Editar</button>
     <button class="unit-delete-btn deleteUnit">Excluir</button>
@@ -3167,13 +3965,19 @@ async function loadUnitsAdmin(){
   `;
 
 
+
+
   card.querySelector(".editUnit").onclick=()=>openUnitEdit(u);
   card.querySelector(".deleteUnit").onclick=()=>deleteUnit(u);
+
+
 
 
   list.appendChild(card);
  });
 }
+
+
 
 
 $("newUnitButton").onclick=()=>{
@@ -3185,7 +3989,11 @@ $("newUnitButton").onclick=()=>{
 };
 
 
+
+
 $("cancelUnitDialog").onclick=()=>$("unitDialog").close();
+
+
 
 
 function openUnitEdit(unit){
@@ -3198,8 +4006,12 @@ function openUnitEdit(unit){
 }
 
 
+
+
 $("unitForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const name=$("unitNameField").value.trim();
@@ -3207,14 +4019,20 @@ $("unitForm").addEventListener("submit",async e=>{
  if(!name)return;
 
 
+
+
  const btn=$("saveUnitButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
 
 
+
+
  try{
   const id=$("unitIdField").value;
   let error;
+
+
 
 
   if(id){
@@ -3224,7 +4042,11 @@ $("unitForm").addEventListener("submit",async e=>{
   }
 
 
+
+
   if(error)throw error;
+
+
 
 
   $("unitDialog").close();
@@ -3232,6 +4054,8 @@ $("unitForm").addEventListener("submit",async e=>{
   await loadUnitsAdmin();
   await loadOverview();
   message($("appMessage"),"Unidade salva com sucesso.","ok");
+
+
 
 
  }catch(err){
@@ -3249,6 +4073,8 @@ $("unitForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function countUnitLinks(unitIdToCheck){
  const checks=await Promise.all([
   db.from("rdi_demands").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
@@ -3258,14 +4084,20 @@ async function countUnitLinks(unitIdToCheck){
  ]);
 
 
+
+
  const labels=["RDI","documentos","profissionais","análises de água"];
  return checks.map((r,i)=>({label:labels[i],count:r.count||0,error:r.error}))
   .filter(x=>x.count>0);
 }
 
 
+
+
 async function deleteUnit(unit){
  const links=await countUnitLinks(unit.id);
+
+
 
 
  if(links.length){
@@ -3275,10 +4107,16 @@ async function deleteUnit(unit){
  }
 
 
+
+
  if(!confirm(`Excluir definitivamente a unidade "${unit.name}"?`))return;
 
 
+
+
  const {error}=await db.from("units").delete().eq("id",unit.id);
+
+
 
 
  if(error){
@@ -3288,9 +4126,13 @@ async function deleteUnit(unit){
  }
 
 
+
+
  if(unitId===unit.id){
   unitId="";
  }
+
+
 
 
  await loadUnits();
@@ -3302,11 +4144,19 @@ async function deleteUnit(unit){
 
 
 
+
+
+
+
 /* NAVEGAÇÃO */
+
+
 
 
 function switchModule(name){
  currentModule=name;
+
+
 
 
  const isOverview=name==="overview";
@@ -3319,6 +4169,9 @@ function switchModule(name){
  const isCommunication=name==="communication";
  const isOrg=name==="org";
  const isWater=name==="water";
+ const isTrainings=name==="trainings";
+
+
 
 
  $("overviewModuleView").classList.toggle("hidden",!isOverview);
@@ -3331,6 +4184,9 @@ function switchModule(name){
  $("communicationModuleView").classList.toggle("hidden",!isCommunication);
  $("orgModuleView").classList.toggle("hidden",!isOrg);
  $("waterModuleView").classList.toggle("hidden",!isWater);
+ $("trainingModuleView").classList.toggle("hidden",!isTrainings);
+
+
 
 
  $("moduleOverview").classList.toggle("active",isOverview);
@@ -3343,10 +4199,15 @@ function switchModule(name){
  $("moduleCommunication").classList.toggle("active",isCommunication);
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
+ $("moduleTrainings").classList.toggle("active",isTrainings);
 
 
- const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports;
+
+
+ const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports&&!isTrainings;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
+
+
 
 
  if(isOverview){
@@ -3355,10 +4216,14 @@ function switchModule(name){
  }
 
 
+
+
  if(isUnits){
   loadUnitsAdmin();
   return;
  }
+
+
 
 
  if(isAccess){
@@ -3366,15 +4231,24 @@ function switchModule(name){
   return;
  }
 
+
  if(isBudget){
   loadBudgets();
   return;
  }
 
+
+ if(isTrainings){
+  loadTrainingsModule();
+  return;
+ }
+
+
  if(isReports){
   loadReports();
   return;
  }
+
 
  if(isRdi){
   $("rdiSubtitle").textContent=unitId
@@ -3384,6 +4258,7 @@ function switchModule(name){
   return;
  }
 
+
  if(isCommunication){
   $("communicationSubtitle").textContent=unitId
    ?($("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex]?.textContent||"Unidade")
@@ -3391,6 +4266,7 @@ function switchModule(name){
   loadEmployees();
   return;
  }
+
 
  if(isDocuments){
   $("documentSubtitle").textContent=unitId
@@ -3400,10 +4276,13 @@ function switchModule(name){
   return;
  }
 
+
  if(!unitId){
   message($("appMessage"),"Selecione uma unidade para abrir este módulo.","info");
   return;
  }
+
+
 
 
  if(isOrg){
@@ -3412,6 +4291,8 @@ function switchModule(name){
   loadWaterModule();
  }
 }
+
+
 
 
 $("moduleOverview").onclick=()=>switchModule("overview");
@@ -3424,6 +4305,15 @@ $("moduleDocuments").onclick=()=>switchModule("documents");
 $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
 $("moduleWater").onclick=()=>switchModule("water");
+$("moduleTrainings").onclick=()=>switchModule("trainings");
+
+
+
+
+
+
+
+
 
 
 
@@ -3437,23 +4327,33 @@ $("moduleWater").onclick=()=>switchModule("water");
 ============================ */
 
 
+
+
 function roleLabel(role){
  return role==="admin"?"Administrador":role==="client"?"Cliente":"Equipe";
 }
+
+
 
 
 async function loadAccessUsers(){
  if(profile?.role!=="admin")return;
 
 
+
+
  const list=$("accessUsersList");
  list.innerHTML='<div class="empty">Carregando usuários...</div>';
+
+
 
 
  const [{data:profiles,error:pError},{data:grants,error:gError}]=await Promise.all([
   db.from("profiles").select("user_id,display_name,email,role,active,created_at").order("display_name"),
   db.from("access_grants").select("*")
  ]);
+
+
 
 
  if(pError||gError){
@@ -3463,6 +4363,8 @@ async function loadAccessUsers(){
  }
 
 
+
+
  const grantsByUser=new Map();
  (grants||[]).forEach(g=>{
   if(!grantsByUser.has(g.user_id))grantsByUser.set(g.user_id,[]);
@@ -3470,13 +4372,19 @@ async function loadAccessUsers(){
  });
 
 
+
+
  list.replaceChildren();
+
+
 
 
  (profiles||[]).forEach(p=>{
   const userGrants=grantsByUser.get(p.user_id)||[];
   const unitNames=[...new Set(userGrants.map(g=>allUnits.find(u=>u.id===g.unit_id)?.name).filter(Boolean))];
   const modules=[...new Set(userGrants.filter(g=>g.can_view).map(g=>g.module))];
+
+
 
 
   const card=document.createElement("article");
@@ -3499,13 +4407,17 @@ async function loadAccessUsers(){
    ${p.role!=="admin"?`
    <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
    <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
-     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",relatorios:"Relatórios",documentos:"Documentos",comunicacao:"Matriz / Organograma"
+     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",relatorios:"Relatórios",documentos:"Documentos",treinamentos:"Treinamentos",comunicacao:"Matriz / Organograma"
    }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
   `;
 
 
+
+
   const edit=card.querySelector(".editAccessUser");
   if(edit)edit.onclick=()=>openAccessUserEdit(p,userGrants);
+
+
 
 
   const sendLink=card.querySelector(".sendAccessLink");
@@ -3515,12 +4427,18 @@ async function loadAccessUsers(){
   }
 
 
+
+
   const toggle=card.querySelector(".toggleAccessUser");
   if(toggle)toggle.onclick=()=>toggleAccessUser(p);
 
 
+
+
   const revoke=card.querySelector(".revokeAccessUser");
   if(revoke)revoke.onclick=()=>revokeAccessUser(p);
+
+
 
 
   list.appendChild(card);
@@ -3528,14 +4446,20 @@ async function loadAccessUsers(){
 }
 
 
+
+
 function renderAccessUnits(selected=[]){
  const box=$("accessUnits");
  box.replaceChildren();
 
 
+
+
  allUnits.forEach(u=>{
   const label=document.createElement("label");
   label.className="access-unit-item";
+
+
 
 
   const cb=document.createElement("input");
@@ -3545,11 +4469,15 @@ function renderAccessUnits(selected=[]){
   cb.checked=selected.includes(u.id);
 
 
+
+
   label.appendChild(cb);
   label.appendChild(document.createTextNode(u.name));
   box.appendChild(label);
  });
 }
+
+
 
 
 function resetPermissionRows(){
@@ -3559,13 +4487,19 @@ function resetPermissionRows(){
 }
 
 
+
+
 function applyPermissionTemplate(grants=[]){
  resetPermissionRows();
+
+
 
 
  document.querySelectorAll(".permission-row").forEach(row=>{
   const module=row.dataset.module;
   const relevant=grants.filter(g=>g.module===module);
+
+
 
 
   row.querySelector(".perm-view").checked=relevant.some(g=>g.can_view);
@@ -3576,9 +4510,13 @@ function applyPermissionTemplate(grants=[]){
 }
 
 
+
+
 function enforceRolePermissions(){
  const isClient=$("accessRole").value==="client";
  $("clientReadOnlyNotice").classList.toggle("hidden",!isClient);
+
+
 
 
  document.querySelectorAll(".permission-row").forEach(row=>{
@@ -3590,10 +4528,14 @@ function enforceRolePermissions(){
   ];
 
 
+
+
   edits.forEach(cb=>{
    if(isClient)cb.checked=false;
    cb.disabled=isClient;
   });
+
+
 
 
   if(isClient && view.checked===false){
@@ -3603,7 +4545,11 @@ function enforceRolePermissions(){
 }
 
 
+
+
 $("accessRole").addEventListener("change",enforceRolePermissions);
+
+
 
 
 $("newAccessUserButton").onclick=()=>{
@@ -3622,7 +4568,11 @@ $("newAccessUserButton").onclick=()=>{
 };
 
 
+
+
 $("cancelAccessUser").onclick=()=>$("accessUserDialog").close();
+
+
 
 
 function openAccessUserEdit(user,grants){
@@ -3637,18 +4587,26 @@ function openAccessUserEdit(user,grants){
  $("saveAccessUser").textContent="Salvar acesso";
 
 
+
+
  const selectedUnits=[...new Set(grants.map(g=>g.unit_id).filter(Boolean))];
  renderAccessUnits(selectedUnits);
  applyPermissionTemplate(grants);
  enforceRolePermissions();
 
 
+
+
  $("accessUserDialog").showModal();
 }
 
 
+
+
 function collectPermissionTemplate(){
  const rows=[];
+
+
 
 
  document.querySelectorAll(".permission-row").forEach(row=>{
@@ -3659,14 +4617,20 @@ function collectPermissionTemplate(){
   const can_delete=row.querySelector(".perm-delete").checked;
 
 
+
+
   if(can_view||can_insert||can_edit||can_delete){
    rows.push({module,can_view,can_insert,can_edit,can_delete});
   }
  });
 
 
+
+
  return rows;
 }
+
+
 
 
 async function saveUserGrants(userId,role){
@@ -3674,8 +4638,12 @@ async function saveUserGrants(userId,role){
  const template=collectPermissionTemplate();
 
 
+
+
  if(!selectedUnits.length)throw new Error("Selecione pelo menos uma unidade.");
  if(!template.some(x=>x.can_view))throw new Error("Libere pelo menos um módulo para visualização.");
+
+
 
 
  const {error:deleteError}=await db
@@ -3684,7 +4652,11 @@ async function saveUserGrants(userId,role){
   .eq("user_id",userId);
 
 
+
+
  if(deleteError)throw deleteError;
+
+
 
 
  const rows=[];
@@ -3703,13 +4675,19 @@ async function saveUserGrants(userId,role){
  });
 
 
+
+
  const {error}=await db.from("access_grants").insert(rows);
  if(error)throw error;
 }
 
 
+
+
 $("accessUserForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const btn=$("saveAccessUser");
@@ -3718,12 +4696,16 @@ $("accessUserForm").addEventListener("submit",async e=>{
  btn.textContent="Salvando...";
 
 
+
+
  try{
   const display_name=$("accessDisplayName").value.trim();
   const email=$("accessEmail").value.trim().toLowerCase();
   const role=$("accessRole").value;
   const active=$("accessActive").value==="true";
   let userId=$("accessUserId").value;
+
+
 
 
   if(!userId){
@@ -3737,6 +4719,8 @@ $("accessUserForm").addEventListener("submit",async e=>{
    });
 
 
+
+
    if(error)throw error;
    if(data?.error)throw new Error(data.error);
    userId=data.user_id;
@@ -3747,11 +4731,17 @@ $("accessUserForm").addEventListener("submit",async e=>{
     .eq("user_id",userId);
 
 
+
+
    if(error)throw error;
   }
 
 
+
+
   await saveUserGrants(userId,role);
+
+
 
 
   $("accessUserDialog").close();
@@ -3761,6 +4751,8 @@ $("accessUserForm").addEventListener("submit",async e=>{
    "ok"
   );
   await loadAccessUsers();
+
+
 
 
  }catch(err){
@@ -3779,13 +4771,19 @@ $("accessUserForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function sendAccessLink(user,button){
  if(!user?.email||!user?.active)return;
+
+
 
 
  const original=button.textContent;
  button.disabled=true;
  button.textContent="Enviando...";
+
+
 
 
  try{
@@ -3794,8 +4792,12 @@ async function sendAccessLink(user,button){
   });
 
 
+
+
   if(error)throw error;
   if(data?.error)throw new Error(data.error);
+
+
 
 
   message($("appMessage"),`Link de acesso enviado para ${user.email}.`,"ok");
@@ -3817,8 +4819,12 @@ async function sendAccessLink(user,button){
 }
 
 
+
+
 async function revokeAccessUser(user){
  if(!confirm(`Excluir o acesso de ${user.display_name}? O usuário será bloqueado imediatamente e perderá todas as permissões.`))return;
+
+
 
 
  try{
@@ -3828,7 +4834,11 @@ async function revokeAccessUser(user){
    .eq("user_id",user.user_id);
 
 
+
+
   if(profileError)throw profileError;
+
+
 
 
   const {error:grantError}=await db
@@ -3837,7 +4847,11 @@ async function revokeAccessUser(user){
    .eq("user_id",user.user_id);
 
 
+
+
   if(grantError)throw grantError;
+
+
 
 
   message($("appMessage"),`Acesso de ${user.display_name} excluído e revogado.`,"ok");
@@ -3849,11 +4863,17 @@ async function revokeAccessUser(user){
 }
 
 
+
+
 async function toggleAccessUser(user){
  const next=!user.active;
 
 
+
+
  if(!confirm(`${next?"Ativar":"Desativar"} o acesso de ${user.display_name}?`))return;
+
+
 
 
  const {error}=await db
@@ -3862,10 +4882,14 @@ async function toggleAccessUser(user){
   .eq("user_id",user.user_id);
 
 
+
+
  if(error){
   message($("appMessage"),"Não foi possível alterar o status do usuário.","err");
   return;
  }
+
+
 
 
  message($("appMessage"),`Usuário ${next?"ativado":"desativado"}.`,"ok");
@@ -3875,9 +4899,15 @@ async function toggleAccessUser(user){
 
 
 
+
+
+
+
 /* ============================
    VISÃO GERAL
 ============================ */
+
+
 
 
 function moneyBr(value){
@@ -3885,11 +4915,16 @@ function moneyBr(value){
 }
 
 
+
+
 const OVERVIEW_EXPECTED_HEADCOUNT=58;
+
 
 function overviewScopeId(){
  return $("overviewUnitSelect")?.value||"";
 }
+
+
 
 
 function destroyOverviewCharts(){
@@ -3902,7 +4937,11 @@ function destroyOverviewCharts(){
 }
 
 
+
+
 $("overviewUnitSelect").addEventListener("change",loadOverview);
+
+
 
 
 async function loadOverview(){
@@ -3910,8 +4949,12 @@ async function loadOverview(){
  overviewLoading=true;
 
 
+
+
  const scope=overviewScopeId();
  const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
+
+
 
 
  destroyOverviewCharts();
@@ -3919,11 +4962,15 @@ async function loadOverview(){
  message($("appMessage"),"","info");
 
 
+
+
  const canCommunication=profile?.role==="admin"||hasAccess("comunicacao","view");
  const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
  const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
  const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
  const canBudgets=profile?.role==="admin"||hasAccess("orcamentos","view");
+
+
 
 
  const safe=async(label,enabled,request)=>{
@@ -3940,6 +4987,8 @@ async function loadOverview(){
    return {data:[],error:err,skipped:false};
   }
  };
+
+
 
 
  try{
@@ -3966,9 +5015,13 @@ async function loadOverview(){
   ]);
 
 
+
+
   let partialErrors=[
    employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes,budgetsRes
   ].filter(x=>x.error).length;
+
+
 
 
   const employeeLinks=employeeLinksRes.data||[];
@@ -3984,8 +5037,12 @@ async function loadOverview(){
   const overviewBudgets=budgetsRes.data||[];
 
 
+
+
   let waterResults=[];
   const waterIds=waterReports.map(x=>x.id);
+
+
 
 
   if(canWater&&waterIds.length){
@@ -4001,6 +5058,8 @@ async function loadOverview(){
   }
 
 
+
+
   const openRdi=rdis.filter(r=>!["CONCLUÍDA","CANCELADA"].includes(r.status));
   const doneRdi=rdis.filter(r=>r.status==="CONCLUÍDA");
   const critical=openRdi.filter(r=>Number(r.gut_score)>=80);
@@ -4008,14 +5067,20 @@ async function loadOverview(){
   const completionRate=completionBase?Math.round(doneRdi.length/completionBase*100):0;
 
 
+
+
   const estimated=rdis.reduce((s,r)=>s+Number(r.cost_estimated||0),0);
   const actual=rdis.reduce((s,r)=>s+Number(r.actual_cost||0),0);
+
+
 
 
   const today=new Date();
   today.setHours(0,0,0,0);
   const thirty=new Date(today);
   thirty.setDate(thirty.getDate()+30);
+
+
 
 
   const expiredDocs=docs.filter(d=>d.valid_until&&new Date(d.valid_until+"T00:00:00")<today);
@@ -4026,6 +5091,8 @@ async function loadOverview(){
   });
 
 
+
+
   const waterOut=waterResults.filter(r=>{
    if(r.result_value===null||r.result_value===undefined)return false;
    const v=Number(r.result_value);
@@ -4034,13 +5101,17 @@ async function loadOverview(){
    return false;
   });
 
+
   const approvedBudgets=overviewBudgets.filter(b=>budgetIsApproved(b));
   const sentBudgets=overviewBudgets.filter(b=>Boolean(b.sent_on));
   const approvedBudgetValue=approvedBudgets.reduce((sum,b)=>sum+Number(b.amount||0),0);
   const sentBudgetValue=sentBudgets.reduce((sum,b)=>sum+Number(b.amount||0),0);
 
 
+
+
   const operationalUnits=overviewOperationalUnits();
+
 
   $("ovUnits").textContent=scope?1:operationalUnits.length;
   $("ovUnitsNote").textContent=scope
@@ -4048,15 +5119,21 @@ async function loadOverview(){
    :"Unidades operacionais";
 
 
+
+
   $("ovEmployees").textContent=canCommunication?employees.length:"—";
+
 
   $("ovEmployeesActiveNote").textContent=canCommunication
    ?`Efetivo ativo: ${employees.length}`
    :"Sem acesso ao módulo";
 
+
   $("ovEmployeesExpectedNote").textContent=scope
    ?"Efetivo esperado: não definido para esta unidade"
    :`Efetivo esperado: ${OVERVIEW_EXPECTED_HEADCOUNT}`;
+
+
 
 
   $("ovRdiOpen").textContent=canRdi?openRdi.length:"—";
@@ -4067,17 +5144,24 @@ async function loadOverview(){
   $("ovCostActual").textContent=canRdi?moneyBr(actual):"—";
 
 
+
+
   $("ovDocuments").textContent=canDocuments?docs.length:"—";
   $("ovDocsAlert").textContent=canDocuments?`${expiredDocs.length} vencido(s) • ${soonDocs.length} próximo(s)`:"Sem acesso ao módulo";
+
+
 
 
   $("ovWaterAnalyses").textContent=canWater?waterReports.length:"—";
   $("ovWaterOut").textContent=canWater?`${waterOut.length} resultado(s) fora da faixa`:"Sem acesso ao módulo";
 
+
   $("ovBudgetApprovedCount").textContent=canBudgets?approvedBudgets.length:"—";
   $("ovBudgetApprovedValue").textContent=canBudgets?moneyBr(approvedBudgetValue):"—";
   $("ovBudgetSentCount").textContent=canBudgets?sentBudgets.length:"—";
   $("ovBudgetSentValue").textContent=canBudgets?moneyBr(sentBudgetValue):"—";
+
+
 
 
   renderOverviewRdiChart(canRdi?rdis:[]);
@@ -4093,6 +5177,8 @@ async function loadOverview(){
   });
 
 
+
+
   if(partialErrors){
    message(
     $("appMessage"),
@@ -4100,6 +5186,8 @@ async function loadOverview(){
     "info"
    );
   }
+
+
 
 
  }catch(err){
@@ -4112,6 +5200,8 @@ async function loadOverview(){
 }
 
 
+
+
 function renderOverviewRdiChart(rdis){
  const counts={};
  rdis.forEach(r=>{
@@ -4120,8 +5210,12 @@ function renderOverviewRdiChart(rdis){
  });
 
 
+
+
  const labels=Object.keys(counts);
  const values=labels.map(k=>counts[k]);
+
+
 
 
  ovRdiChartInstance=new Chart($("ovRdiChart"),{
@@ -4136,8 +5230,12 @@ function renderOverviewRdiChart(rdis){
 }
 
 
+
+
 function renderOverviewEmployeesChart(employees){
  const counts={};
+
+
 
 
  employees.forEach(e=>{
@@ -4146,7 +5244,11 @@ function renderOverviewEmployeesChart(employees){
  });
 
 
+
+
  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
+
 
 
  ovEmployeesChartInstance=new Chart($("ovEmployeesChart"),{
@@ -4165,13 +5267,19 @@ function renderOverviewEmployeesChart(employees){
 }
 
 
+
+
 function renderOverviewCostChart(rdis,unitIds){
  const sums=new Map(unitIds.map(id=>[id,0]));
+
+
 
 
  rdis.forEach(r=>{
   sums.set(r.unit_id,(sums.get(r.unit_id)||0)+Number(r.actual_cost||r.cost_estimated||0));
  });
+
+
 
 
  const entries=[...sums.entries()]
@@ -4181,6 +5289,8 @@ function renderOverviewCostChart(rdis,unitIds){
   }))
   .filter(x=>x.value>0)
   .sort((a,b)=>b.value-a.value);
+
+
 
 
  ovCostChartInstance=new Chart($("ovCostChart"),{
@@ -4199,16 +5309,24 @@ function renderOverviewCostChart(rdis,unitIds){
 }
 
 
+
+
 function renderOverviewAttention(data){
  const box=$("ovAttention");
  box.replaceChildren();
+
+
 
 
  const today=new Date();
  today.setHours(0,0,0,0);
 
 
+
+
  const overdueRdi=data.openRdi.filter(r=>r.due_date&&new Date(r.due_date+"T00:00:00")<today);
+
+
 
 
  const alerts=[
@@ -4240,10 +5358,14 @@ function renderOverviewAttention(data){
  ].filter(x=>x.count>0);
 
 
+
+
  if(!alerts.length){
   box.innerHTML='<div class="attention-item ok"><strong>Sem alertas críticos no escopo selecionado.</strong></div>';
   return;
  }
+
+
 
 
  alerts.forEach(a=>{
@@ -4257,9 +5379,15 @@ function renderOverviewAttention(data){
 
 
 
+
+
+
+
 /* ============================
    QUALIDADE DA ÁGUA
 ============================ */
+
+
 
 
 const WATER_LABELS={
@@ -4267,6 +5395,10 @@ const WATER_LABELS={
  processo:"Água gelada de processo",
  condensada:"Água condensada"
 };
+
+
+
+
 
 
 
@@ -4281,6 +5413,8 @@ function normalizeWaterText(value){
 }
 
 
+
+
 function parsePtNumber(value){
  if(value===null||value===undefined||value==="")return null;
  const normalized=String(value)
@@ -4293,6 +5427,8 @@ function parsePtNumber(value){
 }
 
 
+
+
 function isWaterOutOfRange(result){
  const v=result.result_value;
  if(v===null||v===undefined)return false;
@@ -4302,11 +5438,14 @@ function isWaterOutOfRange(result){
 }
 
 
+
+
 async function loadWaterSystems(){
  if(!unitId){
   waterSystems=[];
   return [];
  }
+
 
  const {data,error}=await db
   .from("water_systems")
@@ -4315,6 +5454,7 @@ async function loadWaterSystems(){
   .eq("active",true)
   .order("system_name");
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar os sistemas da unidade.","err");
@@ -4322,15 +5462,19 @@ async function loadWaterSystems(){
   return [];
  }
 
+
  waterSystems=data||[];
  return waterSystems;
 }
+
 
 function populateWaterSystemFilter(){
  const select=$("waterSystemFilter");
  const current=select.value;
 
+
  select.innerHTML='<option value="">Todos os sistemas</option>';
+
 
  waterSystems.forEach(system=>{
   const option=document.createElement("option");
@@ -4340,16 +5484,20 @@ function populateWaterSystemFilter(){
   select.appendChild(option);
  });
 
+
  select.appendChild(new Option("Histórico sem sistema definido","__legacy__"));
+
 
  if(current && current!=="__legacy__" && !waterSystems.some(s=>s.id===current)){
   select.value="";
  }
 }
 
+
 function populateWaterManualSystem(selectedId=""){
  const select=$("waterManualSystem");
  select.innerHTML='<option value="">Selecione um sistema</option>';
+
 
  waterSystems.forEach(system=>{
   const option=document.createElement("option");
@@ -4360,6 +5508,7 @@ function populateWaterManualSystem(selectedId=""){
  });
 }
 
+
 function currentWaterSystemName(){
  const value=$("waterSystemFilter")?.value||"";
  if(value==="__legacy__")return "Histórico sem sistema definido";
@@ -4367,19 +5516,24 @@ function currentWaterSystemName(){
  return waterSystems.find(s=>s.id===value)?.system_name||"Sistema";
 }
 
+
 function waterSystemNameById(id){
  return waterSystems.find(s=>s.id===id)?.system_name||"Histórico sem sistema definido";
 }
 
+
 function waterSystemEquipmentById(id){
  return waterSystems.find(s=>s.id===id)?.equipment_description||"";
 }
+
 
 function currentWaterSystemEquipment(){
  const value=$("waterSystemFilter")?.value||"";
  if(!value||value==="__legacy__")return "";
  return waterSystems.find(s=>s.id===value)?.equipment_description||"";
 }
+
+
 
 
 async function loadWaterReferences(type=null){
@@ -4391,10 +5545,16 @@ async function loadWaterReferences(type=null){
   .order("parameter_name");
 
 
+
+
  if(type)query=query.eq("water_type",type);
 
 
+
+
  const {data,error}=await query;
+
+
 
 
  if(error){
@@ -4404,25 +5564,34 @@ async function loadWaterReferences(type=null){
  }
 
 
+
+
  if(!type)waterReferences=data||[];
  return data||[];
 }
 
 
+
+
 async function loadWaterModule(){
  if(!unitId)return;
 
+
  const type=$("waterTypeFilter").value;
+
 
  await Promise.all([
   loadWaterReferences(),
   loadWaterSystems()
  ]);
 
+
  populateWaterSystemFilter();
+
 
  $("waterParameterFilter").innerHTML=
   '<option value="">Todos os parâmetros</option>';
+
 
  if(!type){
   waterReports=[];
@@ -4438,7 +5607,9 @@ async function loadWaterModule(){
   return;
  }
 
+
  const refs=waterReferences.filter(r=>r.water_type===type);
+
 
  refs.forEach(ref=>{
   const option=document.createElement("option");
@@ -4447,7 +5618,9 @@ async function loadWaterModule(){
   $("waterParameterFilter").appendChild(option);
  });
 
+
  const selectedSystem=$("waterSystemFilter").value;
+
 
  let query=db
   .from("water_analysis_reports")
@@ -4456,13 +5629,16 @@ async function loadWaterModule(){
   .eq("water_type",type)
   .order("sample_date",{ascending:false});
 
+
  if(selectedSystem==="__legacy__"){
   query=query.is("system_id",null);
  }else if(selectedSystem){
   query=query.eq("system_id",selectedSystem);
  }
 
+
  const {data:reports,error}=await query;
+
 
  if(error){
   console.error(error);
@@ -4470,10 +5646,13 @@ async function loadWaterModule(){
   return;
  }
 
+
  waterReports=reports||[];
+
 
  const ids=waterReports.map(r=>r.id);
  waterResults=[];
+
 
  if(ids.length){
   const {data:results,error:resultsError}=await db
@@ -4481,14 +5660,17 @@ async function loadWaterModule(){
    .select("*")
    .in("report_id",ids);
 
+
   if(resultsError){
    console.error(resultsError);
    message($("appMessage"),"Falha ao carregar resultados de água.","err");
    return;
   }
 
+
   waterResults=results||[];
  }
+
 
  populateWaterMonthFilter();
  updateWaterKpis();
@@ -4496,9 +5678,11 @@ async function loadWaterModule(){
  renderWaterChart();
 }
 
+
 function populateWaterMonthFilter(){
  const select=$("waterMonthFilter");
  const current=select.value;
+
 
  const months=[...new Set(
   waterReports
@@ -4506,7 +5690,9 @@ function populateWaterMonthFilter(){
    .filter(Boolean)
  )].sort().reverse();
 
+
  select.innerHTML='<option value="">Todos os meses</option>';
+
 
  months.forEach(month=>{
   const [year,m]=month.split("-");
@@ -4517,10 +5703,12 @@ function populateWaterMonthFilter(){
   select.appendChild(option);
  });
 
+
  if(current&&!months.includes(current)){
   select.value="";
  }
 }
+
 
 function filteredWaterReports(){
  const month=$("waterMonthFilter").value;
@@ -4529,18 +5717,25 @@ function filteredWaterReports(){
 }
 
 
+
+
 function updateWaterKpis(){
  const reports=filteredWaterReports();
  const reportIds=new Set(reports.map(r=>r.id));
  const results=waterResults.filter(r=>reportIds.has(r.report_id));
 
+
  $("waterAnalysisCount").textContent=reports.length;
+
+
 
 
  $("waterLastDate").textContent=
   reports.length
    ?formatDate(reports[0].sample_date)
    :"—";
+
+
 
 
  $("waterOutCount").textContent=
@@ -4550,10 +5745,16 @@ function updateWaterKpis(){
 
 
 
+
+
+
+
 function currentUnitName(){
  const option=$("moduleUnitSelect").options[$("moduleUnitSelect").selectedIndex];
  return unitId&&option?option.textContent:"Unidade";
 }
+
+
 
 
 function waterReferenceText(result){
@@ -4568,6 +5769,8 @@ function waterReferenceText(result){
 }
 
 
+
+
 function waterResultDisplay(result){
  if(result.result_value!==null&&result.result_value!==undefined){
   const value=Number(result.result_value).toLocaleString("pt-BR",{maximumFractionDigits:4});
@@ -4577,17 +5780,24 @@ function waterResultDisplay(result){
 }
 
 
+
+
 function renderWaterAnalysisList(){
  const list=$("waterAnalysisList");
  list.replaceChildren();
 
 
+
+
  const visibleReports=filteredWaterReports();
+
 
  if(!visibleReports.length){
   list.innerHTML='<div class="empty">Nenhuma análise cadastrada para este período.</div>';
   return;
  }
+
+
 
 
  visibleReports.slice(0,20).forEach(report=>{
@@ -4596,7 +5806,11 @@ function renderWaterAnalysisList(){
    .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
 
 
+
+
   const outCount=results.filter(isWaterOutOfRange).length;
+
+
 
 
   const parameterRows=results.length
@@ -4628,8 +5842,12 @@ function renderWaterAnalysisList(){
    :'<div class="muted" style="margin-top:10px">Nenhum parâmetro lançado nesta análise.</div>';
 
 
+
+
   const el=document.createElement("article");
   el.className="record "+(outCount?"water-out":"water-ok");
+
+
 
 
   el.innerHTML=`
@@ -4657,12 +5875,18 @@ function renderWaterAnalysisList(){
   `;
 
 
+
+
   const open=el.querySelector(".openWaterPdf");
   if(open)open.onclick=()=>openWaterPdf(report);
 
 
+
+
   const editWaterButton=el.querySelector(".editWaterReport"); if(editWaterButton)editWaterButton.onclick=()=>openWaterEdit(report);
   const deleteWaterButton=el.querySelector(".deleteWaterReport"); if(deleteWaterButton)deleteWaterButton.onclick=()=>deleteWaterReport(report);
+
+
 
 
   list.appendChild(el);
@@ -4670,13 +5894,19 @@ function renderWaterAnalysisList(){
 }
 
 
+
+
 async function openWaterPdf(report){
  if(!report.storage_path)return;
+
+
 
 
  const {data,error}=await db.storage
   .from("water-analysis-pdfs")
   .createSignedUrl(report.storage_path,600);
+
+
 
 
  if(error||!data?.signedUrl){
@@ -4685,8 +5915,12 @@ async function openWaterPdf(report){
  }
 
 
+
+
  window.open(data.signedUrl,"_blank");
 }
+
+
 
 
 function selectedWaterReference(){
@@ -4694,16 +5928,20 @@ function selectedWaterReference(){
  return waterReferences.find(r=>r.id===id)||null;
 }
 
+
 function waterChartDataForReference(ref){
  const period=Number($("waterPeriodFilter").value||0);
 
+
  let reports=filteredWaterReports();
+
 
  if(period && !$("waterMonthFilter").value){
   const limit=new Date();
   limit.setMonth(limit.getMonth()-period);
   reports=reports.filter(r=>new Date(r.sample_date+"T12:00:00")>=limit);
  }
+
 
  const reportMap=new Map(reports.map(r=>[r.id,r]));
  const rows=waterResults
@@ -4714,7 +5952,9 @@ function waterChartDataForReference(ref){
   }))
   .sort((a,b)=>a.date.localeCompare(b.date));
 
+
  const monthly=new Map();
+
 
  rows.forEach(row=>{
   const month=row.date.slice(0,7);
@@ -4722,19 +5962,23 @@ function waterChartDataForReference(ref){
   monthly.get(month).push(row.value);
  });
 
+
  return [...monthly.entries()].map(([month,values])=>({
   month,
   value:values.reduce((a,b)=>a+b,0)/values.length
  }));
 }
 
+
 function renderSingleWaterChart(ref,featured=false){
  const card=document.createElement("div");
  card.className=`water-chart-card exec-water-chart${featured?" featured":""}`;
 
+
  const limits=[];
  if(ref.min_value!==null)limits.push(`mín. ${ref.min_value}`);
  if(ref.max_value!==null)limits.push(`máx. ${ref.max_value}`);
+
 
  card.innerHTML=`
   <div class="section-title" style="margin-top:0">
@@ -4751,15 +5995,19 @@ function renderSingleWaterChart(ref,featured=false){
   </div>
  `;
 
+
  $("waterChartsGrid").appendChild(card);
+
 
  const canvas=card.querySelector("canvas");
  const data=waterChartDataForReference(ref);
+
 
  const labels=data.map(d=>{
   const [year,month]=d.month.split("-");
   return `${month}/${year}`;
  });
+
 
  const datasets=[{
   label:ref.parameter_name,
@@ -4767,6 +6015,7 @@ function renderSingleWaterChart(ref,featured=false){
   borderWidth:2,
   tension:.25
  }];
+
 
  if(ref.min_value!==null){
   datasets.push({
@@ -4778,6 +6027,7 @@ function renderSingleWaterChart(ref,featured=false){
   });
  }
 
+
  if(ref.max_value!==null){
   datasets.push({
    label:"Máximo",
@@ -4787,6 +6037,7 @@ function renderSingleWaterChart(ref,featured=false){
    borderWidth:1
   });
  }
+
 
  const chart=new Chart(canvas,{
   type:"line",
@@ -4802,16 +6053,20 @@ function renderSingleWaterChart(ref,featured=false){
   }
  });
 
+
  waterChartInstances.push(chart);
 }
+
 
 function renderWaterChart(){
  waterChartInstances.forEach(chart=>chart?.destroy());
  waterChartInstances=[];
  $("waterChartsGrid").replaceChildren();
 
+
  const type=$("waterTypeFilter").value;
  const selected=selectedWaterReference();
+
 
  if(!type){
   $("waterChartTitle").textContent="Acompanhamento mensal";
@@ -4819,13 +6074,16 @@ function renderWaterChart(){
   return;
  }
 
+
  const equipment=currentWaterSystemEquipment();
  $("waterChartTitle").textContent=
   `${currentUnitName()} — ${currentWaterSystemName()}`;
 
+
  $("waterChartReference").textContent=
   `${WATER_LABELS[type]||type}`
   +`${equipment?` • Equipamentos: ${equipment}`:""}`;
+
 
  const refs=waterReferences
   .filter(r=>r.water_type===type)
@@ -4836,7 +6094,9 @@ function renderWaterChart(){
    return (a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR");
   });
 
+
  const visibleRefs=selected?[selected]:refs;
+
 
  if(!visibleRefs.length){
   $("waterChartsGrid").innerHTML=
@@ -4844,8 +6104,10 @@ function renderWaterChart(){
   return;
  }
 
+
  visibleRefs.forEach(ref=>renderSingleWaterChart(ref,!!selected));
 }
+
 
 $("waterSystemFilter").addEventListener("change",loadWaterModule);
 $("waterTypeFilter").addEventListener("change",loadWaterModule);
@@ -4858,7 +6120,11 @@ $("waterMonthFilter").addEventListener("change",()=>{
 $("waterPeriodFilter").addEventListener("change",renderWaterChart);
 
 
+
+
 /* MANUAL / EDIÇÃO */
+
+
 
 
 async function renderWaterManualResults(type,existing=[]){
@@ -4867,19 +6133,27 @@ async function renderWaterManualResults(type,existing=[]){
  box.replaceChildren();
 
 
+
+
  if(!refs.length){
   box.innerHTML='<div class="empty">Cadastre primeiro os parâmetros em Referências.</div>';
   return;
  }
 
 
+
+
  refs.forEach(ref=>{
   const current=existing.find(x=>x.reference_id===ref.id);
+
+
 
 
   const row=document.createElement("div");
   row.className="water-result-row";
   row.dataset.refId=ref.id;
+
+
 
 
   row.innerHTML=`
@@ -4902,9 +6176,13 @@ async function renderWaterManualResults(type,existing=[]){
   `;
 
 
+
+
   box.appendChild(row);
  });
 }
+
+
 
 
 $("waterManualButton").onclick=async()=>{
@@ -4913,18 +6191,22 @@ $("waterManualButton").onclick=async()=>{
  $("waterReportId").value="";
  $("waterManualDialogTitle").textContent="Lançamento manual";
 
+
  await loadWaterSystems();
+
 
  if(!waterSystems.length){
   message($("appMessage"),"Cadastre primeiro um sistema para esta unidade.","info");
   return;
  }
 
+
  const selectedFilter=$("waterSystemFilter").value;
  const selectedSystem=
   selectedFilter && selectedFilter!=="__legacy__"
    ?selectedFilter
    :"";
+
 
  populateWaterManualSystem(selectedSystem);
  $("waterManualType").value=$("waterTypeFilter").value||"";
@@ -4934,16 +6216,24 @@ $("waterManualButton").onclick=async()=>{
 };
 
 
+
+
 $("waterManualType").addEventListener("change",async()=>{
  await renderWaterManualResults($("waterManualType").value);
 });
 
 
+
+
 $("cancelWaterManual").onclick=()=>$("waterManualDialog").close();
+
+
 
 
 async function openWaterEdit(report){
  editingWaterReport=report;
+
+
 
 
  $("waterManualForm").reset();
@@ -4958,16 +6248,24 @@ async function openWaterEdit(report){
  $("waterNotes").value=report.notes||"";
 
 
+
+
  const existing=waterResults.filter(r=>r.report_id===report.id);
  await renderWaterManualResults(report.water_type,existing);
+
+
 
 
  $("waterManualDialog").showModal();
 }
 
 
+
+
 $("waterManualForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const btn=$("saveWaterManual");
@@ -4975,13 +6273,18 @@ $("waterManualForm").addEventListener("submit",async e=>{
  btn.textContent="Salvando...";
 
 
+
+
  try{
   const type=$("waterManualType").value;
   const systemId=$("waterManualSystem").value;
 
+
   if(!systemId){
    throw new Error("Selecione o sistema.");
   }
+
+
 
 
   const payload={
@@ -4997,7 +6300,11 @@ $("waterManualForm").addEventListener("submit",async e=>{
   };
 
 
+
+
   let reportId=$("waterReportId").value;
+
+
 
 
   if(reportId){
@@ -5007,7 +6314,11 @@ $("waterManualForm").addEventListener("submit",async e=>{
     .eq("id",reportId);
 
 
+
+
    if(error)throw error;
+
+
 
 
    const {error:deleteError}=await db
@@ -5016,7 +6327,11 @@ $("waterManualForm").addEventListener("submit",async e=>{
     .eq("report_id",reportId);
 
 
+
+
    if(deleteError)throw deleteError;
+
+
 
 
   }else{
@@ -5027,9 +6342,13 @@ $("waterManualForm").addEventListener("submit",async e=>{
     .single();
 
 
+
+
    if(error)throw error;
    reportId=data.id;
   }
+
+
 
 
   const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
@@ -5038,7 +6357,11 @@ $("waterManualForm").addEventListener("submit",async e=>{
     const value=parsePtNumber(row.querySelector(".waterManualValue").value);
 
 
+
+
     if(value===null)return null;
+
+
 
 
     return{
@@ -5054,15 +6377,21 @@ $("waterManualForm").addEventListener("submit",async e=>{
    .filter(Boolean);
 
 
+
+
   if(rows.length){
    const {error}=await db.from("water_analysis_results").insert(rows);
    if(error)throw error;
   }
 
 
+
+
   $("waterManualDialog").close();
   message($("appMessage"),"Análise salva com sucesso.","ok");
   await loadWaterModule();
+
+
 
 
  }catch(err){
@@ -5081,8 +6410,12 @@ $("waterManualForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function deleteWaterReport(report){
  if(!confirm(`Excluir a análise de ${formatDate(report.sample_date)}?`))return;
+
+
 
 
  const {error}=await db
@@ -5091,10 +6424,14 @@ async function deleteWaterReport(report){
   .eq("id",report.id);
 
 
+
+
  if(error){
   message($("appMessage"),"Falha ao excluir a análise.","err");
   return;
  }
+
+
 
 
  if(report.storage_path){
@@ -5102,27 +6439,36 @@ async function deleteWaterReport(report){
  }
 
 
+
+
  message($("appMessage"),"Análise excluída.","ok");
  await loadWaterModule();
 }
 
 
+
+
 /* SISTEMAS */
+
 
 async function renderWaterSystemList(){
  await loadWaterSystems();
 
+
  const list=$("waterSystemList");
  list.replaceChildren();
+
 
  if(!waterSystems.length){
   list.innerHTML='<div class="empty">Nenhum sistema cadastrado nesta unidade.</div>';
   return;
  }
 
+
  waterSystems.forEach(system=>{
   const el=document.createElement("article");
   el.className="record";
+
 
   el.innerHTML=`
    <div class="record-top">
@@ -5135,15 +6481,19 @@ async function renderWaterSystemList(){
    </div>
   `;
 
+
   const edit=el.querySelector(".editWaterSystem");
   if(edit)edit.onclick=()=>editWaterSystem(system);
+
 
   const del=el.querySelector(".deleteWaterSystem");
   if(del)del.onclick=()=>deleteWaterSystem(system);
 
+
   list.appendChild(el);
  });
 }
+
 
 $("waterSystemsButton").onclick=async()=>{
  editingWaterSystem=null;
@@ -5158,16 +6508,19 @@ $("waterSystemsButton").onclick=async()=>{
  $("waterSystemsDialog").showModal();
 };
 
+
 $("closeWaterSystemsDialog").onclick=async()=>{
  $("waterSystemsDialog").close();
  await loadWaterModule();
 };
+
 
 $("clearWaterSystemForm").onclick=()=>{
  editingWaterSystem=null;
  $("waterSystemForm").reset();
  $("waterSystemId").value="";
 };
+
 
 function editWaterSystem(system){
  editingWaterSystem=system;
@@ -5176,14 +6529,18 @@ function editWaterSystem(system){
  $("waterSystemEquipment").value=system.equipment_description||"";
 }
 
+
 $("waterSystemForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const id=$("waterSystemId").value;
  const system_name=$("waterSystemName").value.trim();
  const equipment_description=textOrNull($("waterSystemEquipment").value);
 
+
  if(!system_name)return;
+
 
  const payload={
   unit_id:unitId,
@@ -5194,7 +6551,9 @@ $("waterSystemForm").addEventListener("submit",async e=>{
   updated_at:new Date().toISOString()
  };
 
+
  let error;
+
 
  if(id){
   ({error}=await db
@@ -5206,6 +6565,7 @@ $("waterSystemForm").addEventListener("submit",async e=>{
    .from("water_systems")
    .insert({...payload,created_by:session.user.id}));
  }
+
 
  if(error){
   console.error(error);
@@ -5220,6 +6580,7 @@ $("waterSystemForm").addEventListener("submit",async e=>{
   return;
  }
 
+
  editingWaterSystem=null;
  $("waterSystemForm").reset();
  $("waterSystemId").value="";
@@ -5227,17 +6588,20 @@ $("waterSystemForm").addEventListener("submit",async e=>{
  await renderWaterSystemList();
 });
 
+
 async function deleteWaterSystem(system){
  const {count,error:countError}=await db
   .from("water_analysis_reports")
   .select("id",{count:"exact",head:true})
   .eq("system_id",system.id);
 
+
  if(countError){
   console.error(countError);
   message($("appMessage"),"Não foi possível verificar as análises do sistema.","err");
   return;
  }
+
 
  if((count||0)>0){
   message(
@@ -5248,12 +6612,15 @@ async function deleteWaterSystem(system){
   return;
  }
 
+
  if(!confirm(`Excluir o sistema "${system.system_name}"?`))return;
+
 
  const {error}=await db
   .from("water_systems")
   .delete()
   .eq("id",system.id);
+
 
  if(error){
   console.error(error);
@@ -5261,12 +6628,17 @@ async function deleteWaterSystem(system){
   return;
  }
 
+
  message($("appMessage"),"Sistema excluído.","ok");
  await renderWaterSystemList();
 }
 
 
+
+
 /* REFERÊNCIAS */
+
+
 
 
 async function renderWaterReferenceList(){
@@ -5274,8 +6646,12 @@ async function renderWaterReferenceList(){
  waterReferences=refs;
 
 
+
+
  const list=$("waterReferenceList");
  list.replaceChildren();
+
+
 
 
  if(!refs.length){
@@ -5284,9 +6660,13 @@ async function renderWaterReferenceList(){
  }
 
 
+
+
  refs.forEach(ref=>{
   const row=document.createElement("div");
   row.className="water-ref-row";
+
+
 
 
   row.innerHTML=`
@@ -5304,13 +6684,19 @@ async function renderWaterReferenceList(){
   `;
 
 
+
+
   row.querySelector(".editWaterRef").onclick=()=>editWaterReference(ref);
   row.querySelector(".deleteWaterRef").onclick=()=>deleteWaterReference(ref);
+
+
 
 
   list.appendChild(row);
  });
 }
+
+
 
 
 $("waterReferencesButton").onclick=async()=>{
@@ -5322,10 +6708,14 @@ $("waterReferencesButton").onclick=async()=>{
 };
 
 
+
+
 $("closeWaterReferences").onclick=async()=>{
  $("waterReferencesDialog").close();
  if(unitId)await loadWaterModule();
 };
+
+
 
 
 $("cancelWaterReferenceEdit").onclick=()=>{
@@ -5333,6 +6723,8 @@ $("cancelWaterReferenceEdit").onclick=()=>{
  $("waterReferenceId").value="";
  $("waterReferenceType").value=$("waterTypeFilter").value;
 };
+
+
 
 
 function editWaterReference(ref){
@@ -5345,11 +6737,17 @@ function editWaterReference(ref){
 }
 
 
+
+
 $("waterReferenceForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
 
+
+
  const id=$("waterReferenceId").value;
+
+
 
 
  const payload={
@@ -5364,7 +6762,11 @@ $("waterReferenceForm").addEventListener("submit",async e=>{
  };
 
 
+
+
  let error;
+
+
 
 
  if(id){
@@ -5379,11 +6781,15 @@ $("waterReferenceForm").addEventListener("submit",async e=>{
  }
 
 
+
+
  if(error){
   console.error(error);
   message($("appMessage"),"Não foi possível salvar a referência.","err");
   return;
  }
+
+
 
 
  $("waterReferenceForm").reset();
@@ -5392,14 +6798,20 @@ $("waterReferenceForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function deleteWaterReference(ref){
  if(!confirm(`Excluir o parâmetro "${ref.parameter_name}"?`))return;
+
+
 
 
  const {error}=await db
   .from("water_reference_parameters")
   .delete()
   .eq("id",ref.id);
+
+
 
 
  if(error){
@@ -5409,8 +6821,14 @@ async function deleteWaterReference(ref){
  }
 
 
+
+
  await renderWaterReferenceList();
 }
+
+
+
+
 
 
 
@@ -5418,6 +6836,8 @@ async function deleteWaterReference(ref){
 /* ============================
    RDI
 ============================ */
+
+
 
 
 function gutClass(score){
@@ -5429,9 +6849,13 @@ function gutClass(score){
 }
 
 
+
+
 function gutClassCss(c){
  return "gut-"+c.toLowerCase().replaceAll(" ","-").replace("í","i");
 }
+
+
 
 
 function updateGut(){
@@ -5441,9 +6865,13 @@ function updateGut(){
   Number($("trend").value);
 
 
+
+
  $("gutScore").textContent=score;
  $("gutClass").textContent=gutClass(score);
 }
+
+
 
 
 ["gravity","urgency","trend"].forEach(id=>{
@@ -5451,9 +6879,13 @@ function updateGut(){
 });
 
 
+
+
 let rdiCriticalityChartInstance=null;
 let rdiBudgetChartInstance=null;
 let rdiStatusChartInstance=null;
+
+
 
 
 function destroyRdiCharts(){
@@ -5466,6 +6898,8 @@ function destroyRdiCharts(){
 }
 
 
+
+
 function renderRdiExecutive(data){
  const rows=data||[];
  const critical=rows.filter(r=>gutClass(Number(r.gut_score||0))==="Crítica");
@@ -5474,6 +6908,8 @@ function renderRdiExecutive(data){
  const approved=rows.reduce((sum,r)=>sum+Number(r.approved_cost||0),0);
  const done=rows.filter(r=>r.status==="CONCLUÍDA").length;
  const criticalPct=rows.length?Math.round(critical.length/rows.length*100):0;
+
+
 
 
  $("rdiKpiTotal").textContent=rows.length;
@@ -5489,13 +6925,19 @@ function renderRdiExecutive(data){
  $("rdiKpiApprovedNote").textContent=`${done} demanda(s) concluída(s)`;
 
 
+
+
  destroyRdiCharts();
+
+
 
 
  const criticalityOrder=["Crítica","Alta","Média","Baixa","Muito baixa"];
  const criticalityCounts=Object.fromEntries(criticalityOrder.map(k=>[k,0]));
  const criticalityBudget=Object.fromEntries(criticalityOrder.map(k=>[k,0]));
  const statusCounts={};
+
+
 
 
  rows.forEach(r=>{
@@ -5505,6 +6947,8 @@ function renderRdiExecutive(data){
   const status=r.status||"SEM STATUS";
   statusCounts[status]=(statusCounts[status]||0)+1;
  });
+
+
 
 
  rdiCriticalityChartInstance=new Chart($("rdiCriticalityChart"),{
@@ -5520,6 +6964,8 @@ function renderRdiExecutive(data){
    scales:{y:{beginAtZero:true,ticks:{precision:0}}}
   }
  });
+
+
 
 
  rdiBudgetChartInstance=new Chart($("rdiBudgetChart"),{
@@ -5550,7 +6996,11 @@ function renderRdiExecutive(data){
  });
 
 
+
+
  const statusEntries=Object.entries(statusCounts).sort((a,b)=>b[1]-a[1]);
+
+
 
 
  rdiStatusChartInstance=new Chart($("rdiStatusChart"),{
@@ -5570,12 +7020,16 @@ function renderRdiExecutive(data){
 }
 
 
+
+
 async function loadRdi(){
  $("rdiList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  const scopeUnitIds=unitId
   ?[unitId]
   :accessibleUnitIdsForModule("rdi");
+
 
  if(!scopeUnitIds.length){
   records=[];
@@ -5584,6 +7038,7 @@ async function loadRdi(){
   return;
  }
 
+
  let query=db
   .from("rdi_demands")
   .select("*")
@@ -5591,13 +7046,17 @@ async function loadRdi(){
   .order("gut_score",{ascending:false})
   .order("recorded_on",{ascending:true});
 
+
  if(unitId){
   query=query.eq("unit_id",unitId);
  }else{
   query=query.in("unit_id",scopeUnitIds);
  }
 
+
  const {data,error}=await query;
+
+
 
 
  if(error){
@@ -5607,17 +7066,25 @@ async function loadRdi(){
  }
 
 
+
+
  records=data||[];
+
+
 
 
  renderRecords();
 }
 
 
+
+
 function filteredRecords(){
  const q=$("searchInput").value.toLowerCase();
  const status=$("statusFilter").value;
  const gut=$("gutFilter").value;
+
+
 
 
  return records.filter(r=>{
@@ -5627,6 +7094,8 @@ function filteredRecords(){
   ].filter(Boolean).join(" ").toLowerCase();
 
 
+
+
   return (!q||text.includes(q))
    &&(!status||r.status===status)
    &&(!gut||gutClass(r.gut_score)===gut);
@@ -5634,9 +7103,13 @@ function filteredRecords(){
 }
 
 
+
+
 $("searchInput").addEventListener("input",renderRecords);
 $("statusFilter").addEventListener("change",renderRecords);
 $("gutFilter").addEventListener("change",renderRecords);
+
+
 
 
 function renderRecords(){
@@ -5644,14 +7117,20 @@ function renderRecords(){
  list.replaceChildren();
 
 
+
+
  const data=filteredRecords();
  renderRdiExecutive(data);
+
+
 
 
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhuma demanda encontrada.</div>';
   return;
  }
+
+
 
 
  data.forEach(r=>{
@@ -5661,8 +7140,12 @@ function renderRecords(){
    :Number(r.cost_estimated).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 
+
+
   const el=document.createElement("article");
   el.className="record";
+
+
 
 
   el.innerHTML=`
@@ -5685,12 +7168,18 @@ function renderRecords(){
   `;
 
 
+
+
   el.querySelector(".editBtn").onclick=()=>openEdit(r);
   el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
 
 
+
+
   const photoWrap=el.querySelector(".rdi-card-photo-wrap");
   const photo2=r.source_image_2||"";
+
+
 
 
   // Foto 2 = Equipamento/Instalação. Só renderiza quando já estiver
@@ -5707,9 +7196,13 @@ function renderRecords(){
   }
 
 
+
+
   list.appendChild(el);
  });
 }
+
+
 
 
 $("newRdiButton").onclick=()=>{
@@ -5730,8 +7223,12 @@ $("newRdiButton").onclick=()=>{
 };
 
 
+
+
 function openEdit(r){
  editingRecord=r;
+
+
 
 
  $("recordId").value=r.id;
@@ -5767,7 +7264,11 @@ function openEdit(r){
  $("manualPriorityJustification").value=r.manual_priority_justification||"";
 
 
+
+
  $("dialogTitle").textContent="Editar demanda RDI";
+
+
 
 
  updateGut();
@@ -5776,9 +7277,13 @@ function openEdit(r){
 }
 
 
+
+
 async function showExistingPhotos(r){
  const box=$("currentPhotos");
  box.replaceChildren();
+
+
 
 
  const labels=[
@@ -5789,9 +7294,13 @@ async function showExistingPhotos(r){
  ];
 
 
+
+
  const paths=[
   r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
  ];
+
+
 
 
  for(let i=0;i<paths.length;i++){
@@ -5799,12 +7308,18 @@ async function showExistingPhotos(r){
   if(!path || path.startsWith("Demandas Reforma_Images/"))continue;
 
 
+
+
   const {data}=await db.storage
    .from("rdi-photos")
    .createSignedUrl(path,600);
 
 
+
+
   if(!data?.signedUrl)continue;
+
+
 
 
   const wrap=document.createElement("div");
@@ -5814,10 +7329,14 @@ async function showExistingPhotos(r){
   title.style.margin="8px 0 5px";
 
 
+
+
   const img=document.createElement("img");
   img.src=data.signedUrl;
   img.className="photo-preview";
   img.alt=labels[i];
+
+
 
 
   wrap.appendChild(title);
@@ -5827,15 +7346,23 @@ async function showExistingPhotos(r){
 }
 
 
+
+
 $("cancelDialog").onclick=()=>$("rdiDialog").close();
+
+
 
 
 async function uploadPhotos(demandId){
  const paths=[];
 
 
+
+
  for(let i=1;i<=4;i++){
   const file=$("photo"+i).files[0];
+
+
 
 
   if(!file){
@@ -5844,8 +7371,12 @@ async function uploadPhotos(demandId){
   }
 
 
+
+
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
   const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
+
+
 
 
   const {error}=await db.storage
@@ -5853,24 +7384,36 @@ async function uploadPhotos(demandId){
    .upload(path,file,{cacheControl:"3600",upsert:false});
 
 
+
+
   if(error)throw error;
+
+
 
 
   paths.push(path);
  }
 
 
+
+
  return paths;
 }
+
+
 
 
 $("rdiForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
 
+
+
  const btn=$("saveButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
+
+
 
 
  try{
@@ -5911,7 +7454,11 @@ $("rdiForm").addEventListener("submit",async e=>{
   };
 
 
+
+
   let id=$("recordId").value;
+
+
 
 
   if(id){
@@ -5924,7 +7471,11 @@ $("rdiForm").addEventListener("submit",async e=>{
   }
 
 
+
+
   const photos=await uploadPhotos(id);
+
+
 
 
   const {error:photoError}=await db
@@ -5939,12 +7490,18 @@ $("rdiForm").addEventListener("submit",async e=>{
    .eq("id",id);
 
 
+
+
   if(photoError)throw photoError;
+
+
 
 
   $("rdiDialog").close();
   message($("appMessage"),"Demanda salva com sucesso.","ok");
   await loadRdi();
+
+
 
 
  }catch(err){
@@ -5957,8 +7514,12 @@ $("rdiForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function deleteRecord(r){
  if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
+
+
 
 
  const photos=[
@@ -5966,7 +7527,11 @@ async function deleteRecord(r){
  ].filter(Boolean);
 
 
+
+
  const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+
+
 
 
  if(error){
@@ -5975,9 +7540,13 @@ async function deleteRecord(r){
  }
 
 
+
+
  if(photos.length){
   await db.storage.from("rdi-photos").remove(photos);
  }
+
+
 
 
  message($("appMessage"),"Demanda excluída.","ok");
@@ -5985,9 +7554,12 @@ async function deleteRecord(r){
 }
 
 
+
+
 /* ============================
    RELATÓRIOS
 ============================ */
+
 
 function formatReferenceMonth(value){
  if(!value)return "—";
@@ -5995,6 +7567,7 @@ function formatReferenceMonth(value){
  if(parts.length!==2)return value;
  return `${parts[1]}/${parts[0]}`;
 }
+
 
 function safeFileName(name){
  return String(name||"relatorio")
@@ -6004,9 +7577,11 @@ function safeFileName(name){
   .replace(/_+/g,"_");
 }
 
+
 async function loadReports(){
  const list=$("reportList");
  list.innerHTML='<div class="empty">Carregando relatórios...</div>';
+
 
  const {data,error}=await db
   .from("reports")
@@ -6014,11 +7589,13 @@ async function loadReports(){
   .order("reference_month",{ascending:false})
   .order("created_at",{ascending:false});
 
+
  if(error){
   console.error(error);
   list.innerHTML='<div class="empty">Não foi possível carregar os relatórios.</div>';
   return;
  }
+
 
  reports=data||[];
  populateReportMonthFilter();
@@ -6026,13 +7603,16 @@ async function loadReports(){
  renderReports();
 }
 
+
 function reportMonthKey(value){
  return value?String(value).slice(0,7):"";
 }
 
+
 function populateReportMonthFilter(){
  const select=$("reportMonthFilter");
  const current=select.value;
+
 
  const months=[...new Set(
   reports
@@ -6040,7 +7620,9 @@ function populateReportMonthFilter(){
    .filter(Boolean)
  )].sort().reverse();
 
+
  select.innerHTML='<option value="">Todos os meses</option>';
+
 
  months.forEach(month=>{
   const option=document.createElement("option");
@@ -6050,10 +7632,12 @@ function populateReportMonthFilter(){
   select.appendChild(option);
  });
 
+
  if(current&&!months.includes(current)){
   select.value="";
  }
 }
+
 
 function renderReportExecutive(){
  const total=reports.length;
@@ -6063,10 +7647,12 @@ function renderReportExecutive(){
   .sort()
   .reverse();
 
+
  const latestMonth=months[0]||"";
  const latestCount=latestMonth
   ?reports.filter(r=>reportMonthKey(r.reference_month)===latestMonth).length
   :0;
+
 
  $("reportKpiTotal").textContent=total;
  $("reportKpiLatestMonth").textContent=latestMonth
@@ -6078,9 +7664,11 @@ function renderReportExecutive(){
   :"Nenhum relatório";
 }
 
+
 function filteredReports(){
  const reportName=$("reportNameFilter").value;
  const month=$("reportMonthFilter").value;
+
 
  return reports.filter(r=>{
   return (!reportName||r.report_name===reportName)
@@ -6088,20 +7676,25 @@ function filteredReports(){
  });
 }
 
+
 function renderReports(){
  const list=$("reportList");
  list.replaceChildren();
 
+
  const data=filteredReports();
+
 
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhum relatório encontrado para este período.</div>';
   return;
  }
 
+
  data.forEach(r=>{
   const el=document.createElement("article");
   el.className="record";
+
 
   el.innerHTML=`
    <div class="record-top">
@@ -6115,18 +7708,22 @@ function renderReports(){
    </div>
   `;
 
+
   el.querySelector(".openReport").onclick=()=>openReport(r);
   list.appendChild(el);
  });
 }
 
+
 $("reportNameFilter").addEventListener("change",renderReports);
 $("reportMonthFilter").addEventListener("change",renderReports);
+
 
 async function openReport(report){
  const {data,error}=await db.storage
   .from("reports-private")
   .createSignedUrl(report.storage_path,600);
+
 
  if(error||!data?.signedUrl){
   console.error(error);
@@ -6134,36 +7731,46 @@ async function openReport(report){
   return;
  }
 
+
  window.open(data.signedUrl,"_blank","noopener");
 }
+
 
 $("newReportButton").onclick=()=>{
  $("reportForm").reset();
  $("reportDialog").showModal();
 };
 
+
 $("cancelReportDialog").onclick=()=>$("reportDialog").close();
+
 
 $("reportForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
 
  const btn=$("saveReportButton");
  btn.disabled=true;
  btn.textContent="Enviando...";
 
+
  let uploadedPath=null;
+
 
  try{
   const reportName=$("reportName").value;
   const referenceMonth=$("reportReferenceMonth").value;
   const file=$("reportFile").files[0];
 
+
   if(!reportName||!referenceMonth||!file){
    throw new Error("Preencha nome, mês de referência e arquivo.");
   }
 
+
   const cleanName=safeFileName(file.name);
   const storagePath=`${referenceMonth}/${Date.now()}_${cleanName}`;
+
 
   const {error:uploadError}=await db.storage
    .from("reports-private")
@@ -6173,8 +7780,10 @@ $("reportForm").addEventListener("submit",async e=>{
     contentType:file.type||undefined
    });
 
+
   if(uploadError)throw uploadError;
   uploadedPath=storagePath;
+
 
   const {error:insertError}=await db
    .from("reports")
@@ -6187,18 +7796,23 @@ $("reportForm").addEventListener("submit",async e=>{
     uploaded_by:session.user.id
    });
 
+
   if(insertError)throw insertError;
+
 
   $("reportDialog").close();
   message($("appMessage"),"Relatório enviado com sucesso.","ok");
   await loadReports();
 
+
  }catch(err){
   console.error(err);
+
 
   if(uploadedPath){
    await db.storage.from("reports-private").remove([uploadedPath]);
   }
+
 
   message(
    $("appMessage"),
@@ -6214,23 +7828,30 @@ $("reportForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 /* ============================
    DOCUMENTOS
 ============================ */
 
 
+
+
 async function loadDocuments(){
  $("documentList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  let query=db
   .from("documents")
   .select("*")
   .order("created_at",{ascending:false});
 
+
  if(unitId){
   query=query.eq("unit_id",unitId);
  }else{
   const allowedUnitIds=accessibleUnitIdsForModule("documentos");
+
 
   if(!allowedUnitIds.length){
    documents=[];
@@ -6238,10 +7859,14 @@ async function loadDocuments(){
    return;
   }
 
+
   query=query.in("unit_id",allowedUnitIds);
  }
 
+
  const {data,error}=await query;
+
+
 
 
  if(error){
@@ -6251,14 +7876,20 @@ async function loadDocuments(){
  }
 
 
+
+
  documents=data||[];
  renderDocuments();
 }
 
 
+
+
 function filteredDocuments(){
  const q=$("documentSearch").value.trim().toLowerCase();
  const category=$("documentCategoryFilter").value;
+
+
 
 
  return documents.filter(d=>{
@@ -6267,33 +7898,49 @@ function filteredDocuments(){
   ].filter(Boolean).join(" ").toLowerCase();
 
 
+
+
   return (!q||text.includes(q))
    &&(!category||d.category===category);
  });
 }
 
 
+
+
 $("documentSearch").addEventListener("input",renderDocuments);
 $("documentCategoryFilter").addEventListener("change",renderDocuments);
+
+
 
 
 function formatDate(value){
  if(!value)return "Não informado";
 
 
+
+
  return new Date(value+"T12:00:00").toLocaleDateString("pt-BR");
 }
+
+
 
 
 function validityInfo(d){
  if(!d.valid_until)return "";
 
 
+
+
  const today=new Date();
  today.setHours(0,0,0,0);
 
 
+
+
  const expiration=new Date(d.valid_until+"T00:00:00");
+
+
 
 
  if(expiration<today){
@@ -6301,7 +7948,11 @@ function validityInfo(d){
  }
 
 
+
+
  const days=Math.ceil((expiration-today)/86400000);
+
+
 
 
  if(days<=30){
@@ -6309,8 +7960,12 @@ function validityInfo(d){
  }
 
 
+
+
  return `Validade: ${formatDate(d.valid_until)}`;
 }
+
+
 
 
 function documentUnitName(unitIdValue){
@@ -6318,12 +7973,18 @@ function documentUnitName(unitIdValue){
 }
 
 
+
+
 function renderDocuments(){
  const list=$("documentList");
  list.replaceChildren();
 
 
+
+
  const data=filteredDocuments();
+
+
 
 
  if(!data.length){
@@ -6332,12 +7993,17 @@ function renderDocuments(){
  }
 
 
+
+
  data.forEach(d=>{
   const el=document.createElement("article");
   el.className="record";
 
+
   const canEdit=hasAccess("documentos","edit",d.unit_id);
   const canDelete=hasAccess("documentos","delete",d.unit_id);
+
+
 
 
   el.innerHTML=`
@@ -6359,6 +8025,8 @@ function renderDocuments(){
   `;
 
 
+
+
   el.querySelector(".openDoc").onclick=()=>openDocument(d);
   const editButton=el.querySelector(".editDoc");
   if(editButton)editButton.onclick=()=>openDocumentEdit(d);
@@ -6366,9 +8034,13 @@ function renderDocuments(){
   if(deleteButton)deleteButton.onclick=()=>deleteDocument(d);
 
 
+
+
   list.appendChild(el);
  });
 }
+
+
 
 
 async function openDocument(d){
@@ -6377,14 +8049,20 @@ async function openDocument(d){
   .createSignedUrl(d.storage_path,600);
 
 
+
+
  if(error||!data?.signedUrl){
   message($("appMessage"),"Não foi possível abrir o arquivo.","err");
   return;
  }
 
 
+
+
  window.open(data.signedUrl,"_blank");
 }
+
+
 
 
 $("newDocumentButton").onclick=()=>{
@@ -6397,8 +8075,12 @@ $("newDocumentButton").onclick=()=>{
 };
 
 
+
+
 function openDocumentEdit(d){
  editingDocument=d;
+
+
 
 
  $("documentId").value=d.id;
@@ -6413,11 +8095,17 @@ function openDocumentEdit(d){
  $("documentDialogTitle").textContent="Editar documento";
 
 
+
+
  $("documentDialog").showModal();
 }
 
 
+
+
 $("cancelDocumentDialog").onclick=()=>$("documentDialog").close();
+
+
 
 
 function safeFilename(name){
@@ -6428,8 +8116,12 @@ function safeFilename(name){
 }
 
 
+
+
 $("documentForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const btn=$("saveDocumentButton");
@@ -6437,12 +8129,18 @@ $("documentForm").addEventListener("submit",async e=>{
  btn.textContent="Salvando...";
 
 
+
+
  let uploadedPath=null;
+
+
 
 
  try{
   const file=$("documentFile").files[0];
   const id=$("documentId").value||crypto.randomUUID();
+
+
 
 
   let storagePath=editingDocument?.storage_path||null;
@@ -6451,20 +8149,29 @@ $("documentForm").addEventListener("submit",async e=>{
   let sizeBytes=editingDocument?.size_bytes||null;
 
 
+
+
   if(!editingDocument&&!file){
    throw new Error("Selecione um arquivo.");
   }
 
 
+
+
   const documentUnitId=editingDocument?.unit_id||unitId;
+
 
   if(!documentUnitId){
    throw new Error("Selecione uma unidade.");
   }
 
 
+
+
   if(file){
    const path=`${documentUnitId}/${id}/${Date.now()}_${safeFilename(file.name)}`;
+
+
 
 
    const {error:uploadError}=await db.storage
@@ -6472,7 +8179,11 @@ $("documentForm").addEventListener("submit",async e=>{
     .upload(path,file,{cacheControl:"3600",upsert:false});
 
 
+
+
    if(uploadError)throw uploadError;
+
+
 
 
    uploadedPath=path;
@@ -6481,6 +8192,8 @@ $("documentForm").addEventListener("submit",async e=>{
    mimeType=file.type||null;
    sizeBytes=file.size;
   }
+
+
 
 
   const payload={
@@ -6499,7 +8212,11 @@ $("documentForm").addEventListener("submit",async e=>{
   };
 
 
+
+
   let error;
+
+
 
 
   if(editingDocument){
@@ -6509,7 +8226,11 @@ $("documentForm").addEventListener("submit",async e=>{
   }
 
 
+
+
   if(error)throw error;
+
+
 
 
   if(file&&editingDocument?.storage_path&&editingDocument.storage_path!==storagePath){
@@ -6517,18 +8238,26 @@ $("documentForm").addEventListener("submit",async e=>{
   }
 
 
+
+
   $("documentDialog").close();
   message($("appMessage"),"Documento salvo com sucesso.","ok");
   await loadDocuments();
+
+
 
 
  }catch(err){
   console.error(err);
 
 
+
+
   if(uploadedPath){
    await db.storage.from("documents-private").remove([uploadedPath]);
   }
+
+
 
 
   message(
@@ -6545,11 +8274,17 @@ $("documentForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function deleteDocument(d,ask=true){
  if(ask&&!confirm(`Excluir "${d.title}"?`))return false;
 
 
+
+
  const {error}=await db.from("documents").delete().eq("id",d.id);
+
+
 
 
  if(error){
@@ -6558,7 +8293,11 @@ async function deleteDocument(d,ask=true){
  }
 
 
+
+
  await db.storage.from("documents-private").remove([d.storage_path]);
+
+
 
 
  if(ask){
@@ -6567,26 +8306,40 @@ async function deleteDocument(d,ask=true){
  }
 
 
+
+
  return true;
 }
+
+
 
 
 $("selectAllDocuments").onclick=()=>{
  const boxes=[...document.querySelectorAll(".doc-check")];
 
 
+
+
  if(!boxes.length)return;
+
+
 
 
  const shouldCheck=boxes.some(b=>!b.checked);
 
 
+
+
  boxes.forEach(b=>b.checked=shouldCheck);
+
+
 
 
  $("selectAllDocuments").textContent=
   shouldCheck?"Desmarcar todos":"Selecionar todos";
 };
+
+
 
 
 $("deleteSelectedDocuments").classList.toggle("hidden",!hasAccess("documentos","delete",unitId));
@@ -6596,10 +8349,14 @@ $("deleteSelectedDocuments").onclick=async()=>{
  ].map(b=>b.dataset.id);
 
 
+
+
  if(!ids.length){
   message($("appMessage"),"Selecione pelo menos um documento.","info");
   return;
  }
+
+
 
 
  if(!confirm(`Excluir ${ids.length} documento(s) selecionado(s)?`)){
@@ -6607,14 +8364,20 @@ $("deleteSelectedDocuments").onclick=async()=>{
  }
 
 
+
+
  const selected=documents.filter(d=>ids.includes(d.id));
  let failed=0;
+
+
 
 
  for(const d of selected){
   const ok=await deleteDocument(d,false);
   if(!ok)failed++;
  }
+
+
 
 
  message(
@@ -6624,8 +8387,12 @@ $("deleteSelectedDocuments").onclick=async()=>{
  );
 
 
+
+
  await loadDocuments();
 }
+
+
 
 
 /* ============================
@@ -6633,12 +8400,16 @@ $("deleteSelectedDocuments").onclick=async()=>{
 ============================ */
 
 
+
+
 async function loadEmployees(){
  $("employeeList").innerHTML='<div class="empty">Carregando...</div>';
+
 
  const scopeUnitIds=unitId
   ?[unitId]
   :accessibleUnitIdsForModule("comunicacao");
+
 
  if(!scopeUnitIds.length){
   employees=[];
@@ -6646,9 +8417,11 @@ async function loadEmployees(){
   return;
  }
 
+
  let linkQuery=db
   .from("employee_units")
   .select("employee_id,unit_id");
+
 
  if(unitId){
   linkQuery=linkQuery.eq("unit_id",unitId);
@@ -6656,7 +8429,10 @@ async function loadEmployees(){
   linkQuery=linkQuery.in("unit_id",scopeUnitIds);
  }
 
+
  const {data:links,error:linkError}=await linkQuery;
+
+
 
 
  if(linkError){
@@ -6666,7 +8442,11 @@ async function loadEmployees(){
  }
 
 
+
+
  const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
+
 
 
  if(!ids.length){
@@ -6676,11 +8456,15 @@ async function loadEmployees(){
  }
 
 
+
+
  const {data,error}=await db
   .from("employees")
   .select("*")
   .in("id",ids)
   .order("full_name");
+
+
 
 
  if(error){
@@ -6690,10 +8474,14 @@ async function loadEmployees(){
  }
 
 
+
+
  const {data:allLinks,error:allLinksError}=await db
   .from("employee_units")
   .select("employee_id,unit_id,count_in_headcount")
   .in("employee_id",ids);
+
+
 
 
  if(allLinksError){
@@ -6701,6 +8489,8 @@ async function loadEmployees(){
   message($("appMessage"),"Falha ao carregar unidades dos profissionais.","err");
   return;
  }
+
+
 
 
  employees=(data||[]).map(emp=>{
@@ -6711,6 +8501,7 @@ async function loadEmployees(){
     count_in_headcount:link.count_in_headcount!==false
    }));
 
+
   return {
    ...emp,
    unit_links,
@@ -6719,8 +8510,12 @@ async function loadEmployees(){
  });
 
 
+
+
  renderEmployees();
 }
+
+
 
 
 function normalizeSearchText(value){
@@ -6732,10 +8527,13 @@ function normalizeSearchText(value){
   .trim();
 }
 
+
 function filteredEmployees(){
  const q=normalizeSearchText($("employeeSearch").value);
  const status=$("employeeStatusFilter").value;
  const turn=$("employeeShiftFilter").value;
+
+
 
 
  return employees.filter(e=>{
@@ -6746,6 +8544,8 @@ function filteredEmployees(){
   ].filter(Boolean).join(" "));
 
 
+
+
   return (!q||text.includes(q))
    &&(!status||e.status===status)
    &&(!turn||e.day_night===turn);
@@ -6753,9 +8553,13 @@ function filteredEmployees(){
 }
 
 
+
+
 $("employeeSearch").addEventListener("input",renderEmployees);
 $("employeeStatusFilter").addEventListener("change",renderEmployees);
 $("employeeShiftFilter").addEventListener("change",renderEmployees);
+
+
 
 
 function employeeUnitNames(ids){
@@ -6766,12 +8570,18 @@ function employeeUnitNames(ids){
 }
 
 
+
+
 function renderEmployees(){
  const list=$("employeeList");
  list.replaceChildren();
 
 
+
+
  const data=filteredEmployees();
+
+
 
 
  if(!data.length){
@@ -6784,9 +8594,13 @@ function renderEmployees(){
  }
 
 
+
+
  data.forEach(e=>{
   const el=document.createElement("article");
   el.className="record";
+
+
 
 
   el.innerHTML=`
@@ -6831,8 +8645,12 @@ function renderEmployees(){
   `;
 
 
+
+
   const editEmployeeButton=el.querySelector(".editEmployee"); if(editEmployeeButton)editEmployeeButton.onclick=()=>openEmployeeEdit(e);
   const deleteEmployeeButton=el.querySelector(".deleteEmployee"); if(deleteEmployeeButton)deleteEmployeeButton.onclick=()=>deleteEmployee(e);
+
+
 
 
   if(e.photo_path){
@@ -6849,14 +8667,19 @@ function renderEmployees(){
   }
 
 
+
+
   list.appendChild(el);
  });
 }
 
 
+
+
 function renderEmployeeUnitChecks(selectedLinks=[]){
  const box=$("employeeUnits");
  box.replaceChildren();
+
 
  const linkMap=new Map(
   (selectedLinks||[]).map(link=>[
@@ -6864,6 +8687,8 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
    typeof link==="string"?true:link.count_in_headcount!==false
   ])
  );
+
+
 
 
  allUnits.forEach(u=>{
@@ -6875,11 +8700,15 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
   row.style.alignItems="center";
 
 
+
+
   const linkedLabel=document.createElement("label");
   linkedLabel.style.display="flex";
   linkedLabel.style.alignItems="center";
   linkedLabel.style.gap="8px";
   linkedLabel.style.margin="0";
+
+
 
 
   const checkbox=document.createElement("input");
@@ -6889,8 +8718,12 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
   checkbox.checked=linkMap.has(u.id);
 
 
+
+
   linkedLabel.appendChild(checkbox);
   linkedLabel.appendChild(document.createTextNode(u.name));
+
+
 
 
   const headcountLabel=document.createElement("label");
@@ -6902,6 +8735,8 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
   headcountLabel.style.whiteSpace="nowrap";
 
 
+
+
   const headcount=document.createElement("input");
   headcount.type="checkbox";
   headcount.className="employeeHeadcountCheck";
@@ -6910,8 +8745,12 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
   headcount.disabled=!checkbox.checked;
 
 
+
+
   headcountLabel.appendChild(headcount);
   headcountLabel.appendChild(document.createTextNode("Conta no efetivo"));
+
+
 
 
   checkbox.addEventListener("change",()=>{
@@ -6924,6 +8763,8 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
   });
 
 
+
+
   row.appendChild(linkedLabel);
   row.appendChild(headcountLabel);
   box.appendChild(row);
@@ -6933,9 +8774,15 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
 
 
 
+
+
+
+
 async function loadSupervisorOptions(currentId=null,selectedId=null){
  const select=$("employeeSupervisor");
  select.innerHTML='<option value="">Sem superior</option>';
+
+
 
 
  const {data,error}=await db
@@ -6945,10 +8792,14 @@ async function loadSupervisorOptions(currentId=null,selectedId=null){
   .order("full_name");
 
 
+
+
  if(error){
   console.error(error);
   return;
  }
+
+
 
 
  (data||[]).forEach(person=>{
@@ -6962,6 +8813,8 @@ async function loadSupervisorOptions(currentId=null,selectedId=null){
 }
 
 
+
+
 async function showEmployeeCurrentPhoto(path){
  const box=$("employeeCurrentPhoto");
  const preview=$("employeePhotoPreview");
@@ -6970,7 +8823,11 @@ async function showEmployeeCurrentPhoto(path){
  preview.textContent="Foto";
 
 
+
+
  if(!path)return;
+
+
 
 
  const {data}=await db.storage
@@ -6978,7 +8835,11 @@ async function showEmployeeCurrentPhoto(path){
   .createSignedUrl(path,600);
 
 
+
+
  if(!data?.signedUrl)return;
+
+
 
 
  const img=document.createElement("img");
@@ -6989,9 +8850,13 @@ async function showEmployeeCurrentPhoto(path){
 }
 
 
+
+
 $("employeePhoto").addEventListener("change",()=>{
  const file=$("employeePhoto").files[0];
  if(!file)return;
+
+
 
 
  const preview=$("employeePhotoPreview");
@@ -7005,8 +8870,14 @@ $("employeePhoto").addEventListener("change",()=>{
 
 
 
+
+
+
+
 $("newEmployeeButton").onclick=async()=>{
  editingEmployee=null;
+
+
 
 
  $("employeeForm").reset();
@@ -7020,7 +8891,11 @@ $("newEmployeeButton").onclick=async()=>{
  await loadSupervisorOptions(null,null);
 
 
+
+
  renderEmployeeUnitChecks(unitId?[{unit_id:unitId,count_in_headcount:true}]:[]);
+
+
 
 
  $("employeeDialogTitle").textContent="Novo profissional";
@@ -7028,8 +8903,12 @@ $("newEmployeeButton").onclick=async()=>{
 };
 
 
+
+
 async function openEmployeeEdit(e){
  editingEmployee=e;
+
+
 
 
  $("employeeId").value=e.id;
@@ -7051,7 +8930,11 @@ async function openEmployeeEdit(e){
  await showEmployeeCurrentPhoto(e.photo_path||null);
 
 
+
+
  renderEmployeeUnitChecks(e.unit_links||[]);
+
+
 
 
  $("employeeDialogTitle").textContent="Editar profissional";
@@ -7059,7 +8942,13 @@ async function openEmployeeEdit(e){
 }
 
 
+
+
 $("cancelEmployeeDialog").onclick=()=>$("employeeDialog").close();
+
+
+
+
 
 
 
@@ -7068,8 +8957,12 @@ async function uploadEmployeePhoto(employeeId,file){
  if(!file)return editingEmployee?.photo_path||null;
 
 
+
+
  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
  const path=`${unitId}/${employeeId}/${Date.now()}.${ext}`;
+
+
 
 
  const {error}=await db.storage
@@ -7077,15 +8970,23 @@ async function uploadEmployeePhoto(employeeId,file){
   .upload(path,file,{cacheControl:"3600",upsert:false});
 
 
+
+
  if(error)throw error;
+
+
 
 
  return path;
 }
 
 
+
+
 $("employeeForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
+
 
 
  const btn=$("saveEmployeeButton");
@@ -7093,17 +8994,24 @@ $("employeeForm").addEventListener("submit",async e=>{
  btn.textContent="Salvando...";
 
 
+
+
  try{
   const selectedUnitChecks=[
    ...document.querySelectorAll(".employeeUnitCheck:checked")
   ];
 
+
   const selectedUnits=selectedUnitChecks.map(x=>x.value);
+
+
 
 
   if(!selectedUnits.length){
    throw new Error("Selecione pelo menos uma unidade.");
   }
+
+
 
 
   const basePayload={
@@ -7125,7 +9033,11 @@ $("employeeForm").addEventListener("submit",async e=>{
   };
 
 
+
+
   let id=$("employeeId").value;
+
+
 
 
   if(id){
@@ -7135,7 +9047,11 @@ $("employeeForm").addEventListener("submit",async e=>{
     .eq("id",id);
 
 
+
+
    if(error)throw error;
+
+
 
 
    const {error:deleteLinksError}=await db
@@ -7144,7 +9060,11 @@ $("employeeForm").addEventListener("submit",async e=>{
     .eq("employee_id",id);
 
 
+
+
    if(deleteLinksError)throw deleteLinksError;
+
+
 
 
   }else{
@@ -7158,16 +9078,24 @@ $("employeeForm").addEventListener("submit",async e=>{
     .single();
 
 
+
+
    if(error)throw error;
+
+
 
 
    id=data.id;
   }
 
 
+
+
   const photoFile=$("employeePhoto").files[0];
   const oldPhoto=editingEmployee?.photo_path||null;
   const newPhoto=await uploadEmployeePhoto(id,photoFile);
+
+
 
 
   const {error:photoUpdateError}=await db
@@ -7176,7 +9104,11 @@ $("employeeForm").addEventListener("submit",async e=>{
    .eq("id",id);
 
 
+
+
   if(photoUpdateError)throw photoUpdateError;
+
+
 
 
   if(photoFile&&oldPhoto&&oldPhoto!==newPhoto){
@@ -7184,11 +9116,14 @@ $("employeeForm").addEventListener("submit",async e=>{
   }
 
 
+
+
   const rows=selectedUnitChecks.map(unitCheck=>{
    const selectedUnitId=unitCheck.value;
    const headcountCheck=document.querySelector(
     `.employeeHeadcountCheck[data-unit-id="${selectedUnitId}"]`
    );
+
 
    return {
     employee_id:id,
@@ -7198,12 +9133,18 @@ $("employeeForm").addEventListener("submit",async e=>{
   });
 
 
+
+
   const {error:linkError}=await db
    .from("employee_units")
    .insert(rows);
 
 
+
+
   if(linkError)throw linkError;
+
+
 
 
   $("employeeDialog").close();
@@ -7211,14 +9152,18 @@ $("employeeForm").addEventListener("submit",async e=>{
   await loadEmployees();
 
 
+
+
  }catch(err){
   console.error(err);
+
 
   const errText=String(err?.message||"").toLowerCase();
   const duplicatePerson=
    err?.code==="23505" ||
    errText.includes("employees_unique_name_employee_number") ||
    errText.includes("duplicate key");
+
 
   message(
    $("appMessage"),
@@ -7236,17 +9181,21 @@ $("employeeForm").addEventListener("submit",async e=>{
 });
 
 
+
+
 async function deleteEmployee(e){
  const {count:subordinateCount,error:subordinateError}=await db
   .from("employees")
   .select("id",{count:"exact",head:true})
   .eq("supervisor_id",e.id);
 
+
  if(subordinateError){
   console.error(subordinateError);
   message($("appMessage"),"Não foi possível validar os vínculos hierárquicos deste profissional.","err");
   return;
  }
+
 
  if((subordinateCount||0)>0){
   message(
@@ -7257,11 +9206,14 @@ async function deleteEmployee(e){
   return;
  }
 
+
  if(!confirm(`Excluir ${e.full_name} da Matriz de Comunicação?`)){
   return;
  }
 
+
  const photoPath=e.photo_path||null;
+
 
  // employee_units possui FK com ON DELETE CASCADE:
  // os vínculos são removidos somente se a exclusão do profissional for concluída.
@@ -7270,15 +9222,18 @@ async function deleteEmployee(e){
   .delete()
   .eq("id",e.id);
 
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao excluir profissional. Os vínculos foram preservados.","err");
   return;
  }
 
+
  if(photoPath){
   await db.storage.from("employee-photos").remove([photoPath]);
  }
+
 
  message($("appMessage"),"Profissional excluído.","ok");
  await loadEmployees();
@@ -7287,9 +9242,15 @@ async function deleteEmployee(e){
 
 
 
+
+
+
+
 /* ============================
    ORGANOGRAMA
 ============================ */
+
+
 
 
 const ORG_ORDER=[
@@ -7302,15 +9263,21 @@ const ORG_ORDER=[
 ];
 
 
+
+
 async function loadOrganogram(){
  const box=$("orgContent");
  box.innerHTML='<div class="empty">Carregando...</div>';
+
+
 
 
  const {data:links,error:linkError}=await db
   .from("employee_units")
   .select("employee_id,unit_id")
   .eq("unit_id",unitId);
+
+
 
 
  if(linkError){
@@ -7320,13 +9287,19 @@ async function loadOrganogram(){
  }
 
 
+
+
  const ids=[...new Set((links||[]).map(x=>x.employee_id))];
+
+
 
 
  if(!ids.length){
   box.innerHTML='<div class="empty">Nenhum profissional vinculado a esta unidade.</div>';
   return;
  }
+
+
 
 
  const {data,error}=await db
@@ -7337,6 +9310,8 @@ async function loadOrganogram(){
   .order("full_name");
 
 
+
+
  if(error){
   console.error(error);
   message($("appMessage"),"Falha ao carregar organograma.","err");
@@ -7344,7 +9319,11 @@ async function loadOrganogram(){
  }
 
 
+
+
  let orgPeople=data||[];
+
+
 
 
  // Inclui líderes/superiores compartilhados que não estejam
@@ -7357,12 +9336,16 @@ async function loadOrganogram(){
  )];
 
 
+
+
  if(missingSupervisorIds.length){
   const {data:supervisors,error:supervisorError}=await db
    .from("employees")
    .select("*")
    .in("id",missingSupervisorIds)
    .eq("status","ativo");
+
+
 
 
   if(supervisorError){
@@ -7377,7 +9360,11 @@ async function loadOrganogram(){
  }
 
 
+
+
  const orgIds=[...new Set(orgPeople.map(e=>e.id))];
+
+
 
 
  const {data:allLinks,error:allLinksError}=await db
@@ -7386,11 +9373,15 @@ async function loadOrganogram(){
   .in("employee_id",orgIds);
 
 
+
+
  if(allLinksError){
   console.error(allLinksError);
   message($("appMessage"),"Falha ao carregar unidades do organograma.","err");
   return;
  }
+
+
 
 
  const enriched=orgPeople.map(emp=>({
@@ -7401,8 +9392,12 @@ async function loadOrganogram(){
  }));
 
 
+
+
  renderOrganogram(enriched);
 }
+
+
 
 
 async function signedEmployeePhoto(path){
@@ -7414,23 +9409,35 @@ async function signedEmployeePhoto(path){
 }
 
 
+
+
 async function buildOrgNode(person,bySupervisor,seen=new Set()){
  if(seen.has(person.id))return null;
+
+
 
 
  const nextSeen=new Set(seen);
  nextSeen.add(person.id);
 
 
+
+
  const wrap=document.createElement("div");
  wrap.className="org-node-wrap";
+
+
 
 
  const node=document.createElement("div");
  node.className="org-node";
 
 
+
+
  const photoUrl=await signedEmployeePhoto(person.photo_path);
+
+
 
 
  if(photoUrl){
@@ -7451,14 +9458,20 @@ async function buildOrgNode(person,bySupervisor,seen=new Set()){
  }
 
 
+
+
  const name=document.createElement("strong");
  name.textContent=person.full_name;
  node.appendChild(name);
 
 
+
+
  const role=document.createElement("div");
  role.textContent=person.org_role||person.job_title||"Função não definida";
  node.appendChild(role);
+
+
 
 
  const meta=document.createElement("div");
@@ -7467,16 +9480,24 @@ async function buildOrgNode(person,bySupervisor,seen=new Set()){
  node.appendChild(meta);
 
 
+
+
  wrap.appendChild(node);
+
+
 
 
  const children=(bySupervisor.get(person.id)||[])
   .filter(c=>!nextSeen.has(c.id));
 
 
+
+
  if(children.length){
   const childBox=document.createElement("div");
   childBox.className="org-children";
+
+
 
 
   for(const child of children){
@@ -7485,17 +9506,25 @@ async function buildOrgNode(person,bySupervisor,seen=new Set()){
   }
 
 
+
+
   wrap.appendChild(childBox);
  }
+
+
 
 
  return wrap;
 }
 
 
+
+
 async function renderOrganogram(data){
  const box=$("orgContent");
  box.replaceChildren();
+
+
 
 
  if(!data.length){
@@ -7504,10 +9533,14 @@ async function renderOrganogram(data){
  }
 
 
+
+
  const volante=data.filter(
   e=>(e.org_group||"").trim().toLowerCase()==="equipe volante"
  );
  const normal=data.filter(e=>!volante.includes(e));
+
+
 
 
  const leaders=normal.filter(e=>
@@ -7517,13 +9550,19 @@ async function renderOrganogram(data){
  const nonLeaders=normal.filter(e=>!leaders.includes(e));
 
 
+
+
  const tree=document.createElement("div");
  tree.className="org-tree";
+
+
 
 
  if(leaders.length){
   const leaderRow=document.createElement("div");
   leaderRow.className="org-leader-row";
+
+
 
 
   for(const leader of leaders){
@@ -7533,9 +9572,13 @@ async function renderOrganogram(data){
   tree.appendChild(leaderRow);
 
 
+
+
   if(nonLeaders.length){
    const teamRow=document.createElement("div");
    teamRow.className="org-team-row";
+
+
 
 
    const orderMap=new Map(ORG_ORDER.map((role,index)=>[role.toLowerCase(),index]));
@@ -7544,6 +9587,8 @@ async function renderOrganogram(data){
     const br=(b.org_role||b.job_title||"").toLowerCase();
     return (orderMap.get(ar)??99)-(orderMap.get(br)??99) || (a.full_name||"").localeCompare(b.full_name||"");
    });
+
+
 
 
    for(const person of nonLeaders){
@@ -7557,6 +9602,8 @@ async function renderOrganogram(data){
   const bySupervisor=new Map();
 
 
+
+
   normal.forEach(e=>{
    if(e.supervisor_id&&ids.has(e.supervisor_id)){
     if(!bySupervisor.has(e.supervisor_id))bySupervisor.set(e.supervisor_id,[]);
@@ -7565,9 +9612,13 @@ async function renderOrganogram(data){
   });
 
 
+
+
   const roots=normal.filter(e=>!e.supervisor_id||!ids.has(e.supervisor_id));
   const row=document.createElement("div");
   row.className="org-tree-row";
+
+
 
 
   for(const root of roots){
@@ -7578,7 +9629,11 @@ async function renderOrganogram(data){
  }
 
 
+
+
  box.appendChild(tree);
+
+
 
 
  if(volante.length){
@@ -7586,13 +9641,19 @@ async function renderOrganogram(data){
   section.className="org-group-card";
 
 
+
+
   const title=document.createElement("h3");
   title.textContent="Equipe volante";
   section.appendChild(title);
 
 
+
+
   const row=document.createElement("div");
   row.className="org-row";
+
+
 
 
   for(const e of volante){
@@ -7600,7 +9661,11 @@ async function renderOrganogram(data){
    card.className="org-node";
 
 
+
+
    const photoUrl=await signedEmployeePhoto(e.photo_path);
+
+
 
 
    if(photoUrl){
@@ -7621,14 +9686,20 @@ async function renderOrganogram(data){
    }
 
 
+
+
    const name=document.createElement("strong");
    name.textContent=e.full_name;
    card.appendChild(name);
 
 
+
+
    const role=document.createElement("div");
    role.textContent=e.org_role||e.job_title||"Função não definida";
    card.appendChild(role);
+
+
 
 
    const units=document.createElement("div");
@@ -7637,8 +9708,12 @@ async function renderOrganogram(data){
    card.appendChild(units);
 
 
+
+
    row.appendChild(card);
   }
+
+
 
 
   section.appendChild(row);
@@ -7648,9 +9723,276 @@ async function renderOrganogram(data){
 
 
 
+
+
+
+
+
+/* ============================
+   TREINAMENTOS
+============================ */
+let trainingTracks=[];
+let trainingList=[];
+let trainingAttempts=[];
+let trainingEmployees=[];
+let trainingEmployeeUnits=[];
+let trainingViewMode="units";
+
+
+const TRAINING_Q_STATS={
+  1:[100,98.5,86.2,90.8,100],
+  2:[93.8,90.6,79.7,100,100],
+  3:[96.8,88.9,74.6,82.5,100],
+  4:[100,98.4,98.4,96.9,78.1]
+};
+
+
+function trainingNorm(v){
+ return String(v||"")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");
+}
+function trainingCompact(v){return trainingNorm(v).replace(/\s/g,"");}
+function trainingTokens(v){return trainingNorm(v).split(" ").filter(x=>x.length>1);}
+function trainingJaccard(a,b){
+ const A=new Set(trainingTokens(a)),B=new Set(trainingTokens(b));
+ const inter=[...A].filter(x=>B.has(x)).length;
+ const uni=new Set([...A,...B]).size;
+ return uni?inter/uni:0;
+}
+function trainingEditDistance(a,b){
+ a=String(a||"");b=String(b||"");
+ const d=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));
+ for(let i=0;i<=a.length;i++)d[i][0]=i;
+ for(let j=0;j<=b.length;j++)d[0][j]=j;
+ for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)
+  d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+ return d[a.length][b.length];
+}
+function trainingEmployeeUnitId(empId){
+ return trainingEmployeeUnits.find(x=>x.employee_id===empId&&x.count_in_headcount!==false)?.unit_id||null;
+}
+function trainingUnitCompatible(contract,unitName){
+ const a=trainingNorm(contract),b=trainingNorm(unitName);
+ if(!a||!b)return false;
+ if(a.includes("medical city")&&b.includes("medical city"))return true;
+ if(a.includes("pro cardiaco")&&b.includes("pro cardiaco"))return true;
+ if(a.includes("samaritano")&&b.includes("samaritano"))return true;
+ if(a.includes("sip ipanema")&&b.includes("sip ipanema"))return true;
+ if(a.includes("oncobarra")&&b.includes("oncobarra"))return true;
+ if(a.includes("coi amc")&&b.includes("coi amc"))return true;
+ if(a.includes("coi mdx")&&b.includes("coi mdx"))return true;
+ if(a.includes("coi botafogo")&&b.includes("coi botafogo"))return true;
+ if(a.includes("coi niteroi")&&b.includes("coi niteroi"))return true;
+ if(a.includes("volante")&&b.includes("volante"))return true;
+ return trainingJaccard(a,b)>=.4;
+}
+function trainingFindEmployee(attempt,employees){
+ if(attempt.employee_id){
+  const direct=employees.find(e=>e.id===attempt.employee_id);
+  if(direct)return direct;
+ }
+ const ac=trainingCompact(attempt.participant_name);
+ let exact=employees.find(e=>trainingCompact(e.full_name)===ac);
+ if(exact)return exact;
+ const at=trainingTokens(attempt.participant_name);
+ const first=at[0]||"",last=at[at.length-1]||"";
+ const candidates=employees.map(e=>{
+  const ec=trainingCompact(e.full_name),et=trainingTokens(e.full_name);
+  const unitName=allUnits.find(u=>u.id===trainingEmployeeUnitId(e.id))?.name||"";
+  let score=trainingJaccard(attempt.participant_name,e.full_name);
+  if(ac&&ec&&(ac.startsWith(ec)||ec.startsWith(ac)))score=Math.max(score,.88);
+  if(first&&et[0]&&trainingEditDistance(first,et[0])<=1&&last&&et.includes(last))score=Math.max(score,.82);
+  if(first===et[0]&&last===et[et.length-1])score=Math.max(score,.86);
+  if(trainingUnitCompatible(attempt.source_contract,unitName))score+=.08;
+  return {e,score,unitName};
+ }).sort((a,b)=>b.score-a.score);
+ if(candidates[0]?.score>=.72)return candidates[0].e;
+ const sameFirst=candidates.filter(x=>{
+  const et=trainingTokens(x.e.full_name);
+  return first&&et[0]===first&&trainingUnitCompatible(attempt.source_contract,x.unitName);
+ });
+ if(sameFirst.length===1)return sameFirst[0].e;
+ return null;
+}
+function trainingPctClass(v){return v>=90?"training-pct-good":v>=75?"training-pct-mid":"training-pct-low";}
+function trainingShortTitle(t){
+ const map={1:"Aspecto visual",2:"Pressão positiva e negativa",3:"Sistemas de filtragem",4:"Software de manutenção"};
+ return map[t.display_order]||t.title;
+}
+function trainingCurrentTrack(){return $("trainingTrackFilter").value||trainingTracks[0]?.id||"";}
+function trainingCurrentUnit(){return $("trainingUnitFilter").value||"";}
+
+
+function trainingBuildModel(){
+ const trackId=trainingCurrentTrack();
+ const unitId=trainingCurrentUnit();
+ const trainings=trainingList.filter(t=>t.track_id===trackId&&t.active!==false).sort((a,b)=>a.display_order-b.display_order);
+ const active=trainingEmployees.filter(e=>e.status==="ativo"&&trainingEmployeeUnitId(e.id));
+ const scopeEmployees=unitId?active.filter(e=>trainingEmployeeUnitId(e.id)===unitId):active;
+ const attempts=trainingAttempts.filter(a=>trainings.some(t=>t.id===a.training_id));
+ const best=new Map();
+ attempts.forEach(a=>{
+  const emp=trainingFindEmployee(a,active);
+  if(!emp)return;
+  const key=a.training_id+"|"+emp.id;
+  const old=best.get(key);
+  if(!old||Number(a.score_correct||0)>Number(old.score_correct||0)||
+     (Number(a.score_correct||0)===Number(old.score_correct||0)&&String(a.completed_at||"")>String(old.completed_at||""))){
+    best.set(key,{...a,_employee:emp});
+  }
+ });
+ return {trainings,active,scopeEmployees,best,unitId};
+}
+
+
+async function loadTrainingsModule(){
+ if(!hasAccess("treinamentos","view")&&profile?.role!=="admin"){
+  $("trainingCards").innerHTML='<div class="empty">Seu perfil não possui acesso ao módulo de treinamentos.</div>';
+  return;
+ }
+ $("trainingCards").innerHTML='<div class="empty">Carregando treinamentos...</div>';
+ const [tracksRes,trainingsRes,attemptsRes,empRes,linksRes]=await Promise.all([
+  db.from("training_tracks").select("*").eq("active",true).order("created_at"),
+  db.from("trainings").select("*").eq("active",true).order("display_order"),
+  db.from("training_attempts").select("id,training_id,employee_id,unit_id,participant_name,source_contract,completed_at,score_correct,score_total"),
+  db.from("employees").select("id,full_name,status"),
+  db.from("employee_units").select("employee_id,unit_id,count_in_headcount")
+ ]);
+ const err=tracksRes.error||trainingsRes.error||attemptsRes.error||empRes.error||linksRes.error;
+ if(err){console.error(err);$("trainingCards").innerHTML='<div class="empty">Não foi possível carregar os treinamentos.</div>';return;}
+ trainingTracks=tracksRes.data||[];
+ trainingList=trainingsRes.data||[];
+ trainingAttempts=attemptsRes.data||[];
+ trainingEmployees=empRes.data||[];
+ trainingEmployeeUnits=linksRes.data||[];
+
+
+ const tf=$("trainingTrackFilter"),uf=$("trainingUnitFilter");
+ const currentTrack=tf.value,currentUnit=uf.value;
+ tf.replaceChildren();
+ trainingTracks.forEach(x=>tf.appendChild(new Option(x.name,x.id)));
+ if(currentTrack&&trainingTracks.some(x=>x.id===currentTrack))tf.value=currentTrack;
+ uf.innerHTML='<option value="">Toda a Rede</option>';
+ allUnits.forEach(u=>{
+  if(profile?.role==="admin"||hasAccess("treinamentos","view",u.id))uf.appendChild(new Option(u.name,u.id));
+ });
+ if(currentUnit&&allUnits.some(u=>u.id===currentUnit))uf.value=currentUnit;
+ renderTrainingsModule();
+}
+
+
+function renderTrainingsModule(){
+ const m=trainingBuildModel();
+ const possible=m.scopeEmployees.length*m.trainings.length;
+ let completedTotal=0,correct=0,answered=0;
+ m.trainings.forEach(t=>{
+  m.scopeEmployees.forEach(e=>{
+   const a=m.best.get(t.id+"|"+e.id);
+   if(a){completedTotal++;correct+=Number(a.score_correct||0);answered+=Number(a.score_total||5);}
+  });
+ });
+ $("trainingKpiCount").textContent=m.trainings.length;
+ $("trainingKpiExpected").textContent=m.scopeEmployees.length;
+ $("trainingKpiAdherence").textContent=(possible?Math.round(completedTotal/possible*100):0)+"%";
+ $("trainingKpiAccuracy").textContent=(answered?Math.round(correct/answered*100):0)+"%";
+
+
+ const cards=$("trainingCards");cards.replaceChildren();
+ m.trainings.forEach(t=>{
+  const done=m.scopeEmployees.filter(e=>m.best.has(t.id+"|"+e.id));
+  const pending=m.scopeEmployees.filter(e=>!m.best.has(t.id+"|"+e.id));
+  const pct=m.scopeEmployees.length?Math.round(done.length/m.scopeEmployees.length*100):0;
+  const scores=done.map(e=>m.best.get(t.id+"|"+e.id));
+  const acc=scores.length?Math.round(scores.reduce((sum,a)=>sum+Number(a.score_correct||0),0)/(scores.length*5)*100):0;
+  const card=document.createElement("article");card.className="training-card";
+  const yt=t.youtube_url
+   ?'<a class="training-youtube" target="_blank" rel="noopener" href="'+escapeHtml(t.youtube_url)+'">▶ Assistir no YouTube</a>'
+   :'<span class="muted">Link do YouTube não cadastrado.</span>';
+  card.innerHTML=
+   '<div class="training-card-top"><div><span class="training-pill">Treinamento '+t.display_order+'</span><h3>'+escapeHtml(trainingShortTitle(t))+'</h3></div><strong class="'+trainingPctClass(pct)+'">'+pct+'%</strong></div>'+
+   '<div class="training-progress"><span style="width:'+pct+'%"></span></div>'+
+   '<div class="training-metrics"><div><span>Esperados</span><strong>'+m.scopeEmployees.length+'</strong></div><div><span>Concluíram</span><strong>'+done.length+'</strong></div><div><span>Aproveitamento</span><strong>'+acc+'%</strong></div></div>'+
+   '<div class="training-actions">'+yt+(profile?.role==="admin"?'<button class="secondary trainingEditLink">Editar link</button>':"")+'</div>'+
+   '<details class="training-pending"><summary>'+pending.length+' pendente(s) — ver nomes</summary><div class="training-pending-list">'+(pending.length?pending.map(e=>'<span>'+escapeHtml(e.full_name)+'</span>').join(""):'<span>Nenhuma pendência</span>')+'</div></details>';
+  const edit=card.querySelector(".trainingEditLink");
+  if(edit)edit.onclick=async()=>{
+   const url=prompt("Cole o link do treinamento no YouTube:",t.youtube_url||"");
+   if(url===null)return;
+   const {error}=await db.from("trainings").update({youtube_url:url.trim()||null,updated_at:new Date().toISOString()}).eq("id",t.id);
+   if(error){message($("appMessage"),"Não foi possível atualizar o link.","err");return;}
+   t.youtube_url=url.trim()||null;renderTrainingsModule();
+  };
+  cards.appendChild(card);
+ });
+ renderTrainingUnits(m);
+ renderTrainingRanking(m);
+ renderTrainingQuestions(m);
+}
+
+
+function renderTrainingUnits(m){
+ const box=$("trainingUnitsView");
+ const unitIds=m.unitId?[m.unitId]:[...new Set(m.active.map(e=>trainingEmployeeUnitId(e.id)).filter(Boolean))];
+ const rows=unitIds.map(uid=>{
+  const emps=m.active.filter(e=>trainingEmployeeUnitId(e.id)===uid);
+  const pcts=m.trainings.map(t=>{
+   const d=emps.filter(e=>m.best.has(t.id+"|"+e.id)).length;
+   return emps.length?Math.round(d/emps.length*100):0;
+  });
+  return {uid,name:allUnits.find(u=>u.id===uid)?.name||"Unidade",emps,pcts,avg:pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0};
+ }).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+ box.innerHTML='<div class="training-table-wrap"><table class="training-table"><thead><tr><th>Unidade</th><th>Ativos</th>'+m.trainings.map(t=>'<th>'+escapeHtml(trainingShortTitle(t))+'</th>').join("")+'<th>Média</th></tr></thead><tbody>'+
+ rows.map(r=>'<tr><td><strong>'+escapeHtml(r.name)+'</strong></td><td>'+r.emps.length+'</td>'+r.pcts.map(p=>'<td class="'+trainingPctClass(p)+'">'+p+'%</td>').join("")+'<td class="'+trainingPctClass(r.avg)+'">'+r.avg+'%</td></tr>').join("")+
+ '</tbody></table></div>';
+}
+
+
+function renderTrainingRanking(m){
+ const rows=m.scopeEmployees.map(e=>{
+  let completed=0,correct=0,total=0;
+  m.trainings.forEach(t=>{const a=m.best.get(t.id+"|"+e.id);if(a){completed++;correct+=Number(a.score_correct||0);total+=Number(a.score_total||5);}});
+  const adherence=m.trainings.length?completed/m.trainings.length*100:0;
+  const accuracy=total?correct/total*100:0;
+  const score=.6*adherence+.4*accuracy;
+  return {e,completed,adherence,accuracy,score,unit:allUnits.find(u=>u.id===trainingEmployeeUnitId(e.id))?.name||"—"};
+ }).sort((a,b)=>b.score-a.score||b.adherence-a.adherence||b.accuracy-a.accuracy||a.e.full_name.localeCompare(b.e.full_name,"pt-BR"));
+ $("trainingRankingView").innerHTML='<div class="training-table-wrap"><table class="training-table"><thead><tr><th>#</th><th>Funcionário</th><th>Unidade</th><th>Conclusões</th><th>Aderência</th><th>Acertos</th><th>Nota geral</th></tr></thead><tbody>'+
+ rows.map((r,i)=>'<tr><td><strong>'+(i+1)+'</strong></td><td>'+escapeHtml(r.e.full_name)+'</td><td>'+escapeHtml(r.unit)+'</td><td>'+r.completed+'/'+m.trainings.length+'</td><td class="'+trainingPctClass(r.adherence)+'">'+Math.round(r.adherence)+'%</td><td class="'+trainingPctClass(r.accuracy)+'">'+Math.round(r.accuracy)+'%</td><td><strong>'+Math.round(r.score)+'</strong></td></tr>').join("")+
+ '</tbody></table></div>';
+}
+
+
+function renderTrainingQuestions(m){
+ const box=$("trainingQuestionsView");box.replaceChildren();
+ m.trainings.forEach(t=>{
+  const stats=TRAINING_Q_STATS[t.display_order]||[];
+  const panel=document.createElement("div");panel.className="training-panel";panel.style.marginBottom="12px";
+  panel.innerHTML='<h3>'+escapeHtml(trainingShortTitle(t))+'</h3><div class="muted">Percentual de respostas corretas por questão na base importada.</div><div class="training-question-grid">'+
+   stats.map((p,i)=>'<div class="training-question-box"><span>Questão '+(i+1)+'</span><strong class="'+trainingPctClass(p)+'">'+p.toLocaleString("pt-BR",{maximumFractionDigits:1})+'%</strong></div>').join("")+
+   '</div>';
+  box.appendChild(panel);
+ });
+}
+
+
+$("trainingTrackFilter").addEventListener("change",renderTrainingsModule);
+$("trainingUnitFilter").addEventListener("change",renderTrainingsModule);
+document.querySelectorAll(".training-tab").forEach(btn=>btn.addEventListener("click",()=>{
+ trainingViewMode=btn.dataset.trainingView;
+ document.querySelectorAll(".training-tab").forEach(x=>x.classList.toggle("active",x===btn));
+ $("trainingUnitsView").classList.toggle("hidden",trainingViewMode!=="units");
+ $("trainingRankingView").classList.toggle("hidden",trainingViewMode!=="ranking");
+ $("trainingQuestionsView").classList.toggle("hidden",trainingViewMode!=="questions");
+}));
+
+
+
+
 /* ============================
    ORÇAMENTOS
 ============================ */
+
 
 function budgetIsApproved(row){
  const s=String(row?.purchase_order||"").trim();
@@ -7658,19 +10000,23 @@ function budgetIsApproved(row){
  return digits>=6;
 }
 
+
 function budgetUnitName(row){
  return row?.source_unit_name ||
   allUnits.find(u=>u.id===row?.unit_id)?.name ||
   "Unidade não informada";
 }
 
+
 function fillBudgetUnitControls(){
  const filter=$("budgetUnitFilter");
  const field=$("budgetUnitField");
  if(!filter||!field)return;
 
+
  const selectedFilter=filter.value;
  filter.innerHTML='<option value="">Todas as unidades</option>';
+
 
  allUnits.forEach(u=>{
   if(profile?.role==="admin"||hasAccess("orcamentos","view",u.id)){
@@ -7680,6 +10026,7 @@ function fillBudgetUnitControls(){
    filter.appendChild(o);
   }
  });
+
 
  field.replaceChildren();
  allUnits.forEach(u=>{
@@ -7691,9 +10038,11 @@ function fillBudgetUnitControls(){
  });
 }
 
+
 async function loadBudgets(){
  fillBudgetUnitControls();
  $("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
+
 
  const {data,error}=await db
   .from("budgets")
@@ -7701,6 +10050,7 @@ async function loadBudgets(){
   .eq("archived",false)
   .order("issued_on",{ascending:false})
   .order("quote_number",{ascending:false});
+
 
  if(error){
   console.error(error);
@@ -7710,9 +10060,11 @@ async function loadBudgets(){
   return;
  }
 
+
  budgets=data||[];
  renderBudgets();
 }
+
 
 function filteredBudgets(){
  const term=$("budgetSearch").value.trim().toLowerCase();
@@ -7720,6 +10072,7 @@ function filteredBudgets(){
  const approval=$("budgetApprovalFilter").value;
  const executed=$("budgetExecutedFilter").value;
  const month=$("budgetMonthFilter").value;
+
 
  return budgets.filter(r=>{
   if(unit&&r.unit_id!==unit)return false;
@@ -7729,6 +10082,7 @@ function filteredBudgets(){
   if(executed==="yes"&&!r.executed)return false;
   if(executed==="no"&&r.executed)return false;
   if(month&&String(r.issued_on||"").slice(0,7)!==month)return false;
+
 
   if(term){
    const hay=[
@@ -7741,9 +10095,11 @@ function filteredBudgets(){
  });
 }
 
+
 function renderBudgetCharts(data){
  if(budgetApprovalChartInstance)budgetApprovalChartInstance.destroy();
  if(budgetValueChartInstance)budgetValueChartInstance.destroy();
+
 
  const byUnit=new Map();
  data.forEach(r=>{
@@ -7755,8 +10111,10 @@ function renderBudgetCharts(data){
   x.value+=Number(r.amount||0);
  });
 
+
  const entries=[...byUnit.entries()].sort((a,b)=>b[1].value-a[1].value);
  const labels=entries.map(x=>x[0]);
+
 
  budgetApprovalChartInstance=new Chart($("budgetApprovalChart"),{
   type:"bar",
@@ -7774,8 +10132,10 @@ function renderBudgetCharts(data){
   }
  });
 
+
  const valueLabels=entries.map(x=>`${x[0]} (${x[1].count})`);
  const horizontalValueChart=valueLabels.length>5;
+
 
  budgetValueChartInstance=new Chart($("budgetValueChart"),{
   type:"bar",
@@ -7813,12 +10173,14 @@ function renderBudgetCharts(data){
  });
 }
 
+
 function renderBudgets(){
  const data=filteredBudgets();
  const approved=data.filter(budgetIsApproved);
  const executed=data.filter(r=>r.executed);
  const totalAmount=data.reduce((s,r)=>s+Number(r.amount||0),0);
  const approvedAmount=approved.reduce((s,r)=>s+Number(r.amount||0),0);
+
 
  $("budgetKpiTotal").textContent=data.length;
  $("budgetKpiTotalAmount").textContent=moneyBr(totalAmount);
@@ -7828,12 +10190,15 @@ function renderBudgets(){
  $("budgetKpiExecutedNote").textContent=`${data.length?Math.round(executed.length/data.length*100):0}% do filtro`;
  $("budgetKpiTotalNote").textContent=data.length===budgets.length?"Todos os registros visíveis":`${data.length} de ${budgets.length} registros`;
 
+
  renderBudgetCharts(data);
+
 
  const tbody=$("budgetTableBody");
  const mobile=$("budgetMobileList");
  tbody.replaceChildren();
  mobile.replaceChildren();
+
 
  if(!data.length){
   tbody.innerHTML='<tr><td colspan="14"><div class="empty">Nenhum orçamento encontrado.</div></td></tr>';
@@ -7841,9 +10206,11 @@ function renderBudgets(){
   return;
  }
 
+
  data.forEach(r=>{
   const approvedFlag=budgetIsApproved(r);
   const canEdit=hasAccess("orcamentos","edit",r.unit_id);
+
 
   const tr=document.createElement("tr");
   tr.innerHTML=`
@@ -7865,6 +10232,7 @@ function renderBudgets(){
   const edit=tr.querySelector(".budgetEditBtn");
   if(edit)edit.onclick=()=>openBudgetDialog(r);
   tbody.appendChild(tr);
+
 
   const card=document.createElement("article");
   card.className="budget-mobile-card";
@@ -7891,12 +10259,15 @@ function renderBudgets(){
  });
 }
 
+
 ["budgetSearch","budgetUnitFilter","budgetApprovalFilter","budgetExecutedFilter","budgetMonthFilter"].forEach(id=>{
  $(id).addEventListener(id==="budgetSearch"?"input":"change",renderBudgets);
 });
 
+
 $("newBudgetButton").onclick=()=>openBudgetDialog(null);
 $("cancelBudgetDialog").onclick=()=>$("budgetDialog").close();
+
 
 function openBudgetDialog(row){
  editingBudget=row||null;
@@ -7905,6 +10276,7 @@ function openBudgetDialog(row){
  $("budgetIdField").value=row?.id||"";
  $("budgetDialogTitle").textContent=row?"Editar orçamento":"Novo orçamento";
  $("saveBudgetButton").textContent=row?"Salvar alterações":"Salvar orçamento";
+
 
  $("budgetQuoteNumber").value=row?.quote_number||"";
  $("budgetClientName").value=row?.client_name||"";
@@ -7919,21 +10291,26 @@ function openBudgetDialog(row){
  $("budgetExtraLabor").value=String(!!row?.extra_labor_coi);
  $("budgetPurchaseOrder").value=row?.purchase_order||"";
 
+
  $("budgetDialog").showModal();
 }
+
 
 $("budgetForm").addEventListener("submit",async e=>{
  e.preventDefault();
 
+
  const quoteNumber=$("budgetQuoteNumber").value.trim();
  const selectedUnit=$("budgetUnitField").value;
  if(!quoteNumber||!selectedUnit)return;
+
 
  const action=editingBudget?"edit":"insert";
  if(!hasAccess("orcamentos",action,selectedUnit)){
   message($("appMessage"),"Seu perfil não possui permissão para esta operação.","err");
   return;
  }
+
 
  const payload={
   quote_number:quoteNumber,
@@ -7953,9 +10330,11 @@ $("budgetForm").addEventListener("submit",async e=>{
   updated_at:new Date().toISOString()
  };
 
+
  const btn=$("saveBudgetButton");
  btn.disabled=true;
  btn.textContent="Salvando...";
+
 
  let error;
  if(editingBudget){
@@ -7969,8 +10348,10 @@ $("budgetForm").addEventListener("submit",async e=>{
   }));
  }
 
+
  btn.disabled=false;
  btn.textContent=editingBudget?"Salvar alterações":"Salvar orçamento";
+
 
  if(error){
   console.error(error);
@@ -7979,10 +10360,13 @@ $("budgetForm").addEventListener("submit",async e=>{
   return;
  }
 
+
  $("budgetDialog").close();
  message($("appMessage"),editingBudget?"Orçamento atualizado.":"Orçamento cadastrado.","ok");
  await loadBudgets();
 });
+
+
 
 
 function hideSplashScreen(){
@@ -7991,6 +10375,7 @@ function hideSplashScreen(){
  splash.classList.add("hidden");
  document.body.classList.remove("splash-active");
 }
+
 
 async function bootApp(){
  try{
@@ -8003,7 +10388,11 @@ async function bootApp(){
 }
 
 
+
+
 /* INÍCIO */
+
+
 
 
 bootApp();
