@@ -1374,7 +1374,10 @@ header.main-app-header #headerStatus{
 <h2>Orçamentos</h2>
 <div class="muted">Gestão financeira de orçamentos • Aprovado = possui número de Pedido de Compra.</div>
 </div>
-<button id="newBudgetButton" class="primary">+ Novo orçamento</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button id="syncBudgetButton" class="secondary" style="width:auto">🔄 Sincronizar agora</button>
+<button id="newBudgetButton" class="primary" style="width:auto">+ Novo orçamento</button>
+</div>
 </div>
 
 
@@ -1401,6 +1404,8 @@ header.main-app-header #headerStatus{
 </select>
 <input id="budgetMonthFilter" type="month" title="Filtrar pelo mês de emissão">
 </div>
+
+<div id="budgetSyncInfo" class="muted" style="margin:-4px 0 14px;font-size:13px">Última sincronização: não registrada.</div>
 
 
 <div class="budget-charts">
@@ -10051,6 +10056,8 @@ function fillBudgetUnitControls(){
 async function loadBudgets(){
  fillBudgetUnitControls();
  $("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
+ $("syncBudgetButton").classList.toggle("hidden",profile?.role!=="admin");
+ await loadBudgetSyncStatus();
 
 
  const {data,error}=await db
@@ -10072,6 +10079,68 @@ async function loadBudgets(){
 
  budgets=data||[];
  renderBudgets();
+}
+
+
+async function loadBudgetSyncStatus(){
+ const info=$("budgetSyncInfo");
+ if(!info)return;
+ if(profile?.role!=="admin"){
+  info.textContent="";
+  info.classList.add("hidden");
+  return;
+ }
+ info.classList.remove("hidden");
+ const {data,error}=await db
+  .from("budget_sync_runs")
+  .select("started_at,completed_at,status,inserted_count,updated_count,unchanged_count,skipped_count,message")
+  .order("started_at",{ascending:false})
+  .limit(1)
+  .maybeSingle();
+
+ if(error){
+  console.error(error);
+  info.textContent="Última sincronização: indisponível.";
+  return;
+ }
+ if(!data){
+  info.textContent="Última sincronização: ainda não realizada.";
+  return;
+ }
+ const when=data.completed_at||data.started_at;
+ const dt=when?new Date(when).toLocaleString("pt-BR"):"—";
+ const statusLabel=data.status==="success"?"Concluída":data.status==="error"?"Erro":data.status==="config_required"?"Configuração pendente":"Em andamento";
+ info.textContent="Última sincronização: "+dt+" • "+statusLabel+(data.message?" • "+data.message:"");
+}
+
+async function syncBudgetsNow(){
+ if(profile?.role!=="admin")return;
+ const btn=$("syncBudgetButton");
+ const old=btn.textContent;
+ btn.disabled=true;
+ btn.textContent="Sincronizando...";
+ message($("appMessage"),"Sincronizando Orçamentos com a planilha na nuvem...","info");
+
+ try{
+  const {data,error}=await db.functions.invoke("sync-budgets-sharepoint",{body:{}});
+  if(error)throw error;
+
+  if(data?.code==="config_required"){
+   message($("appMessage"),"A função está pronta, mas ainda faltam as credenciais do SharePoint no Supabase.","err");
+  }else if(data?.ok){
+   message($("appMessage"),data.message||"Sincronização concluída.","ok");
+   await loadBudgets();
+  }else{
+   message($("appMessage"),data?.error||"Não foi possível concluir a sincronização.","err");
+  }
+ }catch(error){
+  console.error(error);
+  message($("appMessage"),"Não foi possível sincronizar agora. Verifique a configuração do SharePoint.","err");
+ }finally{
+  btn.disabled=false;
+  btn.textContent=old;
+  await loadBudgetSyncStatus();
+ }
 }
 
 
@@ -10274,6 +10343,7 @@ function renderBudgets(){
 });
 
 
+$("syncBudgetButton").onclick=syncBudgetsNow;
 $("newBudgetButton").onclick=()=>openBudgetDialog(null);
 $("cancelBudgetDialog").onclick=()=>$("budgetDialog").close();
 
