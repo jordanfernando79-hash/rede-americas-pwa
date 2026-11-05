@@ -9817,8 +9817,17 @@ function trainingFindEmployee(attempt,employees){
 }
 function trainingPctClass(v){return v>=90?"training-pct-good":v>=75?"training-pct-mid":"training-pct-low";}
 function trainingShortTitle(t){
- const map={1:"Aspecto visual",2:"Pressão positiva e negativa",3:"Sistemas de filtragem",4:"Software de manutenção"};
- return map[t.display_order]||t.title;
+ const track=trainingTracks.find(x=>x.id===t.track_id);
+ if(track?.name==="Trilha 01"){
+  const map={
+   1:"Aspecto visual",
+   2:"Pressão positiva e negativa",
+   3:"Sistemas de filtragem",
+   4:"Software de manutenção"
+  };
+  return map[t.display_order]||t.title;
+ }
+ return t.title||("Treinamento "+t.display_order);
 }
 function trainingCurrentTrack(){return $("trainingTrackFilter").value||trainingTracks[0]?.id||"";}
 function trainingCurrentUnit(){return $("trainingUnitFilter").value||"";}
