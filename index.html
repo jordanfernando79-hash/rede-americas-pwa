@@ -7,6 +7,7 @@
 <title>Central de Gestão de Manutenção Rede Americas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
 
 
@@ -942,6 +943,180 @@ header.main-app-header #headerStatus{
 }
 
 
+
+/* =========================================================
+   LAYOUT GLOBAL — CORPORATIVO MODERNO
+   Navegação lateral para todos os módulos
+========================================================= */
+:root{
+  --navy-950:#082540;
+  --navy-900:#0b3157;
+  --navy-800:#10466f;
+  --blue-600:#1687d9;
+  --blue-500:#1f9aeb;
+  --sidebar-w:248px;
+}
+
+body{background:#eef4f8}
+main{max-width:1580px;padding:18px 20px 60px}
+.main-app-header{position:sticky;top:0;z-index:700;background:linear-gradient(100deg,#0a3155 0%,#124d78 68%,#116a9e 100%);box-shadow:0 7px 24px rgba(6,34,59,.18)}
+.main-header-inner{max-width:1580px!important;margin:0 auto}
+.main-brand-simple h1{font-size:clamp(20px,2.2vw,30px)!important;letter-spacing:-.02em}
+
+#appView{
+  display:grid;
+  grid-template-columns:var(--sidebar-w) minmax(0,1fr);
+  column-gap:22px;
+  align-items:start;
+}
+#appView > h2{display:none}
+#appView > :not(.modules):not(h2){grid-column:2}
+#appView > .modules{
+  grid-column:1;
+  grid-row:1 / span 100;
+  position:sticky;
+  top:92px;
+  align-self:start;
+}
+
+.app-top-toolbar{
+  min-height:58px;
+  padding:10px 14px;
+  margin:0 0 14px;
+  background:#fff;
+  border:1px solid #d8e4ec;
+  border-radius:14px;
+  box-shadow:0 3px 12px rgba(13,50,78,.07);
+}
+.app-top-toolbar #logoutButton{width:auto;min-width:96px}
+.mobile-nav-toggle{display:none!important;width:auto!important}
+
+.modules{
+  display:flex!important;
+  flex-direction:column;
+  gap:4px!important;
+  min-height:calc(100vh - 120px);
+  margin:0!important;
+  padding:18px 12px 20px!important;
+  border-radius:18px;
+  background:linear-gradient(180deg,var(--navy-900) 0%,var(--navy-950) 100%);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 12px 30px rgba(8,37,64,.20);
+  overflow:auto;
+}
+.modules::before{
+  content:"NAVEGAÇÃO";
+  display:block;
+  padding:2px 10px 10px;
+  color:#91b8d4;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.module{
+  display:flex!important;
+  align-items:center;
+  gap:11px;
+  width:100%!important;
+  min-height:43px;
+  padding:10px 11px!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:#dcebf5!important;
+  font-weight:750!important;
+  text-align:left!important;
+  box-shadow:none!important;
+  transition:background .17s ease,color .17s ease,transform .17s ease,border-color .17s ease;
+}
+.module svg{
+  width:18px;height:18px;flex:0 0 18px;
+  stroke-width:2;
+}
+.module span{line-height:1.18}
+.module:hover:not(:disabled){
+  background:rgba(255,255,255,.09)!important;
+  color:#fff!important;
+  transform:translateX(2px);
+}
+.module.active{
+  background:linear-gradient(90deg,#1687d9,#1d9bed)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.18)!important;
+  box-shadow:0 7px 16px rgba(5,111,184,.30)!important;
+}
+.module:disabled{
+  color:#698aa2!important;
+  opacity:.70!important;
+  cursor:not-allowed!important;
+}
+
+/* área principal */
+#overviewModuleView,#unitsModuleView,#accessModuleView,#rdiModuleView,#budgetModuleView,
+#waterModuleView,#reportsModuleView,#documentsModuleView,#communicationModuleView,
+#trainingModuleView,#orgModuleView{
+  min-width:0;
+}
+.section-title{
+  margin:14px 0;
+}
+.section-title h2{
+  font-size:25px;
+  letter-spacing:-.025em;
+}
+.exec-card,.budget-kpi,.training-kpi,.water-kpi,.card,.record,
+.exec-panel,.budget-chart-card,.water-chart-card,.training-card,.training-panel{
+  border-color:#d4e2eb!important;
+  box-shadow:0 4px 14px rgba(11,49,87,.065)!important;
+}
+.exec-card strong,.budget-kpi strong,.training-kpi strong,.water-kpi strong{
+  color:#1379bb!important;
+}
+.module-unit-bar{
+  background:#e8f2f8!important;
+  border-color:#c8dce8!important;
+}
+#appMessage{margin-top:0}
+
+/* melhora densidade em telas grandes */
+@media(min-width:1250px){
+  .exec-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .budget-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* mobile/tablet: menu lateral vira gaveta */
+@media(max-width:900px){
+  main{padding:12px 12px 50px}
+  #appView{display:block}
+  #appView > :not(.modules):not(h2){grid-column:auto}
+  .mobile-nav-toggle{display:inline-flex!important;align-items:center;gap:7px}
+  .mobile-nav-toggle svg{width:18px;height:18px}
+  #appView > .modules{
+    position:fixed;
+    z-index:1200;
+    top:0;left:0;bottom:0;
+    width:min(82vw,290px);
+    min-height:100vh;
+    margin:0!important;
+    border-radius:0 18px 18px 0;
+    transform:translateX(-105%);
+    transition:transform .23s ease;
+    padding-top:22px!important;
+  }
+  #appView > .modules.open{transform:translateX(0)}
+  body.nav-open::after{
+    content:"";
+    position:fixed;inset:0;
+    z-index:1100;
+    background:rgba(4,25,42,.46);
+  }
+  .app-top-toolbar{
+    position:sticky;
+    top:82px;
+    z-index:600;
+  }
+}
+
 </style>
 </head>
 
@@ -1014,7 +1189,10 @@ header.main-app-header #headerStatus{
 
 
 
-<div class="toolbar">
+<div class="toolbar app-top-toolbar">
+<button id="mobileNavToggle" class="ghost mobile-nav-toggle" type="button" aria-label="Abrir menu">
+<i data-lucide="menu"></i><span>Menu</span>
+</button>
 <span class="spacer"></span>
 <div>
 <strong id="userName"></strong>
@@ -1042,19 +1220,19 @@ header.main-app-header #headerStatus{
 
 
 <div class="modules">
-<button id="moduleOverview" class="module active">Visão Geral</button>
-<button id="moduleUnits" class="module">Unidades</button>
-<button id="moduleAccess" class="module">Usuários e Acessos</button>
-<button id="moduleRdi" class="module">RDI</button>
-<button id="moduleBudgets" class="module">Orçamentos</button>
-<button id="moduleWater" class="module">Qualidade da Água</button>
-<button class="module" disabled>Neovero</button>
-<button id="moduleReports" class="module">Relatórios</button>
-<button id="moduleDocuments" class="module">Documentos</button>
-<button class="module" disabled>Inventário</button>
-<button id="moduleTrainings" class="module">Treinamentos</button>
-<button id="moduleOrg" class="module">Organograma</button>
-<button id="moduleCommunication" class="module">Matriz de Comunicação</button>
+<button id="moduleOverview" class="module active"><i data-lucide="home"></i><span>Visão Geral</span></button>
+<button id="moduleUnits" class="module"><i data-lucide="building-2"></i><span>Unidades</span></button>
+<button id="moduleAccess" class="module"><i data-lucide="users"></i><span>Usuários e Acessos</span></button>
+<button id="moduleRdi" class="module"><i data-lucide="wrench"></i><span>RDI</span></button>
+<button id="moduleBudgets" class="module"><i data-lucide="wallet-cards"></i><span>Orçamentos</span></button>
+<button id="moduleWater" class="module"><i data-lucide="droplets"></i><span>Qualidade da Água</span></button>
+<button class="module" disabled><i data-lucide="activity"></i><span>Neovero</span></button>
+<button id="moduleReports" class="module"><i data-lucide="file-chart-column"></i><span>Relatórios</span></button>
+<button id="moduleDocuments" class="module"><i data-lucide="folder-open"></i><span>Documentos</span></button>
+<button class="module" disabled><i data-lucide="package-search"></i><span>Inventário</span></button>
+<button id="moduleTrainings" class="module"><i data-lucide="graduation-cap"></i><span>Treinamentos</span></button>
+<button id="moduleOrg" class="module"><i data-lucide="network"></i><span>Organograma</span></button>
+<button id="moduleCommunication" class="module"><i data-lucide="messages-square"></i><span>Matriz de Comunicação</span></button>
 </div>
 
 
@@ -10499,6 +10677,39 @@ async function bootApp(){
 }
 
 
+
+
+
+/* LAYOUT CORPORATIVO — navegação lateral responsiva */
+const mobileNavToggle=$("mobileNavToggle");
+const sidebarModules=document.querySelector("#appView > .modules");
+
+function closeCorporateNav(){
+ if(!sidebarModules)return;
+ sidebarModules.classList.remove("open");
+ document.body.classList.remove("nav-open");
+}
+if(mobileNavToggle){
+ mobileNavToggle.addEventListener("click",()=>{
+  const opening=!sidebarModules?.classList.contains("open");
+  sidebarModules?.classList.toggle("open",opening);
+  document.body.classList.toggle("nav-open",opening);
+ });
+}
+document.querySelectorAll("#appView .module").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+  if(window.innerWidth<=900)closeCorporateNav();
+ });
+});
+document.addEventListener("click",e=>{
+ if(window.innerWidth>900||!document.body.classList.contains("nav-open"))return;
+ if(sidebarModules?.contains(e.target)||mobileNavToggle?.contains(e.target))return;
+ closeCorporateNav();
+});
+window.addEventListener("resize",()=>{
+ if(window.innerWidth>900)closeCorporateNav();
+});
+if(window.lucide)lucide.createIcons();
 
 
 /* INÍCIO */
