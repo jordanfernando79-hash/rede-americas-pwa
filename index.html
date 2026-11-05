@@ -1374,8 +1374,10 @@ header.main-app-header #headerStatus{
 <h2>Orçamentos</h2>
 <div class="muted">Gestão financeira de orçamentos • Aprovado = possui número de Pedido de Compra.</div>
 </div>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<button id="syncBudgetButton" class="secondary" style="width:auto">🔄 Sincronizar agora</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<input id="budgetSyncFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
+<button id="budgetChooseFileButton" class="ghost" style="width:auto">📤 Selecionar planilha</button>
+<button id="syncBudgetButton" class="secondary" style="width:auto" disabled>🔄 Sincronizar agora</button>
 <button id="newBudgetButton" class="primary" style="width:auto">+ Novo orçamento</button>
 </div>
 </div>
@@ -1405,7 +1407,8 @@ header.main-app-header #headerStatus{
 <input id="budgetMonthFilter" type="month" title="Filtrar pelo mês de emissão">
 </div>
 
-<div id="budgetSyncInfo" class="muted" style="margin:-4px 0 14px;font-size:13px">Última sincronização: não registrada.</div>
+<div id="budgetSyncFileInfo" class="muted" style="margin:-4px 0 4px;font-size:13px">Nenhuma planilha selecionada.</div>
+<div id="budgetSyncInfo" class="muted" style="margin:0 0 14px;font-size:13px">Última sincronização: não registrada.</div>
 
 
 <div class="budget-charts">
@@ -10056,7 +10059,11 @@ function fillBudgetUnitControls(){
 async function loadBudgets(){
  fillBudgetUnitControls();
  $("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
- $("syncBudgetButton").classList.toggle("hidden",profile?.role!=="admin");
+ const isBudgetAdmin=profile?.role==="admin";
+ $("syncBudgetButton").classList.toggle("hidden",!isBudgetAdmin);
+ $("budgetChooseFileButton").classList.toggle("hidden",!isBudgetAdmin);
+ $("budgetSyncFileInfo").classList.toggle("hidden",!isBudgetAdmin);
+ if(isBudgetAdmin && !$("budgetSyncFile").files?.length)$("syncBudgetButton").disabled=true;
  await loadBudgetSyncStatus();
 
 
@@ -10094,6 +10101,7 @@ async function loadBudgetSyncStatus(){
  const {data,error}=await db
   .from("budget_sync_runs")
   .select("started_at,completed_at,status,inserted_count,updated_count,unchanged_count,skipped_count,message")
+  .neq("status","config_required")
   .order("started_at",{ascending:false})
   .limit(1)
   .maybeSingle();
@@ -10115,34 +10123,50 @@ async function loadBudgetSyncStatus(){
 
 async function syncBudgetsNow(){
  if(profile?.role!=="admin")return;
+ const file=$("budgetSyncFile").files?.[0];
+ if(!file){
+  message($("appMessage"),"Selecione primeiro a planilha Excel (.xlsx).","err");
+  return;
+ }
+ if(!file.name.toLowerCase().endsWith(".xlsx")){
+  message($("appMessage"),"Selecione um arquivo Excel no formato .xlsx.","err");
+  return;
+ }
  const btn=$("syncBudgetButton");
+ const choose=$("budgetChooseFileButton");
  const old=btn.textContent;
  btn.disabled=true;
+ choose.disabled=true;
  btn.textContent="Sincronizando...";
- message($("appMessage"),"Sincronizando Orçamentos com a planilha na nuvem...","info");
-
+ message($("appMessage"),"Validando e sincronizando a planilha de Orçamentos...","info");
  try{
-  const {data,error}=await db.functions.invoke("sync-budgets-sharepoint",{body:{}});
+  const form=new FormData();
+  form.append("file",file,file.name);
+  const {data,error}=await db.functions.invoke("sync-budgets-upload",{body:form});
   if(error)throw error;
-
-  if(data?.code==="config_required"){
-   message($("appMessage"),"A função está pronta, mas ainda faltam as credenciais do SharePoint no Supabase.","err");
-  }else if(data?.ok){
-   message($("appMessage"),data.message||"Sincronização concluída.","ok");
+  if(data?.ok){
+   let msg=data.message||"Sincronização concluída.";
+   if(data.skipped>0 && Array.isArray(data.issues) && data.issues.length){
+    msg+=" Verifique "+data.skipped+" linha(s) ignorada(s).";
+    console.warn("Linhas ignoradas na sincronização de Orçamentos:",data.issues);
+   }
+   message($("appMessage"),msg,"ok");
+   $("budgetSyncFile").value="";
+   $("budgetSyncFileInfo").textContent="Nenhuma planilha selecionada.";
    await loadBudgets();
   }else{
    message($("appMessage"),data?.error||"Não foi possível concluir a sincronização.","err");
   }
  }catch(error){
   console.error(error);
-  message($("appMessage"),"Não foi possível sincronizar agora. Verifique a configuração do SharePoint.","err");
+  message($("appMessage"),"Não foi possível sincronizar a planilha. Confira se é o arquivo correto e tente novamente.","err");
  }finally{
-  btn.disabled=false;
+  choose.disabled=false;
   btn.textContent=old;
+  btn.disabled=!$("budgetSyncFile").files?.length;
   await loadBudgetSyncStatus();
  }
 }
-
 
 function filteredBudgets(){
  const term=$("budgetSearch").value.trim().toLowerCase();
@@ -10343,6 +10367,14 @@ function renderBudgets(){
 });
 
 
+$("budgetChooseFileButton").onclick=()=>$("budgetSyncFile").click();
+$("budgetSyncFile").addEventListener("change",()=>{
+ const file=$("budgetSyncFile").files?.[0];
+ $("budgetSyncFileInfo").textContent=file
+  ? "Planilha selecionada: "+file.name+" • "+(file.size/1024).toLocaleString("pt-BR",{maximumFractionDigits:0})+" KB"
+  : "Nenhuma planilha selecionada.";
+ $("syncBudgetButton").disabled=!file;
+});
 $("syncBudgetButton").onclick=syncBudgetsNow;
 $("newBudgetButton").onclick=()=>openBudgetDialog(null);
 $("cancelBudgetDialog").onclick=()=>$("budgetDialog").close();
