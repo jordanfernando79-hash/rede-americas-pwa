@@ -1117,6 +1117,20 @@ main{max-width:1580px;padding:18px 20px 60px}
   }
 }
 
+
+.document-folder{border:1px solid #cbdde9;border-radius:12px;background:#fff;overflow:hidden;margin:8px 0}
+.document-folder>summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:center;padding:14px 16px;font-weight:700;color:#103653;background:#f0f7fb}
+.document-folder>summary::-webkit-details-marker{display:none}
+.document-folder>summary:before{content:'▸';font-size:18px}
+.document-folder[open]>summary:before{content:'▾'}
+.document-folder .folder-name{flex:1;overflow-wrap:anywhere}
+.document-folder .folder-count{font-size:12px;font-weight:600;white-space:nowrap;background:#dfeef7;padding:3px 8px;border-radius:20px}
+.document-folder-body{padding:4px 14px 12px}
+.document-folder .record{margin:10px 0}
+.document-folder-empty{padding:16px 4px;color:#617b8c;font-size:14px}
+.document-folder-note{color:#617b8c;margin:0 0 12px;font-size:14px}
+@media(max-width:600px){.document-folder-body{padding:3px 7px 8px}.document-folder>summary{padding:12px 9px}}
+
 </style>
 </head>
 
@@ -2869,6 +2883,19 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+<div id="documentEmployeeField" class="hidden">
+<label for="documentEmployee">Funcionário *</label>
+<input id="documentEmployee" maxlength="160" placeholder="Nome completo do funcionário" autocomplete="off">
+</div>
+<div id="documentNormField" class="hidden">
+<label for="documentNorm">NR / SEP *</label>
+<select id="documentNorm">
+<option value="">Selecione a pasta</option>
+<option>NR01</option><option>NR06</option><option>NR10</option><option>NR12</option>
+<option>NR18</option><option>NR35</option><option>NR33</option><option>SEP</option>
+</select>
+<small class="muted">A classificação organiza o arquivo; não confirma validade ou obrigatoriedade.</small>
+</div>
 <div>
 <label>Título *</label>
 <input id="documentTitle" required>
@@ -8161,27 +8188,56 @@ function documentUnitName(unitIdValue){
 
 
 
-function renderDocuments(){
- const list=$("documentList");
- list.replaceChildren();
+const DOCUMENT_NORMS=["NR01","NR06","NR10","NR12","NR18","NR35","NR33","SEP"];
+const DOCUMENT_CATEGORIES=["NRs","PMOC","ART","PGR","PCMSO","POPs","Contrato"];
+const documentFolderOpen=new Set();
 
+function documentFolderMetadata(d){
+ const raw=d.description||"";
+ const match=raw.match(/^\[Classificação NRs\]\nFuncionário: ([^\r\n]+)\nNorma: (NR01|NR06|NR10|NR12|NR18|NR35|NR33|SEP)\n\[\/Classificação NRs\](?:\n\n|$)/);
+ return match?{employee:match[1],norm:match[2],description:raw.slice(match[0].length)}:{employee:"",norm:"",description:raw};
+}
 
+function syncDocumentClassificationFields(){
+ const active=$("documentCategory").value==="NRs";
+ $("documentEmployeeField").classList.toggle("hidden",!active);
+ $("documentNormField").classList.toggle("hidden",!active);
+ $("documentEmployee").required=active;
+ $("documentNorm").required=active;
+}
+$("documentCategory").addEventListener("change",syncDocumentClassificationFields);
 
+function classifiedDocumentDescription(){
+ const description=$("documentDescription").value.trim();
+ if($("documentCategory").value!=="NRs")return textOrNull(description);
+ const employee=$("documentEmployee").value.replace(/[\r\n]+/g," ").trim();
+ const norm=$("documentNorm").value;
+ if(!employee||!DOCUMENT_NORMS.includes(norm))throw new Error("Informe o funcionário e a pasta NR/SEP.");
+ return `[Classificação NRs]\nFuncionário: ${employee}\nNorma: ${norm}\n[/Classificação NRs]`+(description?"\n\n"+description:"");
+}
 
- const data=filteredDocuments();
+function documentFolder(parent,key,label,count){
+ const folder=document.createElement("details");
+ folder.className="document-folder";
+ folder.open=documentFolderOpen.has(key);
+ const summary=document.createElement("summary");
+ const name=document.createElement("span");name.className="folder-name";name.textContent=label;
+ const badge=document.createElement("span");badge.className="folder-count";badge.textContent=`${count} arquivo${count===1?"":"s"}`;
+ summary.append(name,badge);
+ const body=document.createElement("div");body.className="document-folder-body";
+ folder.append(summary,body);parent.append(folder);
+ folder.addEventListener("toggle",()=>{
+  if(folder.open)documentFolderOpen.add(key);
+  else{documentFolderOpen.delete(key);folder.querySelectorAll(".doc-check").forEach(b=>b.checked=false);}
+ });
+ return body;
+}
 
+function documentFolderEmpty(parent,text="Nenhum arquivo nesta pasta."){
+ const el=document.createElement("div");el.className="document-folder-empty";el.textContent=text;parent.append(el);
+}
 
-
-
- if(!data.length){
-  list.innerHTML='<div class="empty">Nenhum documento encontrado.</div>';
-  return;
- }
-
-
-
-
- data.forEach(d=>{
+function renderDocumentRecord(d,parent){
   const el=document.createElement("article");
   el.className="record";
 
@@ -8199,7 +8255,7 @@ function renderDocuments(){
     <span class="badge">${escapeHtml(d.category)}</span>
    </div>
    <p><strong>Unidade:</strong> ${escapeHtml(documentUnitName(d.unit_id))}</p>
-   <p class="muted">${escapeHtml(d.description||"Sem descrição")}</p>
+   <p class="muted">${escapeHtml(documentFolderMetadata(d).description||"Sem descrição")}</p>
    <p><strong>Arquivo:</strong> ${escapeHtml(d.filename)}</p>
    <p><strong>Data:</strong> ${formatDate(d.document_date)}</p>
    <p>${validityInfo(d)}</p>
@@ -8222,11 +8278,62 @@ function renderDocuments(){
 
 
 
-  list.appendChild(el);
- });
+
+ parent.appendChild(el);
 }
 
-
+function renderDocuments(){
+ const list=$("documentList");list.replaceChildren();
+ const data=filteredDocuments();
+ const searching=!!$("documentSearch").value.trim();
+ const categoryFilter=$("documentCategoryFilter").value;
+ const note=document.createElement("p");note.className="document-folder-note";
+ note.textContent="Abra uma unidade e uma categoria. Em NRs: funcionário → NR/SEP. Documentos antigos sem classificação ficam pendentes até serem editados.";
+ list.append(note);
+ const allowed=accessibleUnitIdsForModule("documentos");
+ const units=allUnits.filter(u=>unitId?u.id===unitId:allowed.includes(u.id)).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+ let shown=0;
+ for(const unit of units){
+  const unitDocs=data.filter(d=>d.unit_id===unit.id);
+  if(searching&&!unitDocs.length)continue;
+  shown++;
+  const rootKey=JSON.stringify([unit.id]);
+  const unitBody=documentFolder(list,rootKey,unit.name,unitDocs.length);
+  const categories=[...new Set([...DOCUMENT_CATEGORIES,...unitDocs.map(d=>d.category||"Sem categoria")])];
+  for(const category of categories){
+   if(categoryFilter&&category!==categoryFilter)continue;
+   const categoryDocs=unitDocs.filter(d=>(d.category||"Sem categoria")===category);
+   if(searching&&!categoryDocs.length)continue;
+   const categoryBody=documentFolder(unitBody,JSON.stringify([unit.id,category]),category,categoryDocs.length);
+   if(category!=="NRs"){
+    if(!categoryDocs.length)documentFolderEmpty(categoryBody);
+    categoryDocs.forEach(d=>renderDocumentRecord(d,categoryBody));continue;
+   }
+   const classified=categoryDocs.filter(d=>documentFolderMetadata(d).employee);
+   const employees=[...new Set(classified.map(d=>documentFolderMetadata(d).employee))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+   for(const employee of employees){
+    const employeeDocs=classified.filter(d=>documentFolderMetadata(d).employee===employee);
+    const employeeBody=documentFolder(categoryBody,JSON.stringify([unit.id,category,employee]),employee,employeeDocs.length);
+    for(const norm of DOCUMENT_NORMS){
+     const normDocs=employeeDocs.filter(d=>documentFolderMetadata(d).norm===norm);
+     if(searching&&!normDocs.length)continue;
+     const normBody=documentFolder(employeeBody,JSON.stringify([unit.id,category,employee,norm]),norm,normDocs.length);
+     if(!normDocs.length)documentFolderEmpty(normBody);
+     normDocs.forEach(d=>renderDocumentRecord(d,normBody));
+    }
+   }
+   const pending=categoryDocs.filter(d=>!documentFolderMetadata(d).employee);
+   if(pending.length){
+    const pendingBody=documentFolder(categoryBody,JSON.stringify([unit.id,category,"__pending__"]),"Classificação pendente",pending.length);
+    documentFolderEmpty(pendingBody,"Use Editar para informar o funcionário e a pasta NR/SEP. Os arquivos permanecem disponíveis.");
+    pending.forEach(d=>renderDocumentRecord(d,pendingBody));
+   }
+   if(!categoryDocs.length)documentFolderEmpty(categoryBody,"Cadastre um documento de NRs e informe o funcionário e a norma para criar suas pastas.");
+  }
+ }
+ if(!shown)documentFolderEmpty(list,"Nenhum documento encontrado ou nenhuma unidade acessível.");
+ $("selectAllDocuments").textContent="Selecionar todos";
+}
 
 
 async function openDocument(d){
@@ -8254,6 +8361,7 @@ async function openDocument(d){
 $("newDocumentButton").onclick=()=>{
  editingDocument=null;
  $("documentForm").reset();
+ syncDocumentClassificationFields();
  $("documentId").value="";
  $("currentDocumentFile").textContent="Selecione um arquivo para enviar.";
  $("documentDialogTitle").textContent="Novo documento";
@@ -8272,7 +8380,11 @@ function openDocumentEdit(d){
  $("documentId").value=d.id;
  $("documentCategory").value=d.category;
  $("documentTitle").value=d.title;
- $("documentDescription").value=d.description||"";
+ const folderMetadata=documentFolderMetadata(d);
+ $("documentDescription").value=folderMetadata.description;
+ $("documentEmployee").value=folderMetadata.employee;
+ $("documentNorm").value=folderMetadata.norm;
+ syncDocumentClassificationFields();
  $("documentDate").value=d.document_date||"";
  $("documentValidUntil").value=d.valid_until||"";
  $("documentFile").value="";
@@ -8323,6 +8435,7 @@ $("documentForm").addEventListener("submit",async e=>{
 
 
  try{
+  const classifiedDescription=classifiedDocumentDescription();
   const file=$("documentFile").files[0];
   const id=$("documentId").value||crypto.randomUUID();
 
@@ -8386,7 +8499,7 @@ $("documentForm").addEventListener("submit",async e=>{
    unit_id:documentUnitId,
    category:$("documentCategory").value,
    title:$("documentTitle").value.trim(),
-   description:textOrNull($("documentDescription").value),
+   description:classifiedDescription,
    document_date:$("documentDate").value||null,
    valid_until:$("documentValidUntil").value||null,
    storage_path:storagePath,
@@ -8501,7 +8614,7 @@ async function deleteDocument(d,ask=true){
 
 
 $("selectAllDocuments").onclick=()=>{
- const boxes=[...document.querySelectorAll(".doc-check")];
+ const boxes=[...document.querySelectorAll(".doc-check")].filter(b=>b.getClientRects().length);
 
 
 
