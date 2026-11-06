@@ -1651,6 +1651,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <div class="water-actions">
+<button id="waterPdfButton" class="primary" disabled>Enviar laudo PDF</button>
 <button id="waterManualButton" class="secondary" disabled>Lançamento manual</button>
 <button id="waterSystemsButton" class="ghost">Sistemas</button>
 <button id="waterReferencesButton" class="ghost">Referências</button>
@@ -2237,6 +2238,27 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+
+<dialog id="waterPdfDialog"><div class="dialog-body">
+<h2 id="waterPdfTitle">Enviar laudo PDF</h2>
+<p id="waterPdfUnit" class="muted"></p>
+<form id="waterPdfForm"><div class="form-grid">
+<div><label>Sistema *</label><select id="waterPdfSystem" required></select></div>
+<div><label>Tipo de água *</label><select id="waterPdfType" required>
+<option value="">Selecione</option><option value="conforto">Água gelada de conforto</option>
+<option value="processo">Água gelada de processo</option><option value="condensada">Água condensada</option></select></div>
+<div><label>Data da coleta / referência *</label><input id="waterPdfDate" type="date" required>
+<div class="muted">O mês e o ano desta data organizam o laudo no histórico.</div></div>
+<div><label>Laboratório</label><input id="waterPdfLab"></div>
+<div class="full"><label>Laudo em PDF (até 25 MB)</label><input id="waterPdfFile" type="file" accept=".pdf,application/pdf">
+<p id="waterPdfCurrent" class="muted"></p>
+<label id="waterPdfRemoveLabel"><input id="waterPdfRemove" type="checkbox" style="width:auto"> Remover somente o PDF atual, preservando a análise</label></div>
+</div>
+<p class="muted">O envio guarda o laudo original. Os resultados dos gráficos devem ser lançados ou conferidos separadamente.</p>
+<div id="waterPdfMessage"></div>
+<div class="dialog-actions"><button id="waterPdfCancel" type="button" class="ghost">Cancelar</button>
+<button id="waterPdfSave" type="submit" class="primary">Salvar laudo</button></div>
+</form></div></dialog>
 
 <!-- MODAL QUALIDADE DA ÁGUA - MANUAL / EDIÇÃO -->
 <dialog id="waterManualDialog">
@@ -3757,6 +3779,7 @@ function configureActionButtons(){
  $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
  $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
  $("waterManualButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
+ $("waterPdfButton").classList.toggle("hidden",!hasAccess("qualidade_agua","insert",unitId));
  $("waterSystemsButton").classList.toggle(
   "hidden",
   !(
@@ -3881,6 +3904,7 @@ async function applyModuleUnitSelection(){
  $("newDocumentButton").disabled=!unitId;
  $("newEmployeeButton").disabled=!unitId;
  $("waterManualButton").disabled=!unitId;
+ $("waterPdfButton").disabled=!unitId;
  configureActionButtons();
 
 
@@ -6013,7 +6037,7 @@ function renderWaterAnalysisList(){
 
 
 
- visibleReports.slice(0,20).forEach(report=>{
+ visibleReports.forEach(report=>{
   const results=waterResults
    .filter(r=>r.report_id===report.id)
    .sort((a,b)=>(a.parameter_name||"").localeCompare(b.parameter_name||"","pt-BR"));
@@ -6058,7 +6082,7 @@ function renderWaterAnalysisList(){
 
 
   const el=document.createElement("article");
-  el.className="record "+(outCount?"water-out":"water-ok");
+  el.className="record "+(!results.length?"":outCount?"water-out":"water-ok");
 
 
 
@@ -6066,7 +6090,7 @@ function renderWaterAnalysisList(){
   el.innerHTML=`
    <div class="record-top">
     <h3>${formatDate(report.sample_date)}</h3>
-    <span class="badge">${report.source==="pdf"?"PDF (legado)":"MANUAL"}</span>
+    <span class="badge">${report.storage_path?"LAUDO PDF":report.source==="pdf"?"PDF":"MANUAL"}</span>
    </div>
    <p>
     <strong>${escapeHtml(currentUnitName())}</strong>
@@ -6082,7 +6106,7 @@ function renderWaterAnalysisList(){
    ${parameterRows}
    <div class="actions">
     ${report.storage_path?'<button class="primary openWaterPdf">Abrir PDF</button>':""}
-    ${hasAccess("qualidade_agua","edit",unitId)?'<button class="secondary editWaterReport">Editar</button>':""}
+    ${hasAccess("qualidade_agua","edit",unitId)?'<button class="secondary manageWaterPdf">Laudo PDF</button><button class="secondary editWaterReport">Editar análise</button>':""}
     ${hasAccess("qualidade_agua","delete",unitId)?'<button class="danger deleteWaterReport">Excluir</button>':""}
    </div>
   `;
@@ -6090,6 +6114,8 @@ function renderWaterAnalysisList(){
 
 
 
+  const managePdf=el.querySelector(".manageWaterPdf");
+  if(managePdf)managePdf.onclick=()=>openWaterPdfUpload(report);
   const open=el.querySelector(".openWaterPdf");
   if(open)open.onclick=()=>openWaterPdf(report);
 
@@ -6108,6 +6134,85 @@ function renderWaterAnalysisList(){
 
 
 
+
+
+let waterPdfEditing=null;
+let waterPdfUnitId=null;
+let waterPdfBusy=false;
+async function openWaterPdfUpload(report=null){
+ if(!unitId||!hasAccess("qualidade_agua",report?"edit":"insert",unitId))return;
+ await loadWaterSystems();
+ if(!waterSystems.length){message($("appMessage"),"Cadastre primeiro um sistema para esta unidade.","info");return;}
+ waterPdfEditing=report;
+ waterPdfUnitId=unitId;
+ $("waterPdfForm").reset();
+ $("waterPdfMessage").replaceChildren();
+ $("waterPdfUnit").textContent=currentUnitName();
+ $("waterPdfTitle").textContent=report?"Gerenciar laudo PDF":"Enviar laudo PDF";
+ $("waterPdfSystem").replaceChildren(new Option("Selecione um sistema",""));
+ waterSystems.forEach(sys=>$("waterPdfSystem").add(new Option(sys.system_name,sys.id)));
+ $("waterPdfSystem").value=report?.system_id||$("waterSystemFilter").value||"";
+ $("waterPdfType").value=report?.water_type||$("waterTypeFilter").value||"";
+ $("waterPdfDate").value=report?.sample_date||new Date().toLocaleDateString("en-CA");
+ $("waterPdfLab").value=report?.laboratory||"";
+ $("waterPdfCurrent").textContent=report?.storage_path?`PDF atual: ${report.filename||"Laudo anexado"}`:"Nenhum PDF anexado.";
+ $("waterPdfRemoveLabel").classList.toggle("hidden",!report?.storage_path||!hasAccess("qualidade_agua","delete",unitId));
+ $("waterPdfFile").required=!report;
+ $("waterPdfDialog").showModal();
+}
+$("waterPdfButton").onclick=()=>openWaterPdfUpload();
+$("waterPdfCancel").onclick=()=>{if(!waterPdfBusy)$("waterPdfDialog").close();};
+$("waterPdfDialog").addEventListener("cancel",e=>{if(waterPdfBusy)e.preventDefault();});
+async function validateWaterPdf(file){
+ if(!file)return;
+ if(!/\.pdf$/i.test(file.name)||file.size>25*1024*1024||file.size<5)throw new Error("Selecione um PDF válido de até 25 MB.");
+ const header=new Uint8Array(await file.slice(0,5).arrayBuffer());
+ if(String.fromCharCode(...header)!=="%PDF-")throw new Error("O arquivo selecionado não é um PDF válido.");
+}
+$("waterPdfForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(waterPdfBusy)return;
+ const targetUnit=waterPdfUnitId, existing=waterPdfEditing;
+ let uploaded=null,committed=false;
+ const btn=$("waterPdfSave");
+ waterPdfBusy=true;btn.disabled=true;btn.textContent="Enviando...";
+ try{
+  if(!targetUnit||targetUnit!==unitId||!session?.user||!hasAccess("qualidade_agua",existing?"edit":"insert",targetUnit))throw new Error("Selecione novamente a unidade e confira sua permissão.");
+  const file=$("waterPdfFile").files[0], remove=$("waterPdfRemove").checked;
+  if(remove&&file)throw new Error("Escolha entre substituir o PDF e remover o PDF atual.");
+  if(!existing&&!file)throw new Error("Selecione o laudo PDF.");
+  if(remove&&!hasAccess("qualidade_agua","delete",targetUnit))throw new Error("Sem permissão para remover o laudo.");
+  await validateWaterPdf(file);
+  const date=$("waterPdfDate").value;
+  const systemId=$("waterPdfSystem").value;
+  const type=$("waterPdfType").value;
+  if(!date||!systemId||!type)throw new Error("Preencha sistema, tipo de água e data de referência.");
+  const payload={unit_id:targetUnit,system_id:systemId,water_type:type,sample_date:date,laboratory:textOrNull($("waterPdfLab").value),updated_by:session.user.id};
+  if(file){
+   const path=`${targetUnit}/${date.slice(0,7)}/${crypto.randomUUID()}_${safeFileName(file.name)}`;
+   const {error}=await db.storage.from("water-analysis-pdfs").upload(path,file,{contentType:"application/pdf",upsert:false});
+   if(error)throw new Error("Não foi possível enviar o PDF. Confira sua permissão de inclusão e tente novamente.");
+   uploaded=path;payload.storage_path=path;payload.filename=file.name;
+  }else if(remove){payload.storage_path=null;payload.filename=null;}
+  let saved;
+  if(existing){saved=await db.from("water_analysis_reports").update(payload).eq("id",existing.id).eq("unit_id",targetUnit).select("id").single();}
+  else{saved=await db.from("water_analysis_reports").insert({...payload,source:"pdf",created_by:session.user.id}).select("id").single();}
+  if(saved.error)throw new Error("Não foi possível salvar o vínculo do laudo. O registro anterior foi preservado.");
+  committed=true;
+  let cleanupFailed=false;
+  if(existing?.storage_path&&(file||remove)&&hasAccess("qualidade_agua","delete",targetUnit)){
+   const result=await db.storage.from("water-analysis-pdfs").remove([existing.storage_path]);cleanupFailed=!!result.error;
+  }
+  $("waterPdfDialog").close();
+  message($("appMessage"),cleanupFailed?"Laudo salvo. A limpeza do arquivo anterior ficou pendente.":"Laudo salvo por unidade e mês. Resultados existentes preservados.",cleanupFailed?"info":"ok");
+  $("waterTypeFilter").value=type;
+  $("waterSystemFilter").value=systemId;
+  await loadWaterModule();
+ }catch(err){
+  if(uploaded&&!committed){const cleanup=await db.storage.from("water-analysis-pdfs").remove([uploaded]);if(cleanup.error)console.error("Limpeza do envio incompleto pendente",cleanup.error);}
+  message($("waterPdfMessage"),err.message||"Não foi possível salvar o laudo.","err");
+ }finally{waterPdfBusy=false;btn.disabled=false;btn.textContent="Salvar laudo";}
+});
 
 async function openWaterPdf(report){
  if(!report.storage_path)return;
