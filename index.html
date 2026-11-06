@@ -8284,6 +8284,8 @@ function renderDocumentRecord(d,parent){
 
 function renderDocuments(){
  const list=$("documentList");list.replaceChildren();
+ $("selectAllDocuments").textContent="Selecionar todos";
+ if(!unitId)return;
  const data=filteredDocuments();
  const searching=!!$("documentSearch").value.trim();
  const categoryFilter=$("documentCategoryFilter").value;
