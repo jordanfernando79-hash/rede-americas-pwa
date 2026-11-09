@@ -3617,9 +3617,7 @@ async function enterApp(){
 
 
 
- $("loginView").classList.add("hidden");
- $("appView").classList.remove("hidden");
- $("headerStatus").textContent="Ambiente autenticado";
+
 
 
 
@@ -3634,7 +3632,7 @@ async function enterApp(){
 
 
  if(error||!data?.active){
-  message($("appMessage"),"Perfil sem autorização.","err");
+  message($("loginMessage"),"Perfil sem autorização.","err");
   enteringApp=false;
   return;
  }
@@ -3656,6 +3654,9 @@ async function enterApp(){
  await loadUnits();
  configureVisibleModules();
  $("newUnitButton").classList.toggle("hidden",profile?.role!=="admin");
+ $("loginView").classList.add("hidden");
+ $("appView").classList.remove("hidden");
+ $("headerStatus").textContent="Ambiente autenticado";
  await loadOverview();
  enteringApp=false;
 }
@@ -3706,6 +3707,7 @@ async function loadAccessGrantsForCurrentUser(){
 
 function hasAccess(module,action="view",targetUnit=null){
  if(profile?.role==="admin")return true;
+ if(profile?.role==="client"&&action!=="view")return false;
 
 
 
@@ -4033,6 +4035,7 @@ $("unitsNameFilter").addEventListener("input",applyUnitsAdminFilters);
 $("unitsTypeFilter").addEventListener("change",applyUnitsAdminFilters);
 
 async function loadUnitsAdmin(){
+ if(profile?.role!=="admin")return;
  const list=$("unitsList");
  $("unitsFilterCount").textContent="";
  list.innerHTML='<div class="empty">Carregando unidades...</div>';
@@ -4269,6 +4272,7 @@ async function loadUnitsAdmin(){
 
 
 $("newUnitButton").onclick=()=>{
+ if(profile?.role!=="admin")return;
  editingUnit=null;
  $("unitForm").reset();
  $("unitIdField").value="";
@@ -4285,6 +4289,7 @@ $("cancelUnitDialog").onclick=()=>$("unitDialog").close();
 
 
 function openUnitEdit(unit){
+ if(profile?.role!=="admin")return;
  editingUnit=unit;
  $("unitIdField").value=unit.id;
  $("unitNameField").value=unit.name;
@@ -4298,6 +4303,7 @@ function openUnitEdit(unit){
 
 $("unitForm").addEventListener("submit",async e=>{
  e.preventDefault();
+ if(profile?.role!=="admin")return;
 
 
 
@@ -4383,6 +4389,7 @@ async function countUnitLinks(unitIdToCheck){
 
 
 async function deleteUnit(unit){
+ if(profile?.role!=="admin")return;
  const links=await countUnitLinks(unit.id);
 
 
@@ -4442,6 +4449,7 @@ async function deleteUnit(unit){
 
 
 function switchModule(name){
+ if((name==="units"||name==="access")&&profile?.role!=="admin")return;
  currentModule=name;
 
 
@@ -11137,6 +11145,7 @@ $("cancelBudgetDialog").onclick=()=>$("budgetDialog").close();
 
 
 function openBudgetDialog(row){
+ if(!hasAccess("orcamentos",row?"edit":"insert",row?.unit_id??null))return;
  editingBudget=row||null;
  fillBudgetUnitControls();
  $("budgetForm").reset();
