@@ -1550,7 +1550,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <h2>RDI — Gestão de Criticidade</h2>
 <div id="rdiSubtitle" class="muted">Selecione uma unidade.</div>
 </div>
-<button id="newRdiButton" class="primary" disabled>+ Nova demanda</button>
+<button id="newRdiButton" class="primary hidden" disabled>+ Nova demanda</button>
 </div>
 
 
@@ -3892,12 +3892,8 @@ function configureVisibleModules(){
 
 
 function configureActionButtons(){
+ $("newRdiButton").classList.toggle("hidden",!unitId||!hasAccess("rdi","insert",unitId));
  if(!unitId)return;
-
-
-
-
- $("newRdiButton").classList.toggle("hidden",!hasAccess("rdi","insert",unitId));
  if($("newBudgetButton"))$("newBudgetButton").classList.toggle("hidden",!hasAccess("orcamentos","insert"));
  $("newDocumentButton").classList.toggle("hidden",!hasAccess("documentos","insert",unitId));
  $("newEmployeeButton").classList.toggle("hidden",!hasAccess("comunicacao","insert",unitId));
@@ -7616,6 +7612,8 @@ function renderRecords(){
 
 
  data.forEach(r=>{
+  const canEdit=hasAccess("rdi","edit",r.unit_id);
+  const canDelete=hasAccess("rdi","delete",r.unit_id);
   const c=gutClass(r.gut_score);
   const cost=r.cost_estimated==null
    ?"Não informado"
@@ -7643,8 +7641,8 @@ function renderRecords(){
      <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
      <div class="actions">
       <button class="secondary rdiAttachmentsBtn">Anexos</button>
-      <button class="secondary editBtn">Editar</button>
-      <button class="danger deleteBtn">Excluir</button>
+      ${canEdit?'<button class="secondary editBtn">Editar</button>':''}
+      ${canDelete?'<button class="danger deleteBtn">Excluir</button>':''}
      </div>
     </div>
    </div>
@@ -7654,8 +7652,8 @@ function renderRecords(){
 
 
   el.querySelector(".rdiAttachmentsBtn").onclick=()=>openRdiAttachments(r);
-  el.querySelector(".editBtn").onclick=()=>openEdit(r);
-  el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
+  if(canEdit)el.querySelector(".editBtn").onclick=()=>openEdit(r);
+  if(canDelete)el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
 
 
 
@@ -7839,6 +7837,7 @@ async function openRdiAttachments(record){
 }
 
 $("newRdiButton").onclick=()=>{
+ if(!unitId||!hasAccess("rdi","insert",unitId))return;
  editingRecord=null;
  $("rdiAttachmentsInEdit").classList.add("hidden");
  $("rdiForm").reset();
@@ -7860,8 +7859,9 @@ $("newRdiButton").onclick=()=>{
 
 
 function openEdit(r){
+ if(!r||!hasAccess("rdi","edit",r.unit_id))return;
  editingRecord=r;
- $("rdiAttachmentsInEdit").classList.toggle("hidden",!hasAccess("rdi","edit",r.unit_id));
+ $("rdiAttachmentsInEdit").classList.remove("hidden");
 
 
 
@@ -7988,7 +7988,7 @@ $("cancelDialog").onclick=()=>$("rdiDialog").close();
 
 
 
-async function uploadPhotos(demandId){
+async function uploadPhotos(demandId,demandUnitId){
  const paths=[];
 
 
@@ -8009,7 +8009,7 @@ async function uploadPhotos(demandId){
 
 
   const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
-  const path=`${unitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
+  const path=`${demandUnitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
 
 
 
@@ -8040,6 +8040,12 @@ async function uploadPhotos(demandId){
 
 $("rdiForm").addEventListener("submit",async e=>{
  e.preventDefault();
+ const demandUnitId=editingRecord?.unit_id??unitId;
+ const action=editingRecord?"edit":"insert";
+ if(!demandUnitId||!hasAccess("rdi",action,demandUnitId)){
+  message($("appMessage"),"Sem permissão para salvar esta demanda.","err");
+  return;
+ }
 
 
 
@@ -8054,7 +8060,7 @@ $("rdiForm").addEventListener("submit",async e=>{
  try{
   const payload={
    source_id:textOrNull($("sourceId").value),
-   unit_id:unitId,
+   unit_id:demandUnitId,
    workshop:textOrNull($("workshop").value),
    equipment_info:textOrNull($("equipmentInfo").value),
    location:textOrNull($("location").value),
@@ -8091,14 +8097,14 @@ $("rdiForm").addEventListener("submit",async e=>{
 
 
 
-  let id=$("recordId").value;
+  let id=editingRecord?.id;
 
 
 
 
   if(id){
-   const {error}=await db.from("rdi_demands").update(payload).eq("id",id);
-   if(error)throw error;
+   const {data,error}=await db.from("rdi_demands").update(payload).eq("id",id).select("id").maybeSingle();
+   if(error||!data)throw error||new Error("Nenhuma demanda atualizada.");
   }else{
    const {data,error}=await db.from("rdi_demands").insert(payload).select("id").single();
    if(error)throw error;
@@ -8108,7 +8114,7 @@ $("rdiForm").addEventListener("submit",async e=>{
 
 
 
-  const photos=await uploadPhotos(id);
+  const photos=await uploadPhotos(id,demandUnitId);
 
 
 
@@ -8152,6 +8158,7 @@ $("rdiForm").addEventListener("submit",async e=>{
 
 
 async function deleteRecord(r){
+ if(!r||!hasAccess("rdi","delete",r.unit_id))return;
  if(!confirm(`Excluir a demanda ${r.source_id||""}?`))return;
 
 
@@ -8164,12 +8171,12 @@ async function deleteRecord(r){
 
 
 
- const {error}=await db.from("rdi_demands").delete().eq("id",r.id);
+ const {data,error}=await db.from("rdi_demands").delete().eq("id",r.id).select("id").maybeSingle();
 
 
 
 
- if(error){
+ if(error||!data){
   message($("appMessage"),"Falha ao excluir a demanda.","err");
   return;
  }
