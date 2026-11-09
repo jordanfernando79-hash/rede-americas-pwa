@@ -685,7 +685,23 @@ hr{border:0;border-top:1px solid var(--border);margin:18px 0}
 
 
 /* TREINAMENTOS */
-.training-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:10px;margin-bottom:14px}
+.training-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.training-team{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);align-items:start;gap:12px}
+.training-team h3{margin:0 0 6px}
+.training-leader{padding:10px 0;border-bottom:1px solid var(--border)}
+.training-leader:last-child{border-bottom:0;padding-bottom:0}
+.training-leader summary{cursor:pointer}
+.training-leader summary strong{margin-right:8px}
+.training-leader ul{margin:8px 0 0;padding-left:20px}
+.training-leader li{margin:5px 0}
+.training-matrix{min-width:0}
+.training-matrix th:first-child{min-width:130px}
+.training-matrix tbody th{position:static;background:#fff;color:inherit}
+.training-matrix .training-lesson{text-align:center;white-space:nowrap}
+.training-matrix .training-lesson span{font-size:15px;font-weight:800}
+.training-matrix-key{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 12px;font-size:12px}
+.training-team .training-table-wrap{margin-bottom:0}
+@media(max-width:850px){.training-team{grid-template-columns:1fr}}
 .training-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .training-kpi,.training-card,.training-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 2px 8px #123b5c0d}
 .training-kpi span{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase}
@@ -1908,9 +1924,12 @@ main{max-width:1580px;padding:18px 20px 60px}
   </div>
 
 
+  <div id="trainingStatus" class="empty" role="status">Carregando treinamentos...</div>
+  <div id="trainingContent" class="hidden">
   <div class="training-toolbar">
-    <div><label>Trilha</label><select id="trainingTrackFilter"></select></div>
-    <div><label>Unidade</label><select id="trainingUnitFilter"><option value="">Toda a Rede</option></select></div>
+    <div><label for="trainingTrackFilter">Trilha</label><select id="trainingTrackFilter"></select></div>
+    <div><label for="trainingUnitFilter">Unidade</label><select id="trainingUnitFilter"><option value="">Todas as unidades disponíveis</option></select></div>
+    <div><label for="trainingLeaderFilter">Liderança</label><select id="trainingLeaderFilter"><option value="">Todas as lideranças</option></select></div>
   </div>
 
 
@@ -1922,19 +1941,20 @@ main{max-width:1580px;padding:18px 20px 60px}
   </div>
 
 
-  <div id="trainingCards" class="training-grid"><div class="empty">Carregando treinamentos...</div></div>
-
-
-  <div class="training-tabs">
-    <button class="training-tab active" data-training-view="units">Por unidade</button>
-    <button class="training-tab" data-training-view="ranking">Ranking individual</button>
-    <button class="training-tab" data-training-view="questions">Análise das questões</button>
+  <div class="training-tabs" aria-label="Exibições de treinamentos">
+    <button class="training-tab active" data-training-view="team" aria-pressed="true">Acompanhamento da equipe</button>
+    <button class="training-tab" data-training-view="units" aria-pressed="false">Por unidade</button>
+    <button class="training-tab" data-training-view="ranking" aria-pressed="false">Ranking individual</button>
+    <button class="training-tab" data-training-view="videos" aria-pressed="false">Vídeos e aulas</button>
+    <button class="training-tab" data-training-view="questions" aria-pressed="false">Análise geral das questões</button>
   </div>
 
-
-  <div id="trainingUnitsView"></div>
+  <div id="trainingTeamView"></div>
+  <div id="trainingUnitsView" class="hidden"></div>
   <div id="trainingRankingView" class="hidden"></div>
+  <div id="trainingVideosView" class="hidden"><div id="trainingCards" class="training-grid"></div></div>
   <div id="trainingQuestionsView" class="hidden"></div>
+  </div>
 </div>
 
 
@@ -10155,7 +10175,16 @@ let trainingList=[];
 let trainingAttempts=[];
 let trainingEmployees=[];
 let trainingEmployeeUnits=[];
-let trainingViewMode="units";
+let trainingUnitIdsByEmployee=new Map();
+let trainingEmployeesById=new Map();
+let trainingLoadRequest=0;
+const trainingViews={
+ team:"trainingTeamView",
+ units:"trainingUnitsView",
+ ranking:"trainingRankingView",
+ videos:"trainingVideosView",
+ questions:"trainingQuestionsView"
+};
 
 
 const TRAINING_Q_STATS={
@@ -10188,8 +10217,20 @@ function trainingEditDistance(a,b){
   d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
  return d[a.length][b.length];
 }
-function trainingEmployeeUnitId(empId){
- return trainingEmployeeUnits.find(x=>x.employee_id===empId&&x.count_in_headcount!==false)?.unit_id||null;
+function trainingEmployeeUnitIds(empId){
+ return trainingUnitIdsByEmployee.get(empId)||[];
+}
+function trainingEmployeeUnitNames(empId,selectedUnit=""){
+ return trainingEmployeeUnitIds(empId)
+  .filter(id=>!selectedUnit||id===selectedUnit)
+  .map(id=>allUnits.find(u=>u.id===id)?.name)
+  .filter(Boolean).join(", ");
+}
+function trainingLeaderId(employee){
+ return employee.supervisor_id&&employee.supervisor_id!==employee.id?employee.supervisor_id:"none";
+}
+function trainingLeaderName(id){
+ return id==="none"?"Sem liderança vinculada":trainingEmployeesById.get(id)?.full_name||"Liderança indisponível";
 }
 function trainingUnitCompatible(contract,unitName){
  const a=trainingNorm(contract),b=trainingNorm(unitName);
@@ -10208,28 +10249,34 @@ function trainingUnitCompatible(contract,unitName){
 }
 function trainingFindEmployee(attempt,employees){
  if(attempt.employee_id){
-  const direct=employees.find(e=>e.id===attempt.employee_id);
-  if(direct)return direct;
+  return employees.find(e=>e.id===attempt.employee_id)||null;
  }
  const ac=trainingCompact(attempt.participant_name);
- let exact=employees.find(e=>trainingCompact(e.full_name)===ac);
- if(exact)return exact;
+ if(!ac)return null;
+ const exact=employees.filter(e=>trainingCompact(e.full_name)===ac);
+ if(exact.length===1)return exact[0];
+ if(exact.length>1){
+  const matches=exact.filter(e=>trainingEmployeeUnitIds(e.id).includes(attempt.unit_id));
+  return matches.length===1?matches[0]:null;
+ }
  const at=trainingTokens(attempt.participant_name);
  const first=at[0]||"",last=at[at.length-1]||"";
  const candidates=employees.map(e=>{
   const ec=trainingCompact(e.full_name),et=trainingTokens(e.full_name);
-  const unitName=allUnits.find(u=>u.id===trainingEmployeeUnitId(e.id))?.name||"";
+  const unitMatch=trainingEmployeeUnitIds(e.id).some(id=>
+   id===attempt.unit_id||trainingUnitCompatible(attempt.source_contract,allUnits.find(u=>u.id===id)?.name)
+  );
   let score=trainingJaccard(attempt.participant_name,e.full_name);
   if(ac&&ec&&(ac.startsWith(ec)||ec.startsWith(ac)))score=Math.max(score,.88);
   if(first&&et[0]&&trainingEditDistance(first,et[0])<=1&&last&&et.includes(last))score=Math.max(score,.82);
   if(first===et[0]&&last===et[et.length-1])score=Math.max(score,.86);
-  if(trainingUnitCompatible(attempt.source_contract,unitName))score+=.08;
-  return {e,score,unitName};
+  if(unitMatch)score+=.08;
+  return {e,score,unitMatch};
  }).sort((a,b)=>b.score-a.score);
- if(candidates[0]?.score>=.72)return candidates[0].e;
+ if(candidates[0]?.score>=.72&&candidates[0].score>(candidates[1]?.score??0))return candidates[0].e;
  const sameFirst=candidates.filter(x=>{
   const et=trainingTokens(x.e.full_name);
-  return first&&et[0]===first&&trainingUnitCompatible(attempt.source_contract,x.unitName);
+  return first&&et[0]===first&&x.unitMatch;
  });
  if(sameFirst.length===1)return sameFirst[0].e;
  return null;
@@ -10256,8 +10303,16 @@ function trainingBuildModel(){
  const trackId=trainingCurrentTrack();
  const unitId=trainingCurrentUnit();
  const trainings=trainingList.filter(t=>t.track_id===trackId&&t.active!==false).sort((a,b)=>a.display_order-b.display_order);
- const active=trainingEmployees.filter(e=>e.status==="ativo"&&trainingEmployeeUnitId(e.id));
- const scopeEmployees=unitId?active.filter(e=>trainingEmployeeUnitId(e.id)===unitId):active;
+ const active=trainingEmployees.filter(e=>trainingEmployeeUnitIds(e.id).length);
+ const unitEmployees=unitId?active.filter(e=>trainingEmployeeUnitIds(e.id).includes(unitId)):active;
+ const leaderFilter=$("trainingLeaderFilter");
+ const previousLeader=leaderFilter.value;
+ const leaders=[...new Set(unitEmployees.map(trainingLeaderId))];
+ leaders.sort((a,b)=>trainingLeaderName(a).localeCompare(trainingLeaderName(b),"pt-BR"));
+ leaderFilter.replaceChildren(new Option("Todas as lideranças",""));
+ leaders.forEach(id=>leaderFilter.appendChild(new Option(trainingLeaderName(id),id)));
+ if(leaders.includes(previousLeader))leaderFilter.value=previousLeader;
+ const scopeEmployees=leaderFilter.value?unitEmployees.filter(e=>trainingLeaderId(e)===leaderFilter.value):unitEmployees;
  const attempts=trainingAttempts.filter(a=>trainings.some(t=>t.id===a.training_id));
  const best=new Map();
  attempts.forEach(a=>{
@@ -10270,43 +10325,73 @@ function trainingBuildModel(){
     best.set(key,{...a,_employee:emp});
   }
  });
- return {trainings,active,scopeEmployees,best,unitId};
+ return {trainings,scopeEmployees,best,unitId};
 }
 
 
+async function trainingReadPages(query){
+ const pageSize=250;
+ const rows=[];
+ for(let from=0;;from+=pageSize){
+  const {data,error}=await query().range(from,from+pageSize-1);
+  if(error)return {error};
+  rows.push(...data);
+  if(data.length<pageSize)return {data:rows};
+ }
+}
+
 async function loadTrainingsModule(){
- if(!hasAccess("treinamentos","view")&&profile?.role!=="admin"){
-  $("trainingCards").innerHTML='<div class="empty">Seu perfil não possui acesso ao módulo de treinamentos.</div>';
+ const request=++trainingLoadRequest;
+ const userId=session?.user?.id;
+ const status=$("trainingStatus");
+ $("trainingContent").classList.add("hidden");
+ status.classList.remove("hidden");
+ if(!hasAccess("treinamentos","view")){
+  status.textContent="Seu perfil não possui acesso ao módulo de treinamentos.";
   return;
  }
- $("trainingCards").innerHTML='<div class="empty">Carregando treinamentos...</div>';
+ status.textContent="Carregando treinamentos...";
  const [tracksRes,trainingsRes,attemptsRes,empRes,linksRes]=await Promise.all([
   db.from("training_tracks").select("*").eq("active",true).order("created_at"),
   db.from("trainings").select("*").eq("active",true).order("display_order"),
-  db.from("training_attempts").select("id,training_id,employee_id,unit_id,participant_name,source_contract,completed_at,score_correct,score_total"),
-  db.from("employees").select("id,full_name,status"),
-  db.from("employee_units").select("employee_id,unit_id,count_in_headcount")
+  trainingReadPages(()=>db.from("training_attempts").select("id,training_id,employee_id,unit_id,participant_name,source_contract,completed_at,score_correct,score_total").order("id")),
+  trainingReadPages(()=>db.from("employees").select("id,full_name,supervisor_id").eq("status","ativo").order("id")),
+  trainingReadPages(()=>db.from("employee_units").select("employee_id,unit_id,count_in_headcount").order("employee_id").order("unit_id"))
  ]);
+ if(request!==trainingLoadRequest||session?.user?.id!==userId||!hasAccess("treinamentos","view"))return;
  const err=tracksRes.error||trainingsRes.error||attemptsRes.error||empRes.error||linksRes.error;
- if(err){console.error(err);$("trainingCards").innerHTML='<div class="empty">Não foi possível carregar os treinamentos.</div>';return;}
+ if(err){
+  console.error(err);
+  status.textContent="Não foi possível carregar os treinamentos.";
+  return;
+ }
  trainingTracks=tracksRes.data||[];
  trainingList=trainingsRes.data||[];
  trainingAttempts=attemptsRes.data||[];
  trainingEmployees=empRes.data||[];
- trainingEmployeeUnits=linksRes.data||[];
 
+ trainingEmployeesById=new Map(trainingEmployees.map(e=>[e.id,e]));
+ trainingUnitIdsByEmployee=new Map();
+
+ const units=allUnits.filter(u=>hasAccess("treinamentos","view",u.id));
+ const unitIds=new Set(units.map(u=>u.id));
+ for(const link of linksRes.data||[]){
+  if(link.count_in_headcount===false||!unitIds.has(link.unit_id))continue;
+  if(!trainingUnitIdsByEmployee.has(link.employee_id))trainingUnitIdsByEmployee.set(link.employee_id,[]);
+  trainingUnitIdsByEmployee.get(link.employee_id).push(link.unit_id);
+ }
 
  const tf=$("trainingTrackFilter"),uf=$("trainingUnitFilter");
  const currentTrack=tf.value,currentUnit=uf.value;
  tf.replaceChildren();
  trainingTracks.forEach(x=>tf.appendChild(new Option(x.name,x.id)));
  if(currentTrack&&trainingTracks.some(x=>x.id===currentTrack))tf.value=currentTrack;
- uf.innerHTML='<option value="">Toda a Rede</option>';
- allUnits.forEach(u=>{
-  if(profile?.role==="admin"||hasAccess("treinamentos","view",u.id))uf.appendChild(new Option(u.name,u.id));
- });
- if(currentUnit&&allUnits.some(u=>u.id===currentUnit))uf.value=currentUnit;
+ uf.replaceChildren(new Option("Todas as unidades disponíveis",""));
+ units.forEach(u=>uf.appendChild(new Option(u.name,u.id)));
+ if(unitIds.has(currentUnit))uf.value=currentUnit;
  renderTrainingsModule();
+ status.classList.add("hidden");
+ $("trainingContent").classList.remove("hidden");
 }
 
 
@@ -10353,17 +10438,79 @@ function renderTrainingsModule(){
   };
   cards.appendChild(card);
  });
+ renderTrainingTeam(m);
  renderTrainingUnits(m);
  renderTrainingRanking(m);
  renderTrainingQuestions(m);
 }
 
 
+function renderTrainingTeam(m){
+ const box=$("trainingTeamView");
+ if(!m.trainings.length||!m.scopeEmployees.length){
+  box.innerHTML='<div class="empty">'+(!m.trainings.length?"Nenhum treinamento nesta trilha.":"Nenhum colaborador nos filtros selecionados.")+'</div>';
+  return;
+ }
+ const groups=new Map();
+ const rows=m.scopeEmployees.map(employee=>{
+  const leader=trainingLeaderId(employee);
+  const pending=m.trainings.filter(t=>!m.best.has(t.id+"|"+employee.id));
+  const row={employee,leader,pending};
+  if(!groups.has(leader))groups.set(leader,[]);
+  groups.get(leader).push(row);
+  return row;
+ }).sort((a,b)=>b.pending.length-a.pending.length||a.employee.full_name.localeCompare(b.employee.full_name,"pt-BR"));
+
+ const leaders=[...groups].map(([id,people])=>{
+  const expected=people.length*m.trainings.length;
+  const completed=expected-people.reduce((sum,row)=>sum+row.pending.length,0);
+  return {id,people,expected,completed,pct:Math.round(completed/expected*100)};
+ }).sort((a,b)=>a.pct-b.pct||trainingLeaderName(a.id).localeCompare(trainingLeaderName(b.id),"pt-BR"));
+
+ box.innerHTML=`
+  <div class="training-team">
+   <section class="training-panel">
+    <h3>Aderência por liderança</h3>
+    <p class="muted">Conclusões registradas sobre o total esperado. Equipes agrupadas pelo superior direto do organograma.</p>
+    ${leaders.map(leader=>{
+     const pending=leader.people.filter(row=>row.pending.length)
+      .sort((a,b)=>a.employee.full_name.localeCompare(b.employee.full_name,"pt-BR"));
+     return `<details class="training-leader">
+      <summary><strong>${escapeHtml(trainingLeaderName(leader.id))}</strong>
+       <span class="${trainingPctClass(leader.pct)}">${leader.pct}%</span>
+       <span class="muted"> · ${leader.completed}/${leader.expected} conclusões · ${pending.length} com pendência</span>
+      </summary>
+      ${pending.length?`<ul>${pending.map(row=>`<li><strong>${escapeHtml(row.employee.full_name)}</strong><br><span class="muted">${row.pending.map(t=>escapeHtml(trainingShortTitle(t))).join(", ")}</span></li>`).join("")}</ul>`:'<p class="muted">Nenhum colaborador com pendência.</p>'}
+     </details>`;
+    }).join("")}
+   </section>
+   <section class="training-panel">
+    <h3>Matriz de conclusão</h3>
+    <div class="muted"><span class="training-pct-good">✓ Concluído</span> · <span class="training-pct-mid">– Pendente</span></div>
+    <div class="training-matrix-key">${m.trainings.map((t,i)=>`<span><strong>T${i+1}</strong> ${escapeHtml(trainingShortTitle(t))}</span>`).join("")}</div>
+    <div class="training-table-wrap">
+     <table class="training-table training-matrix">
+      <thead><tr><th scope="col">Colaborador</th>${m.trainings.map((t,i)=>`<th scope="col" class="training-lesson" title="${escapeHtml(trainingShortTitle(t))}">T${i+1}</th>`).join("")}<th scope="col">Concluídos</th></tr></thead>
+      <tbody>${rows.map(row=>`<tr>
+       <th scope="row"><strong>${escapeHtml(row.employee.full_name)}</strong><br><small class="muted">${escapeHtml(trainingEmployeeUnitNames(row.employee.id,m.unitId))}</small></th>
+       ${m.trainings.map(t=>{
+        const pending=row.pending.includes(t);
+        return `<td class="training-lesson ${pending?"training-pct-mid":"training-pct-good"}" aria-label="${pending?"Pendente":"Concluído"}"><span aria-hidden="true">${pending?"–":"✓"}</span></td>`;
+       }).join("")}
+       <td>${m.trainings.length-row.pending.length}/${m.trainings.length}</td>
+      </tr>`).join("")}</tbody>
+     </table>
+    </div>
+   </section>
+  </div>`;
+}
+
+
 function renderTrainingUnits(m){
  const box=$("trainingUnitsView");
- const unitIds=m.unitId?[m.unitId]:[...new Set(m.active.map(e=>trainingEmployeeUnitId(e.id)).filter(Boolean))];
+ const unitIds=m.unitId?[m.unitId]:[...new Set(m.scopeEmployees.flatMap(e=>trainingEmployeeUnitIds(e.id)))];
  const rows=unitIds.map(uid=>{
-  const emps=m.active.filter(e=>trainingEmployeeUnitId(e.id)===uid);
+  const emps=m.scopeEmployees.filter(e=>trainingEmployeeUnitIds(e.id).includes(uid));
   const pcts=m.trainings.map(t=>{
    const d=emps.filter(e=>m.best.has(t.id+"|"+e.id)).length;
    return emps.length?Math.round(d/emps.length*100):0;
@@ -10383,7 +10530,7 @@ function renderTrainingRanking(m){
   const adherence=m.trainings.length?completed/m.trainings.length*100:0;
   const accuracy=total?correct/total*100:0;
   const score=.6*adherence+.4*accuracy;
-  return {e,completed,adherence,accuracy,score,unit:allUnits.find(u=>u.id===trainingEmployeeUnitId(e.id))?.name||"—"};
+  return {e,completed,adherence,accuracy,score,unit:trainingEmployeeUnitNames(e.id,m.unitId)||"—"};
  }).sort((a,b)=>b.score-a.score||b.adherence-a.adherence||b.accuracy-a.accuracy||a.e.full_name.localeCompare(b.e.full_name,"pt-BR"));
  $("trainingRankingView").innerHTML='<div class="training-table-wrap"><table class="training-table"><thead><tr><th>#</th><th>Funcionário</th><th>Unidade</th><th>Conclusões</th><th>Aderência</th><th>Acertos</th><th>Nota geral</th></tr></thead><tbody>'+
  rows.map((r,i)=>'<tr><td><strong>'+(i+1)+'</strong></td><td>'+escapeHtml(r.e.full_name)+'</td><td>'+escapeHtml(r.unit)+'</td><td>'+r.completed+'/'+m.trainings.length+'</td><td class="'+trainingPctClass(r.adherence)+'">'+Math.round(r.adherence)+'%</td><td class="'+trainingPctClass(r.accuracy)+'">'+Math.round(r.accuracy)+'%</td><td><strong>'+Math.round(r.score)+'</strong></td></tr>').join("")+
@@ -10393,10 +10540,15 @@ function renderTrainingRanking(m){
 
 function renderTrainingQuestions(m){
  const box=$("trainingQuestionsView");box.replaceChildren();
+ const track=trainingTracks.find(x=>x.id===trainingCurrentTrack());
+ if(track?.name!=="Trilha 01"){
+  box.innerHTML='<div class="empty">Sem análise de questões para esta trilha.</div>';
+  return;
+ }
  m.trainings.forEach(t=>{
   const stats=TRAINING_Q_STATS[t.display_order]||[];
   const panel=document.createElement("div");panel.className="training-panel";panel.style.marginBottom="12px";
-  panel.innerHTML='<h3>'+escapeHtml(trainingShortTitle(t))+'</h3><div class="muted">Percentual de respostas corretas por questão na base importada.</div><div class="training-question-grid">'+
+  panel.innerHTML='<h3>'+escapeHtml(trainingShortTitle(t))+'</h3><div class="muted">Percentual geral de acertos por questão na base importada da trilha.</div><div class="training-question-grid">'+
    stats.map((p,i)=>'<div class="training-question-box"><span>Questão '+(i+1)+'</span><strong class="'+trainingPctClass(p)+'">'+p.toLocaleString("pt-BR",{maximumFractionDigits:1})+'%</strong></div>').join("")+
    '</div>';
   box.appendChild(panel);
@@ -10406,12 +10558,13 @@ function renderTrainingQuestions(m){
 
 $("trainingTrackFilter").addEventListener("change",renderTrainingsModule);
 $("trainingUnitFilter").addEventListener("change",renderTrainingsModule);
+$("trainingLeaderFilter").addEventListener("change",renderTrainingsModule);
 document.querySelectorAll(".training-tab").forEach(btn=>btn.addEventListener("click",()=>{
- trainingViewMode=btn.dataset.trainingView;
- document.querySelectorAll(".training-tab").forEach(x=>x.classList.toggle("active",x===btn));
- $("trainingUnitsView").classList.toggle("hidden",trainingViewMode!=="units");
- $("trainingRankingView").classList.toggle("hidden",trainingViewMode!=="ranking");
- $("trainingQuestionsView").classList.toggle("hidden",trainingViewMode!=="questions");
+ document.querySelectorAll(".training-tab").forEach(tab=>{
+  tab.classList.toggle("active",tab===btn);
+  tab.setAttribute("aria-pressed",String(tab===btn));
+ });
+ Object.entries(trainingViews).forEach(([name,id])=>$(id).classList.toggle("hidden",name!==btn.dataset.trainingView));
 }));
 
 
