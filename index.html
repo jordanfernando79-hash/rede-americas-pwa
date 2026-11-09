@@ -2663,6 +2663,10 @@ main{max-width:1580px;padding:18px 20px 60px}
 <textarea id="technicalOpinion"></textarea>
 </div>
 
+<div id="rdiAttachmentsInEdit" class="full hidden">
+ <button type="button" class="secondary" id="rdiAttachmentsInEditButton">Gerenciar anexos</button>
+</div>
+
 
 
 
@@ -2842,6 +2846,18 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+
+<dialog id="rdiAttachmentsDialog" aria-labelledby="rdiAttachmentsTitle">
+ <div class="dialog-body">
+  <h2 id="rdiAttachmentsTitle">Anexos da ocorrência</h2>
+  <p class="muted" id="rdiAttachmentsRecord"></p>
+  <div id="rdiAttachmentsMessage" aria-live="polite"></div>
+  <div id="rdiAttachmentsList" class="form-grid"></div>
+  <div class="dialog-actions">
+   <button type="button" class="ghost" id="rdiAttachmentsClose">Fechar</button>
+  </div>
+ </div>
+</dialog>
 
 <!-- MODAL RELATÓRIOS -->
 <dialog id="reportDialog">
@@ -7534,6 +7550,7 @@ function renderRecords(){
      <p class="muted">${escapeHtml(r.equipment_info||"Equipamento não informado")}</p>
      <p><strong>Status:</strong> ${escapeHtml(r.status)} • <strong>Custo:</strong> ${escapeHtml(cost)}</p>
      <div class="actions">
+      <button class="secondary rdiAttachmentsBtn">Anexos</button>
       <button class="secondary editBtn">Editar</button>
       <button class="danger deleteBtn">Excluir</button>
      </div>
@@ -7544,6 +7561,7 @@ function renderRecords(){
 
 
 
+  el.querySelector(".rdiAttachmentsBtn").onclick=()=>openRdiAttachments(r);
   el.querySelector(".editBtn").onclick=()=>openEdit(r);
   el.querySelector(".deleteBtn").onclick=()=>deleteRecord(r);
 
@@ -7579,8 +7597,158 @@ function renderRecords(){
 
 
 
+const rdiAttachmentTypes=[
+ {name:"parecer-tecnico",label:"Parecer técnico",extensions:["pdf","docx"]},
+ {name:"orcamento",label:"Orçamento",extensions:["pdf"]}
+];
+const rdiAttachmentMime={
+ pdf:"application/pdf",
+ docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+};
+const rdiAttachmentLimit=10*1024*1024;
+
+$("rdiAttachmentsClose").onclick=()=>$("rdiAttachmentsDialog").close();
+$("rdiAttachmentsInEditButton").onclick=()=>openRdiAttachments(editingRecord);
+
+async function openRdiAttachments(record){
+ if(!record||!hasAccess("rdi","view",record.unit_id))return;
+ const dialog=$("rdiAttachmentsDialog");
+ const notice=$("rdiAttachmentsMessage");
+ const container=$("rdiAttachmentsList");
+ const bucket=db.storage.from("rdi-attachments");
+ const folder=`${record.unit_id}/${record.id}`;
+ const canEdit=hasAccess("rdi","edit",record.unit_id);
+ const panel=document.createElement("div");
+ panel.className="full form-grid";
+ $("rdiAttachmentsRecord").textContent=record.source_id||record.location||"Ocorrência RDI";
+ container.replaceChildren(panel);
+ message(notice,"Carregando anexos…");
+ dialog.showModal();
+
+ const {data,error}=await bucket.list(folder);
+ if(!dialog.open||!panel.isConnected)return;
+ if(error){
+  message(notice,"Não foi possível consultar os anexos desta ocorrência.","err");
+  return;
+ }
+ message(notice,"");
+
+ for(const type of rdiAttachmentTypes){
+  const item=document.createElement("section");
+  item.className="record full";
+  item.innerHTML=`
+   <h3>${type.label}</h3>
+   <p class="muted attachment-state"></p>
+   <div class="actions attachment-links">
+    <button type="button" class="secondary attachment-open">Abrir PDF</button>
+    <button type="button" class="secondary attachment-download">Baixar arquivo</button>
+   </div>
+   ${canEdit?`<form>
+    <label for="rdiFile-${type.name}">Selecionar arquivo</label>
+    <input id="rdiFile-${type.name}" type="file" required accept="${type.extensions.map(ext=>"."+ext).join(",")}">
+    <p class="muted">${type.extensions.join(" ou ").toUpperCase()} • até 10 MB</p>
+    <button type="submit" class="primary attachment-save"></button>
+   </form>`:""}
+   <div class="attachment-message" aria-live="polite"></div>`;
+  panel.appendChild(item);
+  const path=`${folder}/${type.name}`;
+  const status=item.querySelector(".attachment-state");
+  const links=item.querySelector(".attachment-links");
+  const open=item.querySelector(".attachment-open");
+  const download=item.querySelector(".attachment-download");
+  const feedback=item.querySelector(".attachment-message");
+  const form=item.querySelector("form");
+  const fileInput=form?.querySelector("input");
+  const save=form?.querySelector("button");
+  const current=data?.find(file=>file.name===type.name);
+  let extension=current?(current.metadata?.mimetype===rdiAttachmentMime.docx?"docx":"pdf"):null;
+
+  function renderAttachment(){
+   status.textContent=extension?`Arquivo anexado • ${extension.toUpperCase()}`:"Nenhum arquivo anexado.";
+   links.classList.toggle("hidden",!extension);
+   open.classList.toggle("hidden",extension!=="pdf");
+   if(save)save.textContent=extension?"Substituir arquivo":"Anexar arquivo";
+  }
+
+  open.onclick=async()=>{
+   const preview=window.open("about:blank","_blank");
+   if(!preview){
+    message(feedback,"O navegador bloqueou a abertura. Use Baixar arquivo.","err");
+    return;
+   }
+   preview.opener=null;
+   try{
+    const {data,error}=await bucket.createSignedUrl(path,120);
+    if(error||!data?.signedUrl)throw error||new Error("URL indisponível");
+    preview.location.replace(data.signedUrl);
+   }catch(error){
+    console.error(error);
+    preview.close();
+    message(feedback,"Não foi possível abrir o PDF.","err");
+   }
+  };
+
+  download.onclick=async()=>{
+   download.disabled=true;
+   try{
+    const filename=`${type.name}.${extension}`;
+    const {data,error}=await bucket.createSignedUrl(path,120,{download:filename});
+    if(error||!data?.signedUrl)throw error||new Error("URL indisponível");
+    const link=document.createElement("a");
+    link.href=data.signedUrl;
+    link.download=filename;
+    item.appendChild(link);
+    link.click();
+    link.remove();
+   }catch(error){
+    console.error(error);
+    message(feedback,"Não foi possível baixar o arquivo.","err");
+   }finally{
+    download.disabled=false;
+   }
+  };
+
+  if(form)form.onsubmit=async event=>{
+   event.preventDefault();
+   if(save.disabled)return;
+   const file=fileInput.files[0];
+   const selectedExtension=file?.name.split(".").pop().toLowerCase();
+   if(!file?.size||file.size>rdiAttachmentLimit||!type.extensions.includes(selectedExtension)||
+      (file.type&&file.type!=="application/octet-stream"&&file.type!==rdiAttachmentMime[selectedExtension])){
+    message(feedback,"Selecione um arquivo no formato indicado, com até 10 MB.","err");
+    return;
+   }
+   save.disabled=true;
+   fileInput.disabled=true;
+   save.textContent="Enviando…";
+   message(feedback,"");
+   try{
+    const contentType=rdiAttachmentMime[selectedExtension];
+    const {error}=await bucket.upload(path,file.slice(0,file.size,contentType),{
+     contentType,
+     cacheControl:"0",
+     upsert:!!extension
+    });
+    if(error)throw error;
+    extension=selectedExtension;
+    form.reset();
+    message(feedback,"Arquivo salvo na ocorrência.","ok");
+   }catch(error){
+    console.error(error);
+    message(feedback,"Não foi possível salvar o arquivo. Confira a permissão ou reabra os anexos e tente novamente.","err");
+   }finally{
+    save.disabled=false;
+    fileInput.disabled=false;
+    renderAttachment();
+   }
+  };
+  renderAttachment();
+ }
+}
+
 $("newRdiButton").onclick=()=>{
  editingRecord=null;
+ $("rdiAttachmentsInEdit").classList.add("hidden");
  $("rdiForm").reset();
  $("recordId").value="";
  $("gravity").value="1";
@@ -7601,6 +7769,7 @@ $("newRdiButton").onclick=()=>{
 
 function openEdit(r){
  editingRecord=r;
+ $("rdiAttachmentsInEdit").classList.toggle("hidden",!hasAccess("rdi","edit",r.unit_id));
 
 
 
