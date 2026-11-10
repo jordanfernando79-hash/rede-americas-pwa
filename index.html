@@ -1240,15 +1240,11 @@ main{max-width:1580px;padding:18px 20px 60px}
 .schedule-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .schedule-actions.hidden{display:none}
 .schedule-actions button{min-width:0;width:auto}
-.schedule-actions button[aria-pressed="true"]{background:#174971;color:white}
-.schedule-group{margin-bottom:14px;padding:14px;border:1px solid #dce7ef;background:white;border-radius:12px}
-.schedule-group h3{margin:0 0 10px}
 .schedule-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:9px 0;border-top:1px solid #e3ebf2}
 .schedule-row button{width:auto}
 .schedule-pill{display:inline-block;padding:3px 7px;border-radius:7px;font-size:.82rem;font-weight:750;background:#e8edf3;color:#25384d;margin:2px}
 .schedule-pill[data-status="planned"]{background:#fff1bc;color:#553a00}
 .schedule-pill[data-status="done"]{background:#daf4e6;color:#164a35}
-.schedule-pill[data-status="contingency"]{background:#fbe5d2;color:#683311}
 .schedule-pill[data-status="moved"]{background:#e8e3ff;color:#3d2b7d}
 .schedule-grid{overflow:auto;max-width:100%;overscroll-behavior-x:contain;border:1px solid #dce7ef;border-radius:10px}
 .schedule-grid table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;background:white}
@@ -1268,7 +1264,6 @@ main{max-width:1580px;padding:18px 20px 60px}
 @container app-layout (max-width: 540px){
  .schedule-grid th:first-child{min-width:96px;max-width:112px;font-size:.84rem}
  .schedule-actions button{flex:1 1 auto}
- .schedule-group{padding:11px}
 }
 </style>
 </head>
@@ -2068,20 +2063,14 @@ main{max-width:1580px;padding:18px 20px 60px}
   <div class="section-title"><div><h2>Cronogramas</h2><div class="muted">Atendimentos das equipes Volante I, II e III</div></div></div>
   <section class="card schedule-controls">
     <div class="schedule-filters">
-      <label>Data de referência<input id="scheduleDate" type="date" required></label>
+      <label>Mês de referência<input id="scheduleMonth" type="month" min="1900-01" max="9998-12" placeholder="AAAA-MM" required></label>
       <label>Equipe<select id="scheduleTeam"><option value="">Todas as equipes</option><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
       <label>Unidade<select id="scheduleUnit"></select></label>
     </div>
-    <div class="schedule-actions" role="group" aria-label="Visualização do cronograma">
-      <button type="button" class="secondary" data-schedule-view="day">Dia</button>
-      <button type="button" class="secondary" data-schedule-view="week">Semana</button>
-      <button type="button" class="secondary" data-schedule-view="unit">Mês por unidade</button>
-      <button type="button" class="secondary" data-schedule-view="grid">Grade mensal</button>
-    </div>
     <div class="schedule-actions">
-      <button id="schedulePrev" type="button" class="ghost" aria-label="Período anterior">‹ Anterior</button>
-      <button id="scheduleToday" type="button" class="ghost">Hoje</button>
-      <button id="scheduleNext" type="button" class="ghost" aria-label="Próximo período">Próximo ›</button>
+      <button id="schedulePrev" type="button" class="ghost" aria-label="Mês anterior">‹ Anterior</button>
+      <button id="scheduleToday" type="button" class="ghost">Mês atual</button>
+      <button id="scheduleNext" type="button" class="ghost" aria-label="Próximo mês">Próximo ›</button>
     </div>
     <div id="scheduleWriteActions" class="schedule-actions hidden">
       <button id="scheduleNew" class="primary" type="button">+ Agendar atendimento</button>
@@ -2182,6 +2171,15 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <!-- MODAL USUÁRIO E ACESSOS -->
+<dialog id="scheduleDetailDialog" aria-labelledby="scheduleDetailTitle">
+  <div class="dialog-body">
+    <h2 id="scheduleDetailTitle">Atendimento</h2>
+    <div id="scheduleDetailContent"></div>
+    <div class="dialog-actions">
+      <button class="ghost" type="button" data-close-schedule="scheduleDetailDialog">Fechar</button>
+    </div>
+  </div>
+</dialog>
 <dialog id="scheduleEditDialog">
   <div class="dialog-body">
     <form id="scheduleEditForm">
@@ -2190,10 +2188,11 @@ main{max-width:1580px;padding:18px 20px 60px}
         <label>Data<input id="scheduleEditDate" type="date" required></label>
         <label>Equipe<select id="scheduleEditTeam" required><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
         <label>Unidade<select id="scheduleEditUnit" required></select></label>
-        <label>Situação<select id="scheduleEditStatus"><option value="planned">Planejado</option><option value="done">Realizado</option><option value="contingency">Contingência</option></select></label>
+        <label>Situação<select id="scheduleEditStatus" required><option value="planned">Planejado</option><option value="done">Realizado</option></select></label>
       </div>
       <label id="scheduleReasonLabel" class="hidden">Motivo do remanejamento<textarea id="scheduleReason" maxlength="300" rows="3" placeholder="Ex.: atendimento transferido para priorizar uma demanda emergencial."></textarea></label>
       <div id="scheduleEditNotice" role="status"></div>
+      <button id="scheduleEditLegacy" class="ghost hidden" type="button">Abrir registro anterior de contingência</button>
       <div class="dialog-actions">
         <button class="ghost" type="button" data-close-schedule="scheduleEditDialog">Cancelar</button>
         <button id="scheduleDiscard" class="danger hidden" type="button">Descartar rascunho</button>
@@ -2205,7 +2204,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <dialog id="scheduleImportDialog">
   <div class="dialog-body">
     <h2>Importar cronograma do Excel</h2>
-    <p class="muted">Selecione uma aba mensal. A prévia mostra datas, equipes, unidades e situações. A importação cria rascunhos novos e preserva os atendimentos já cadastrados.</p>
+    <p class="muted">Selecione uma aba mensal. A prévia mostra datas, equipes, unidades e situações. A importação cria rascunhos novos e preserva os atendimentos já cadastrados. Janelas de contingência ficam vazias.</p>
     <div class="schedule-filters">
       <label>Planilha .xlsx<input id="scheduleFile" type="file" accept=".xlsx"></label>
       <label>Aba mensal<select id="scheduleSheet" disabled><option value="">Selecione a planilha primeiro</option></select></label>
@@ -4688,9 +4687,14 @@ async function deleteUnit(unit){
 /* CRONOGRAMAS DAS EQUIPES VOLANTES */
 const scheduleTeams=["","Volante I","Volante II","Volante III"];
 const scheduleRoman=["","I","II","III"];
-const scheduleLabels={planned:"Planejado",done:"Realizado",contingency:"Contingência",moved:"Remanejado",draft:"Rascunho"};
-const scheduleStatusKeys=["planned","done","contingency"];
-let scheduleView="day", scheduleRows=[], scheduleRequest=0, scheduleOwner=null;
+const scheduleLabels={planned:"Planejado",done:"Realizado",moved:"Remanejado",draft:"Rascunho"};
+const scheduleStatusKeys=["planned","done"];
+const scheduleUnitKeys=new Set([
+ "COI AMC","COI BOTAFOGO","COI CENTRON","COI MDX","COI NITEROI","COI NOVA IGUACU",
+ "COI ONCOBARRA","COI SIP IPANEMA","COI TIJUCA","HOSPITAL AMERICAS MEDICAL CITY",
+ "HOSPITAL PRO CARDIACO","HOSPITAL SAMARITANO BOTAFOGO"
+]);
+let scheduleRows=[], scheduleRequest=0, scheduleOwner=null;
 let scheduleEditing=null, scheduleImportBook=null, scheduleImportSource=null, scheduleImportRows=[];
 let scheduleImportRequest=0, scheduleReviewRows=[];
 
@@ -4700,9 +4704,9 @@ function scheduleCan(action,unit=null){
 }
 
 function scheduleUnits(){
- return allUnits.filter(unit=>profile?.role==="client"
+ return allUnits.filter(unit=>scheduleUnitKeys.has(scheduleNormalize(unit.name))&&(profile?.role==="client"
   ?accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit.id&&g.can_view)
-  :hasAccess("cronogramas","view",unit.id));
+  :hasAccess("cronogramas","view",unit.id)));
 }
 
 function scheduleUnitName(id){
@@ -4730,9 +4734,6 @@ function scheduleMonthStart(value,delta=0){
  const date=scheduleDateObject(value.slice(0,7)+"-01");
  date.setUTCMonth(date.getUTCMonth()+delta);
  return scheduleIso(date);
-}
-function scheduleWeekStart(value){
- return scheduleAddDays(value,-((scheduleDateObject(value).getUTCDay()+6)%7));
 }
 function scheduleDateLabel(value,monthOnly=false){
  const options=monthOnly?{month:"long",year:"numeric"}:{weekday:"long",day:"2-digit",month:"short"};
@@ -4764,20 +4765,15 @@ function scheduleHolidays(year){
  return dates;
 }
 function scheduleReference(){
- const date=$("scheduleDate");
- if(!/^\d{4}-\d{2}-\d{2}$/.test(date.value)||date.value<"1900-01-01"||date.value>"9998-12-31"){
-  date.value=scheduleTodayDate();
+ const month=$("scheduleMonth");
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value)||month.value<"1900-01"||month.value>"9998-12"){
+  month.value=scheduleTodayDate().slice(0,7);
  }
- return date.value;
+ return month.value+"-01";
 }
 function scheduleRange(){
- const date=scheduleReference();
- if(scheduleView==="day")return [date,scheduleAddDays(date,1)];
- if(scheduleView==="week"){
-  const first=scheduleWeekStart(date);
-  return [first,scheduleAddDays(first,7)];
- }
- return [scheduleMonthStart(date),scheduleMonthStart(date,1)];
+ const first=scheduleReference();
+ return [first,scheduleMonthStart(first,1)];
 }
 
 function resetScheduleSession(){
@@ -4794,11 +4790,11 @@ function resetScheduleSession(){
  $("schedulePreview").replaceChildren();
  $("scheduleReviewContent").replaceChildren();
  $("scheduleFile").value="";
- $("scheduleDate").value="";
+ $("scheduleMonth").value="";
  $("scheduleTeam").value="";
  $("scheduleUnit").replaceChildren();
- scheduleView="day";
- for(const id of ["scheduleEditDialog","scheduleImportDialog","scheduleReviewDialog"])$(id).close();
+ $("scheduleDetailContent").replaceChildren();
+ for(const id of ["scheduleDetailDialog","scheduleEditDialog","scheduleImportDialog","scheduleReviewDialog"])$(id).close();
 }
 
 async function loadSchedule(){
@@ -4819,9 +4815,6 @@ async function loadSchedule(){
  $("scheduleNew").classList.toggle("hidden",!canAdd);
  $("scheduleImport").classList.toggle("hidden",!canAdd);
  $("schedulePublish").classList.toggle("hidden",!canReview);
- for(const button of document.querySelectorAll("[data-schedule-view]")){
-  button.setAttribute("aria-pressed",String(button.dataset.scheduleView===scheduleView));
- }
  const [first,last]=scheduleRange();
  const team=$("scheduleTeam").value;
  const filterUnit=unit.value;
@@ -4830,7 +4823,7 @@ async function loadSchedule(){
  $("scheduleStatus").textContent="Carregando cronograma...";
  const result=await trainingReadPages(()=>{
   let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,published,moved,revision")
-   .gte("visit_date",first).lt("visit_date",last).order("visit_date").order("team").order("id");
+   .neq("status","contingency").gte("visit_date",first).lt("visit_date",last).order("visit_date").order("team").order("id");
   if(team)query=query.eq("team",team);
   if(filterUnit)query=query.eq("unit_id",filterUnit);
   return query;
@@ -4841,63 +4834,34 @@ async function loadSchedule(){
   console.error(result.error);
   return;
  }
- scheduleRows=result.data.filter(row=>units.some(u=>u.id===row.unit_id));
- renderSchedule(first,last);
+ scheduleRows=result.data.filter(row=>scheduleStatusKeys.includes(row.status)&&units.some(u=>u.id===row.unit_id));
+ $("scheduleStatus").textContent=scheduleDateLabel(first,true)+" · "+scheduleRows.length+
+  (scheduleRows.length===1?" atendimento":" atendimentos");
+ renderScheduleGrid(first,last,scheduleTodayDate());
 }
 
 function schedulePill(status,label=scheduleLabels[status]){
  return '<span class="schedule-pill" data-status="'+status+'">'+escapeHtml(label)+'</span>';
 }
 
-function scheduleCard(row,context){
+function showScheduleDetail(row){
  const canEdit=scheduleCan("edit",row.unit_id);
- const date=context==="unit"?'<span>'+escapeHtml(scheduleDateLabel(row.visit_date))+' · </span>':"";
- const unit=context==="unit"?"":'<strong>'+escapeHtml(scheduleUnitName(row.unit_id))+'</strong> · ';
- return '<div class="schedule-row"><div>'+date+unit+escapeHtml(scheduleTeams[row.team])+
-  ' '+schedulePill(row.status)+(row.moved?schedulePill("moved"):"")+(!row.published?schedulePill("draft"):"")+
-  '</div><div>'+(canEdit?'<button type="button" class="secondary" data-schedule-edit="'+row.id+'">'+
+ const canViewHistory=row.moved&&["admin","team"].includes(profile?.role);
+ $("scheduleDetailTitle").textContent=scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id);
+ $("scheduleDetailContent").innerHTML='<p>'+escapeHtml(scheduleDateLabel(row.visit_date))+
+  ' '+schedulePill(row.status)+(row.moved?schedulePill("moved"):"")+(!row.published?schedulePill("draft"):"")+'</p>'+
+  '<div class="schedule-actions">'+
+  (canEdit?'<button type="button" class="secondary" data-schedule-edit>'+
   (row.published?"Editar / remanejar":"Editar rascunho")+'</button>':"")+
-  (row.moved&&["admin","team"].includes(profile?.role)?'<button type="button" class="ghost" data-schedule-history="'+row.id+'">Histórico</button>':"")+
-  '</div></div>';
-}
-
-function renderSchedule(first,last){
- const rows=scheduleRows;
- const dayView=scheduleView==="day";
- const weekView=scheduleView==="week";
- const unitView=scheduleView==="unit";
- const today=scheduleTodayDate();
- const title=dayView?scheduleDateLabel(first):weekView
-  ?scheduleDateLabel(first)+" a "+scheduleDateLabel(scheduleAddDays(last,-1))
-  :scheduleDateLabel(first,true);
- $("scheduleStatus").textContent=title+" · "+rows.length+(rows.length===1?" registro":" registros");
- const results=$("scheduleResults");
- if(!rows.length&&scheduleView!=="grid"&&(!dayView||$("scheduleUnit").value)){
-  results.innerHTML='<div class="empty">Nenhum atendimento para o período e os filtros selecionados.</div>';
-  return;
- }
- if(dayView){
-  const team=$("scheduleTeam").value;
-  results.innerHTML=[1,2,3].filter(t=>!team||String(t)===team).map(t=>{
-   const entries=rows.filter(row=>row.team===t);
-   return '<section class="schedule-group"><h3>'+scheduleTeams[t]+'</h3>'+
-    (entries.length?entries.map(row=>scheduleCard(row,"day")).join(""):'<p class="muted">Sem atendimento exibido nesta data.</p>')+'</section>';
-  }).join("");
- }else if(weekView||unitView){
-  const groups=new Map();
-  for(const row of rows){
-   const key=weekView?row.visit_date:row.unit_id;
-   if(!groups.has(key))groups.set(key,[]);
-   groups.get(key).push(row);
-  }
-  const entries=[...groups];
-  if(unitView)entries.sort(([a],[b])=>scheduleUnitName(a).localeCompare(scheduleUnitName(b),"pt-BR"));
-  results.innerHTML=entries.map(([key,items])=>'<section class="schedule-group"><h3>'+
-   escapeHtml(weekView?scheduleDateLabel(key)+(key===today?" · Hoje":""):scheduleUnitName(key))+
-   '</h3>'+items.map(row=>scheduleCard(row,weekView?"week":"unit")).join("")+'</section>').join("");
- }else{
-  renderScheduleGrid(first,last,today);
- }
+  (canViewHistory?'<button type="button" class="ghost" data-schedule-history>Histórico</button>':"")+'</div>';
+ const edit=$("scheduleDetailContent").querySelector("[data-schedule-edit]");
+ if(edit)edit.onclick=()=>{
+  $("scheduleDetailDialog").close();
+  openScheduleEditor(row);
+ };
+ const history=$("scheduleDetailContent").querySelector("[data-schedule-history]");
+ if(history)history.onclick=()=>showScheduleHistory(history,row);
+ $("scheduleDetailDialog").showModal();
 }
 
 function renderScheduleGrid(first,last,today){
@@ -4930,8 +4894,7 @@ function renderScheduleGrid(first,last,today){
     rows.map(row=>{
      const label=scheduleTeams[row.team]+" · "+scheduleLabels[row.status]+
       (row.moved?" · Remanejado":"")+(!row.published?" · Rascunho":"");
-     return '<button type="button" class="schedule-pill" data-status="'+row.status+'" data-schedule-day="'+day+
-      '" data-schedule-unit="'+unit.id+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+
+     return '<button type="button" class="schedule-pill" data-status="'+row.status+'" data-schedule-entry="'+row.id+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+
       scheduleRoman[row.team]+(row.moved?"↪":"")+(!row.published?"*":"")+'</button>';
     }).join("")+'</td>';
   }).join("")+'</tr>').join("");
@@ -4939,36 +4902,24 @@ function renderScheduleGrid(first,last,today){
   '<table><thead><tr><th scope="col">Unidade</th>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'+
   '<p class="muted"><span class="schedule-day-key schedule-weekend">Sábado e domingo</span> '+
   '<span class="schedule-day-key schedule-holiday">F · Feriado nacional ou estadual do RJ</span></p>'+
-  '<p class="muted">I, II e III indicam a equipe. Selecione uma célula para consultar o dia. '+
+  '<p class="muted">I, II e III indicam a equipe. Selecione um atendimento para consultar os detalhes. '+
   scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
   (["admin","team"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
 }
 
-for(const button of document.querySelectorAll("[data-schedule-view]")){
- button.onclick=()=>{scheduleView=button.dataset.scheduleView;loadSchedule();};
-}
-for(const id of ["scheduleDate","scheduleTeam","scheduleUnit"])$(id).onchange=()=>loadSchedule();
+for(const id of ["scheduleMonth","scheduleTeam","scheduleUnit"])$(id).onchange=()=>loadSchedule();
 function scheduleStep(direction){
- const date=scheduleReference();
- $("scheduleDate").value=["grid","unit"].includes(scheduleView)?scheduleMonthStart(date,direction)
-  :scheduleAddDays(date,direction*(scheduleView==="week"?7:1));
+ $("scheduleMonth").value=scheduleMonthStart(scheduleReference(),direction).slice(0,7);
  loadSchedule();
 }
 $("schedulePrev").onclick=()=>scheduleStep(-1);
 $("scheduleNext").onclick=()=>scheduleStep(1);
-$("scheduleToday").onclick=()=>{$("scheduleDate").value=scheduleTodayDate();loadSchedule();};
+$("scheduleToday").onclick=()=>{$("scheduleMonth").value=scheduleTodayDate().slice(0,7);loadSchedule();};
 
 $("scheduleResults").onclick=event=>{
- const button=event.target.closest("button");
- if(!button)return;
- if(button.dataset.scheduleDay){
-  $("scheduleDate").value=button.dataset.scheduleDay;
-  $("scheduleUnit").value=button.dataset.scheduleUnit;
-  scheduleView="day";
-  loadSchedule();
- }
- if(button.dataset.scheduleEdit)openScheduleEditor(scheduleRows.find(r=>r.id===button.dataset.scheduleEdit));
- if(button.dataset.scheduleHistory)showScheduleHistory(button,scheduleRows.find(r=>r.id===button.dataset.scheduleHistory));
+ const button=event.target.closest("[data-schedule-entry]");
+ const row=button&&scheduleRows.find(item=>item.id===button.dataset.scheduleEntry);
+ if(row)showScheduleDetail(row);
 };
 
 async function showScheduleHistory(button,row){
@@ -5022,13 +4973,16 @@ function openScheduleEditor(row=null){
  if(!units.length||(row&&!scheduleCan(action,row.unit_id)))return;
  scheduleEditing=row;
  $("scheduleEditTitle").textContent=row?(row.published?"Editar atendimento publicado":"Editar rascunho"):"Agendar atendimento";
- $("scheduleEditDate").value=row?.visit_date||scheduleReference();
+ const today=scheduleTodayDate();
+ const first=scheduleReference();
+ $("scheduleEditDate").value=row?.visit_date||(today.slice(0,7)===first.slice(0,7)?today:first);
  $("scheduleEditTeam").value=row?.team||$("scheduleTeam").value||"1";
  $("scheduleEditUnit").replaceChildren(...scheduleOptions(units,"Selecione",row?.unit_id||$("scheduleUnit").value));
- $("scheduleEditStatus").value=row?.status||"planned";
+ $("scheduleEditStatus").value=row?.status==="done"?"done":"planned";
+ $("scheduleEditLegacy").classList.add("hidden");
  $("scheduleReason").value="";
  $("scheduleDiscard").classList.toggle("hidden",!row||row.published||!scheduleCan("delete",row.unit_id));
- $("scheduleEditNotice").textContent=row?.published?"Alterações salvas aparecem na programação publicada.":"Salve como rascunho e revise antes de publicar.";
+ $("scheduleEditNotice").textContent=row?.status==="contingency"?"O registro anterior está vazio na grade. Salve para transformá-lo em atendimento.":row?.published?"Alterações salvas aparecem na programação publicada.":"Salve como rascunho e revise antes de publicar.";
  updateScheduleReason();
  $("scheduleEditDialog").showModal();
 }
@@ -5045,6 +4999,8 @@ $("scheduleEditForm").onsubmit=async event=>{
  event.preventDefault();
  const row=scheduleEditing;
  const values=scheduleEditorPayload();
+ $("scheduleEditLegacy").classList.add("hidden");
+ if(!scheduleStatusKeys.includes(values.status)||!scheduleUnits().some(unit=>unit.id===values.unit_id))return;
  if(!scheduleCan(row?"edit":"insert",values.unit_id)||(row&&!scheduleCan("edit",row.unit_id)))return;
  if(scheduleNeedsReason(values)){
   values.change_reason=$("scheduleReason").value.trim();
@@ -5061,13 +5017,28 @@ $("scheduleEditForm").onsubmit=async event=>{
   const result=row
    ?await table.update(values).eq("id",row.id).eq("revision",row.revision).select("id").maybeSingle()
    :await table.insert(values).select("id").single();
+  if(!row&&result.error?.code==="23505"&&scheduleCan("edit",values.unit_id)){
+   const {data:legacy}=await table.select("id,unit_id,team,visit_date,status,published,moved,revision")
+    .eq("visit_date",values.visit_date).eq("team",values.team).eq("unit_id",values.unit_id)
+    .eq("status","contingency").maybeSingle();
+   if(legacy&&$("scheduleEditDialog").open&&scheduleEditing===row){
+    const open=$("scheduleEditLegacy");
+    open.onclick=()=>{
+     $("scheduleEditDialog").close();
+     openScheduleEditor(legacy);
+    };
+    open.classList.remove("hidden");
+    $("scheduleEditNotice").textContent="Já existe uma marcação antiga de contingência. Abra o registro para agendar este atendimento.";
+    return;
+   }
+  }
   if(result.error||!result.data){
    $("scheduleEditNotice").textContent=result.error?scheduleFailure(result.error,"Não foi possível salvar o atendimento.")
     :"O atendimento foi alterado em outra sessão. Feche e reabra o cronograma.";
    return;
   }
   $("scheduleEditDialog").close();
-  $("scheduleDate").value=values.visit_date;
+  $("scheduleMonth").value=values.visit_date.slice(0,7);
   if($("scheduleUnit").value&&$("scheduleUnit").value!==values.unit_id)$("scheduleUnit").value="";
   if($("scheduleTeam").value&&Number($("scheduleTeam").value)!==values.team)$("scheduleTeam").value="";
   await loadSchedule();
@@ -5111,14 +5082,15 @@ $("schedulePublish").onclick=async()=>{
  $("scheduleReviewDialog").showModal();
  const result=await trainingReadPages(()=>{
   let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,revision")
-   .eq("published",false).gte("visit_date",scheduleMonthStart(date)).lt("visit_date",scheduleMonthStart(date,1))
+   .eq("published",false).neq("status","contingency").gte("visit_date",scheduleMonthStart(date)).lt("visit_date",scheduleMonthStart(date,1))
    .order("visit_date").order("team").order("id");
   if(selectedUnit)query=query.eq("unit_id",selectedUnit);
   if(selectedTeam)query=query.eq("team",selectedTeam);
   return query;
  });
  if(owner!==session?.user?.id||!$("scheduleReviewDialog").open)return;
- scheduleReviewRows=(result.data||[]).filter(row=>scheduleCan("edit",row.unit_id));
+ const editableUnits=new Set(scheduleUnits().filter(unit=>scheduleCan("edit",unit.id)).map(unit=>unit.id));
+ scheduleReviewRows=(result.data||[]).filter(row=>scheduleStatusKeys.includes(row.status)&&editableUnits.has(row.unit_id));
  $("scheduleReviewStatus").textContent=result.error?"Não foi possível carregar os rascunhos."
   :scheduleReviewRows.length?"Desmarque os atendimentos que deseja manter em rascunho.":"Nenhum rascunho disponível para publicação.";
  $("scheduleReviewContent").innerHTML=scheduleReviewRows.map(row=>'<label class="schedule-review-line"><input type="checkbox" checked value="'+row.id+'"><span>'+
@@ -5214,7 +5186,7 @@ function scheduleReadSheet(book,index){
  const legend=labels.find(ref=>Number(ref.slice(1))>header&&norm(ref).startsWith("LEGENDA"));
  if(!legend)throw new Error("A legenda de cores não foi encontrada abaixo das unidades.");
  const legendStart=Number(legend.slice(1));
- const legendLabels={"PLANEJADO":"planned","ATENDIDO":"done","REALIZADO":"done","JANELA DE CONTINGENCIA":"contingency"};
+ const legendLabels={"PLANEJADO":"planned","ATENDIDO":"done","REALIZADO":"done","JANELA DE CONTINGENCIA":"contingency","CONTINGENCIA":"contingency"};
  const colorStates=new Map();
  for(let row=legendStart+1;row<=legendStart+10;row++){
   const cell=cells.get("B"+row);
@@ -5243,6 +5215,7 @@ function scheduleReadSheet(book,index){
    const cell=cells.get(ref);
    if(!cell)continue;
    const status=colorStates.get(cell.color);
+   if(status==="contingency")continue;
    const code=scheduleNormalize(cell.value);
    if(!status){
     if(code&&code!=="X")ignored.push(ref);
@@ -5332,7 +5305,12 @@ function configureScheduleImportSheet(){
   scheduleImportSource=source;
   const units=scheduleUnits().filter(u=>scheduleCan("insert",u.id));
   const unitNames=[...new Set(source.rows.map(row=>row.unit))];
-  for(const unit of unitNames){
+  source.excludedUnits=unitNames.filter(unit=>{
+   const key=scheduleNormalize(unit);
+   return !scheduleUnitKeys.has(scheduleUnitAliases[key]||key);
+  });
+  source.rows=source.rows.filter(row=>!source.excludedUnits.includes(row.unit));
+  for(const unit of unitNames.filter(name=>!source.excludedUnits.includes(name))){
    const key=scheduleNormalize(unit);
    const match=units.find(u=>scheduleNormalize(u.name)===(scheduleUnitAliases[key]||key));
    const label=document.createElement("label");
@@ -5385,6 +5363,7 @@ function renderScheduleImportPreview(){
  $("scheduleImportStatus").textContent=scheduleDateLabel(source.date,true)+" · "+scheduleImportRows.length+" atendimento(s) na prévia."+
   (pending?" Selecione as equipes e unidades pendentes.":"")+
   (conflicts?" Há situações diferentes para a mesma equipe, unidade e data. Revise o Excel ou as associações.":"")+
+  (source.excludedUnits.length?" Unidades fora da grade ignoradas: "+source.excludedUnits.join(", ")+".":"")+
   (source.ignored.length?" Marcações fora do padrão ignoradas em "+source.ignored.slice(0,20).join(", ")+(source.ignored.length>20?" e outras células.":"."):"");
  $("scheduleImportSave").disabled=!!(pending||conflicts||!scheduleImportRows.length||scheduleImportRows.length>500);
 }
@@ -5410,10 +5389,9 @@ $("scheduleImportSave").onclick=async()=>{
    return;
   }
   $("scheduleImportDialog").close();
-  $("scheduleDate").value=rows[0].visit_date;
+  $("scheduleMonth").value=rows[0].visit_date.slice(0,7);
   $("scheduleTeam").value="";
   $("scheduleUnit").value="";
-  scheduleView="unit";
   await loadSchedule();
   message($("appMessage"),data.length+" rascunho(s) salvo(s). "+(rows.length-data.length)+" registro(s) existente(s) preservado(s).","ok");
  }finally{
