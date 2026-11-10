@@ -15,6 +15,7 @@ try {
 <title>Central de Gestão de Manutenção Rede Americas</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js" integrity="sha384-DT0Ls0mO7JmjTnT+oBuMhEJzYJO1zUqzuuMXNdnOmOQRIpN2BgSjvBV/j50NngITv" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
 
@@ -1206,6 +1207,39 @@ main{max-width:1580px;padding:18px 20px 60px}
 .document-folder-note{color:#617b8c;margin:0 0 12px;font-size:14px}
 @container app-layout (max-width: 600px){.document-folder-body{padding:3px 7px 8px}.document-folder>summary{padding:12px 9px}}
 
+#scheduleModuleView{min-width:0}
+.schedule-controls{margin-bottom:14px}
+.schedule-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px}
+.schedule-filters label,#scheduleReasonLabel{display:grid;gap:5px;font-weight:700;min-width:0}
+.schedule-filters input,.schedule-filters select,#scheduleReason{width:100%;min-width:0}
+.schedule-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.schedule-actions.hidden{display:none}
+.schedule-actions button{min-width:0;width:auto}
+.schedule-actions button[aria-pressed="true"]{background:#174971;color:white}
+.schedule-group{margin-bottom:14px;padding:14px;border:1px solid #dce7ef;background:white;border-radius:12px}
+.schedule-group h3{margin:0 0 10px}
+.schedule-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:9px 0;border-top:1px solid #e3ebf2}
+.schedule-row button{width:auto}
+.schedule-pill{display:inline-block;padding:3px 7px;border-radius:7px;font-size:.82rem;font-weight:750;background:#e8edf3;color:#25384d;margin:2px}
+.schedule-pill[data-status="planned"]{background:#fff1bc;color:#553a00}
+.schedule-pill[data-status="done"]{background:#daf4e6;color:#164a35}
+.schedule-pill[data-status="contingency"]{background:#fbe5d2;color:#683311}
+.schedule-pill[data-status="moved"]{background:#e8e3ff;color:#3d2b7d}
+.schedule-grid{overflow:auto;max-width:100%;overscroll-behavior-x:contain;border:1px solid #dce7ef;border-radius:10px}
+.schedule-grid table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;background:white}
+.schedule-grid th,.schedule-grid td{padding:5px;min-width:39px;text-align:center;border:0;border-bottom:1px solid #e5edf3;border-right:1px solid #e5edf3}
+.schedule-grid th:first-child{position:sticky;left:0;z-index:1;text-align:left;background:#f4f8fb;min-width:115px;max-width:165px;white-space:normal}
+.schedule-grid .schedule-today{background:#dceeff}
+.schedule-grid button{min-width:32px;width:auto;border:0;cursor:pointer}
+.schedule-dialog-list{max-height:45dvh;overflow:auto}
+.schedule-mapping{grid-column:1/-1;display:grid;gap:8px}
+.schedule-review-line{display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px solid #e5edf3}
+.schedule-review-line input{width:auto}
+@container app-layout (max-width: 540px){
+ .schedule-grid th:first-child{min-width:96px;max-width:112px;font-size:.84rem}
+ .schedule-actions button{flex:1 1 auto}
+ .schedule-group{padding:11px}
+}
 </style>
 </head>
 
@@ -1330,6 +1364,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <button id="moduleDocuments" class="module"><i data-lucide="folder-open"></i><span>Documentos</span></button>
 <button class="module" disabled><i data-lucide="package-search"></i><span>Inventário</span></button>
 <button id="moduleTrainings" class="module"><i data-lucide="graduation-cap"></i><span>Treinamentos</span></button>
+<button id="moduleSchedule" class="module hidden"><i data-lucide="calendar-days"></i><span>Cronogramas</span></button>
 <button id="moduleOrg" class="module"><i data-lucide="network"></i><span>Organograma</span></button>
 <button id="moduleCommunication" class="module"><i data-lucide="messages-square"></i><span>Matriz de Comunicação</span></button>
 </nav>
@@ -1999,6 +2034,34 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <!-- TREINAMENTOS -->
+<div id="scheduleModuleView" class="hidden">
+  <div class="section-title"><div><h2>Cronogramas</h2><div class="muted">Atendimentos das equipes Volante I, II e III</div></div></div>
+  <section class="card schedule-controls">
+    <div class="schedule-filters">
+      <label>Data de referência<input id="scheduleDate" type="date" required></label>
+      <label>Equipe<select id="scheduleTeam"><option value="">Todas as equipes</option><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
+      <label>Unidade<select id="scheduleUnit"></select></label>
+    </div>
+    <div class="schedule-actions" role="group" aria-label="Visualização do cronograma">
+      <button type="button" class="secondary" data-schedule-view="day">Dia</button>
+      <button type="button" class="secondary" data-schedule-view="week">Semana</button>
+      <button type="button" class="secondary" data-schedule-view="unit">Mês por unidade</button>
+      <button type="button" class="secondary" data-schedule-view="grid">Grade mensal</button>
+    </div>
+    <div class="schedule-actions">
+      <button id="schedulePrev" type="button" class="ghost" aria-label="Período anterior">‹ Anterior</button>
+      <button id="scheduleToday" type="button" class="ghost">Hoje</button>
+      <button id="scheduleNext" type="button" class="ghost" aria-label="Próximo período">Próximo ›</button>
+    </div>
+    <div id="scheduleWriteActions" class="schedule-actions hidden">
+      <button id="scheduleNew" class="primary" type="button">+ Agendar atendimento</button>
+      <button id="scheduleImport" class="secondary" type="button">Importar Excel</button>
+      <button id="schedulePublish" class="secondary" type="button">Revisar rascunhos</button>
+    </div>
+  </section>
+  <div id="scheduleStatus" role="status"></div>
+  <div id="scheduleResults"></div>
+</div>
 <div id="trainingModuleView" class="hidden">
   <div class="section-title">
     <div>
@@ -2089,6 +2152,56 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <!-- MODAL USUÁRIO E ACESSOS -->
+<dialog id="scheduleEditDialog">
+  <div class="dialog-body">
+    <form id="scheduleEditForm">
+      <h2 id="scheduleEditTitle">Agendar atendimento</h2>
+      <div class="schedule-filters">
+        <label>Data<input id="scheduleEditDate" type="date" required></label>
+        <label>Equipe<select id="scheduleEditTeam" required><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
+        <label>Unidade<select id="scheduleEditUnit" required></select></label>
+        <label>Situação<select id="scheduleEditStatus"><option value="planned">Planejado</option><option value="done">Realizado</option><option value="contingency">Contingência</option></select></label>
+      </div>
+      <label id="scheduleReasonLabel" class="hidden">Motivo do remanejamento<textarea id="scheduleReason" maxlength="300" rows="3" placeholder="Ex.: atendimento transferido para priorizar uma demanda emergencial."></textarea></label>
+      <div id="scheduleEditNotice" role="status"></div>
+      <div class="dialog-actions">
+        <button class="ghost" type="button" data-close-schedule="scheduleEditDialog">Cancelar</button>
+        <button id="scheduleDiscard" class="danger hidden" type="button">Descartar rascunho</button>
+        <button id="scheduleSave" class="primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+<dialog id="scheduleImportDialog">
+  <div class="dialog-body">
+    <h2>Importar cronograma do Excel</h2>
+    <p class="muted">Selecione uma aba mensal. A prévia mostra datas, equipes, unidades e situações. A importação cria rascunhos novos e preserva os atendimentos já cadastrados.</p>
+    <div class="schedule-filters">
+      <label>Planilha .xlsx<input id="scheduleFile" type="file" accept=".xlsx"></label>
+      <label>Aba mensal<select id="scheduleSheet"></select></label>
+      <label id="scheduleImportTeamLabel">Equipe sem sigla<select id="scheduleImportTeam"><option value="">Selecione</option><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
+      <div id="scheduleCodeMapping" class="schedule-mapping"></div>
+      <div id="scheduleUnitMapping" class="schedule-mapping"></div>
+    </div>
+    <div id="scheduleImportStatus" role="status"></div>
+    <div id="schedulePreview" class="schedule-dialog-list"></div>
+    <div class="dialog-actions">
+      <button class="ghost" type="button" data-close-schedule="scheduleImportDialog">Fechar</button>
+      <button id="scheduleImportSave" class="primary" type="button" disabled>Salvar rascunhos</button>
+    </div>
+  </div>
+</dialog>
+<dialog id="scheduleReviewDialog">
+  <div class="dialog-body">
+    <h2 id="scheduleReviewTitle">Revisar rascunhos</h2>
+    <div id="scheduleReviewContent" class="schedule-dialog-list"></div>
+    <div id="scheduleReviewStatus" role="status"></div>
+    <div class="dialog-actions">
+      <button class="ghost" type="button" data-close-schedule="scheduleReviewDialog">Fechar</button>
+      <button id="scheduleConfirmPublish" class="primary" type="button">Publicar selecionados</button>
+    </div>
+  </div>
+</dialog>
 <dialog id="accessUserDialog">
 <div class="dialog-body">
 <h2 id="accessUserDialogTitle">Novo usuário</h2>
@@ -2215,6 +2328,14 @@ main{max-width:1580px;padding:18px 20px 60px}
 <input class="perm-delete" type="checkbox">
 </div>
 
+
+<div class="permission-row" data-module="cronogramas">
+<div class="perm-label">Cronogramas</div>
+<input class="perm-view" type="checkbox" aria-label="Consultar cronogramas">
+<input class="perm-insert" type="checkbox" aria-label="Criar e importar rascunhos">
+<input class="perm-edit" type="checkbox" aria-label="Editar, publicar e remanejar">
+<input class="perm-delete" type="checkbox" aria-label="Descartar rascunhos">
+</div>
 
 <div class="permission-row" data-module="comunicacao">
 <div class="perm-label">Matriz / Organograma</div>
@@ -3644,6 +3765,7 @@ $("loginForm").addEventListener("submit",async e=>{
 
 
 $("logoutButton").onclick=async()=>{
+ resetScheduleSession();
  await db.auth.signOut();
  location.reload();
 };
@@ -3653,6 +3775,14 @@ $("logoutButton").onclick=async()=>{
 
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
+ if(event==="SIGNED_OUT"){
+  resetScheduleSession();
+  if(currentModule==="schedule"){
+   $("scheduleModuleView").classList.add("hidden");
+   $("appView").classList.add("hidden");
+   $("loginView").classList.remove("hidden");
+  }
+ }
 
 
  if(event==="PASSWORD_RECOVERY"){
@@ -3752,7 +3882,7 @@ async function enterApp(){
 
 
 
-const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","relatorios","documentos","comunicacao"];
+const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","relatorios","documentos","comunicacao","cronogramas"];
 
 
 
@@ -3885,6 +4015,7 @@ function configureVisibleModules(){
 
 
  // Visão Geral permanece disponível e respeita o RLS das permissões.
+ $("moduleSchedule").classList.toggle("hidden",!["admin","team","client"].includes(profile?.role)||!hasAccess("cronogramas","view"));
  $("moduleOverview").classList.remove("hidden");
 }
 
@@ -4454,13 +4585,14 @@ async function countUnitLinks(unitIdToCheck){
   db.from("rdi_demands").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
   db.from("documents").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
   db.from("employee_units").select("employee_id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
-  db.from("water_analysis_reports").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck)
+  db.from("water_analysis_reports").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck),
+  db.from("volante_schedule").select("id",{count:"exact",head:true}).eq("unit_id",unitIdToCheck)
  ]);
 
 
 
 
- const labels=["RDI","documentos","profissionais","análises de água"];
+ const labels=["RDI","documentos","profissionais","análises de água","atendimentos volantes"];
  return checks.map((r,i)=>({label:labels[i],count:r.count||0,error:r.error}))
   .filter(x=>x.count>0);
 }
@@ -4523,12 +4655,710 @@ async function deleteUnit(unit){
 
 
 
+/* CRONOGRAMAS DAS EQUIPES VOLANTES */
+const scheduleTeams=["","Volante I","Volante II","Volante III"];
+const scheduleRoman=["","I","II","III"];
+const scheduleLabels={planned:"Planejado",done:"Realizado",contingency:"Contingência",moved:"Remanejado",draft:"Rascunho"};
+const scheduleStatusKeys=["planned","done","contingency"];
+let scheduleView="day", scheduleRows=[], scheduleRequest=0, scheduleOwner=null;
+let scheduleEditing=null, scheduleImportBook=null, scheduleImportSource=null, scheduleImportRows=[];
+let scheduleImportRequest=0, scheduleReviewRows=[];
+
+function scheduleCan(action,unit=null){
+ return ["admin","team"].includes(profile?.role)&&hasAccess("cronogramas",action,unit)
+  &&hasAccess("cronogramas","view",unit);
+}
+
+function scheduleUnits(){
+ return allUnits.filter(unit=>profile?.role==="client"
+  ?accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit.id&&g.can_view)
+  :hasAccess("cronogramas","view",unit.id));
+}
+
+function scheduleUnitName(id){
+ return allUnits.find(u=>u.id===id)?.name||"Unidade";
+}
+
+function scheduleOptions(units,placeholder,selected=""){
+ return [new Option(placeholder,""),...units.map(u=>new Option(u.name,u.id,false,u.id===selected))];
+}
+
+function scheduleTodayDate(){
+ const parts=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts();
+ const get=type=>parts.find(part=>part.type===type).value;
+ return get("year")+"-"+get("month")+"-"+get("day");
+}
+
+function scheduleDateObject(value){return new Date(value+"T00:00:00Z");}
+function scheduleIso(date){return date.toISOString().slice(0,10);}
+function scheduleAddDays(value,days){
+ const date=scheduleDateObject(value);
+ date.setUTCDate(date.getUTCDate()+days);
+ return scheduleIso(date);
+}
+function scheduleMonthStart(value,delta=0){
+ const date=scheduleDateObject(value.slice(0,7)+"-01");
+ date.setUTCMonth(date.getUTCMonth()+delta);
+ return scheduleIso(date);
+}
+function scheduleWeekStart(value){
+ return scheduleAddDays(value,-((scheduleDateObject(value).getUTCDay()+6)%7));
+}
+function scheduleDateLabel(value,monthOnly=false){
+ const options=monthOnly?{month:"long",year:"numeric"}:{weekday:"long",day:"2-digit",month:"short"};
+ return new Intl.DateTimeFormat("pt-BR",{...options,timeZone:"UTC"}).format(scheduleDateObject(value));
+}
+function scheduleReference(){
+ const date=$("scheduleDate");
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date.value)||date.value<"1900-01-01"||date.value>"9998-12-31"){
+  date.value=scheduleTodayDate();
+ }
+ return date.value;
+}
+function scheduleRange(){
+ const date=scheduleReference();
+ if(scheduleView==="day")return [date,scheduleAddDays(date,1)];
+ if(scheduleView==="week"){
+  const first=scheduleWeekStart(date);
+  return [first,scheduleAddDays(first,7)];
+ }
+ return [scheduleMonthStart(date),scheduleMonthStart(date,1)];
+}
+
+function resetScheduleSession(){
+ scheduleRequest++;
+ scheduleImportRequest++;
+ scheduleOwner=null;
+ scheduleRows=[];
+ scheduleEditing=null;
+ scheduleImportBook=null;
+ scheduleImportSource=null;
+ scheduleImportRows=[];
+ scheduleReviewRows=[];
+ $("scheduleResults").replaceChildren();
+ $("schedulePreview").replaceChildren();
+ $("scheduleReviewContent").replaceChildren();
+ $("scheduleFile").value="";
+ $("scheduleDate").value="";
+ $("scheduleTeam").value="";
+ $("scheduleUnit").replaceChildren();
+ scheduleView="day";
+ for(const id of ["scheduleEditDialog","scheduleImportDialog","scheduleReviewDialog"])$(id).close();
+}
+
+async function loadSchedule(){
+ if(!session?.user||!hasAccess("cronogramas","view"))return;
+ if(scheduleOwner!==session.user.id){
+  resetScheduleSession();
+  scheduleOwner=session.user.id;
+ }
+ const request=++scheduleRequest;
+ const units=scheduleUnits();
+ const unit=$("scheduleUnit");
+ const selected=unit.value;
+ unit.replaceChildren(...scheduleOptions(units,"Todas as unidades",selected));
+ if(!unit.value)unit.value="";
+ const canAdd=units.some(u=>scheduleCan("insert",u.id));
+ const canReview=units.some(u=>scheduleCan("edit",u.id));
+ $("scheduleWriteActions").classList.toggle("hidden",!canAdd&&!canReview);
+ $("scheduleNew").classList.toggle("hidden",!canAdd);
+ $("scheduleImport").classList.toggle("hidden",!canAdd);
+ $("schedulePublish").classList.toggle("hidden",!canReview);
+ for(const button of document.querySelectorAll("[data-schedule-view]")){
+  button.setAttribute("aria-pressed",String(button.dataset.scheduleView===scheduleView));
+ }
+ const [first,last]=scheduleRange();
+ const team=$("scheduleTeam").value;
+ const filterUnit=unit.value;
+ scheduleRows=[];
+ $("scheduleResults").replaceChildren();
+ $("scheduleStatus").textContent="Carregando cronograma...";
+ const result=await trainingReadPages(()=>{
+  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,published,moved,revision")
+   .gte("visit_date",first).lt("visit_date",last).order("visit_date").order("team").order("id");
+  if(team)query=query.eq("team",team);
+  if(filterUnit)query=query.eq("unit_id",filterUnit);
+  return query;
+ });
+ if(request!==scheduleRequest||scheduleOwner!==session?.user?.id||currentModule!=="schedule")return;
+ if(result.error){
+  $("scheduleStatus").textContent="Não foi possível carregar a programação. Tente abrir a aba novamente.";
+  console.error(result.error);
+  return;
+ }
+ scheduleRows=result.data.filter(row=>units.some(u=>u.id===row.unit_id));
+ renderSchedule(first,last);
+}
+
+function schedulePill(status,label=scheduleLabels[status]){
+ return '<span class="schedule-pill" data-status="'+status+'">'+escapeHtml(label)+'</span>';
+}
+
+function scheduleCard(row,context){
+ const canEdit=scheduleCan("edit",row.unit_id);
+ const date=context==="unit"?'<span>'+escapeHtml(scheduleDateLabel(row.visit_date))+' · </span>':"";
+ const unit=context==="unit"?"":'<strong>'+escapeHtml(scheduleUnitName(row.unit_id))+'</strong> · ';
+ return '<div class="schedule-row"><div>'+date+unit+escapeHtml(scheduleTeams[row.team])+
+  ' '+schedulePill(row.status)+(row.moved?schedulePill("moved"):"")+(!row.published?schedulePill("draft"):"")+
+  '</div><div>'+(canEdit?'<button type="button" class="secondary" data-schedule-edit="'+row.id+'">'+
+  (row.published?"Editar / remanejar":"Editar rascunho")+'</button>':"")+
+  (row.moved&&["admin","team"].includes(profile?.role)?'<button type="button" class="ghost" data-schedule-history="'+row.id+'">Histórico</button>':"")+
+  '</div></div>';
+}
+
+function renderSchedule(first,last){
+ const rows=scheduleRows;
+ const dayView=scheduleView==="day";
+ const weekView=scheduleView==="week";
+ const unitView=scheduleView==="unit";
+ const today=scheduleTodayDate();
+ const title=dayView?scheduleDateLabel(first):weekView
+  ?scheduleDateLabel(first)+" a "+scheduleDateLabel(scheduleAddDays(last,-1))
+  :scheduleDateLabel(first,true);
+ $("scheduleStatus").textContent=title+" · "+rows.length+(rows.length===1?" registro":" registros");
+ const results=$("scheduleResults");
+ if(!rows.length&&scheduleView!=="grid"&&(!dayView||$("scheduleUnit").value)){
+  results.innerHTML='<div class="empty">Nenhum atendimento para o período e os filtros selecionados.</div>';
+  return;
+ }
+ if(dayView){
+  const team=$("scheduleTeam").value;
+  results.innerHTML=[1,2,3].filter(t=>!team||String(t)===team).map(t=>{
+   const entries=rows.filter(row=>row.team===t);
+   return '<section class="schedule-group"><h3>'+scheduleTeams[t]+'</h3>'+
+    (entries.length?entries.map(row=>scheduleCard(row,"day")).join(""):'<p class="muted">Sem atendimento exibido nesta data.</p>')+'</section>';
+  }).join("");
+ }else if(weekView||unitView){
+  const groups=new Map();
+  for(const row of rows){
+   const key=weekView?row.visit_date:row.unit_id;
+   if(!groups.has(key))groups.set(key,[]);
+   groups.get(key).push(row);
+  }
+  const entries=[...groups];
+  if(unitView)entries.sort(([a],[b])=>scheduleUnitName(a).localeCompare(scheduleUnitName(b),"pt-BR"));
+  results.innerHTML=entries.map(([key,items])=>'<section class="schedule-group"><h3>'+
+   escapeHtml(weekView?scheduleDateLabel(key)+(key===today?" · Hoje":""):scheduleUnitName(key))+
+   '</h3>'+items.map(row=>scheduleCard(row,weekView?"week":"unit")).join("")+'</section>').join("");
+ }else{
+  renderScheduleGrid(first,last,today);
+ }
+}
+
+function renderScheduleGrid(first,last,today){
+ const days=[];
+ for(let day=first;day<last;day=scheduleAddDays(day,1))days.push(day);
+ const cells=new Map();
+ for(const row of scheduleRows){
+  const key=row.unit_id+"|"+row.visit_date;
+  if(!cells.has(key))cells.set(key,[]);
+  cells.get(key).push(row);
+ }
+ const filter=$("scheduleUnit").value;
+ const units=scheduleUnits().filter(u=>!filter||u.id===filter);
+ const head=days.map(day=>'<th scope="col" title="'+escapeHtml(scheduleDateLabel(day))+'"'+
+  (day===today?' class="schedule-today"':'')+'>'+Number(day.slice(-2))+'</th>').join("");
+ const body=units.map(unit=>'<tr><th scope="row">'+escapeHtml(unit.name)+'</th>'+
+  days.map(day=>{
+   const rows=cells.get(unit.id+"|"+day)||[];
+   return '<td'+(day===today?' class="schedule-today"':'')+'>'+
+    rows.map(row=>{
+     const label=scheduleTeams[row.team]+" · "+scheduleLabels[row.status]+
+      (row.moved?" · Remanejado":"")+(!row.published?" · Rascunho":"");
+     return '<button type="button" class="schedule-pill" data-status="'+row.status+'" data-schedule-day="'+day+
+      '" data-schedule-unit="'+unit.id+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+
+      scheduleRoman[row.team]+(row.moved?"↪":"")+(!row.published?"*":"")+'</button>';
+    }).join("")+'</td>';
+  }).join("")+'</tr>').join("");
+ $("scheduleResults").innerHTML='<div class="schedule-grid" tabindex="0" role="region" aria-label="Grade mensal, role para ver os demais dias">'+
+  '<table><thead><tr><th scope="col">Unidade</th>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'+
+  '<p class="muted">I, II e III indicam a equipe. Selecione uma célula para consultar o dia. '+
+  scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
+  (["admin","team"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
+}
+
+for(const button of document.querySelectorAll("[data-schedule-view]")){
+ button.onclick=()=>{scheduleView=button.dataset.scheduleView;loadSchedule();};
+}
+for(const id of ["scheduleDate","scheduleTeam","scheduleUnit"])$(id).onchange=()=>loadSchedule();
+function scheduleStep(direction){
+ const date=scheduleReference();
+ $("scheduleDate").value=["grid","unit"].includes(scheduleView)?scheduleMonthStart(date,direction)
+  :scheduleAddDays(date,direction*(scheduleView==="week"?7:1));
+ loadSchedule();
+}
+$("schedulePrev").onclick=()=>scheduleStep(-1);
+$("scheduleNext").onclick=()=>scheduleStep(1);
+$("scheduleToday").onclick=()=>{$("scheduleDate").value=scheduleTodayDate();loadSchedule();};
+
+$("scheduleResults").onclick=event=>{
+ const button=event.target.closest("button");
+ if(!button)return;
+ if(button.dataset.scheduleDay){
+  $("scheduleDate").value=button.dataset.scheduleDay;
+  $("scheduleUnit").value=button.dataset.scheduleUnit;
+  scheduleView="day";
+  loadSchedule();
+ }
+ if(button.dataset.scheduleEdit)openScheduleEditor(scheduleRows.find(r=>r.id===button.dataset.scheduleEdit));
+ if(button.dataset.scheduleHistory)showScheduleHistory(button,scheduleRows.find(r=>r.id===button.dataset.scheduleHistory));
+};
+
+async function showScheduleHistory(button,row){
+ if(!row||!["admin","team"].includes(profile?.role))return;
+ const current=button.parentElement.querySelector(".schedule-history");
+ if(current){current.remove();return;}
+ button.disabled=true;
+ const owner=scheduleOwner;
+ const {data,error}=await db.from("volante_schedule_history")
+  .select("old_unit,new_unit,old_date,new_date,old_team,new_team,reason,actor_name,changed_at")
+  .eq("schedule_id",row.id).order("changed_at",{ascending:false}).limit(50);
+ button.disabled=false;
+ if(owner!==session?.user?.id||!button.isConnected)return;
+ const box=document.createElement("div");
+ box.className="schedule-history muted";
+ if(error||!data.length){
+  box.textContent=error?"Não foi possível consultar o histórico.":"Nenhum remanejamento disponível para seu perfil.";
+ }else{
+  for(const item of data){
+   const line=document.createElement("p");
+   const when=new Date(item.changed_at).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"});
+   line.textContent=when+" · "+(item.actor_name||"Usuário")+" — "+scheduleDateLabel(item.old_date)+" / "+
+    scheduleUnitName(item.old_unit)+" / "+scheduleTeams[item.old_team]+" → "+scheduleDateLabel(item.new_date)+" / "+
+    scheduleUnitName(item.new_unit)+" / "+scheduleTeams[item.new_team]+" · "+item.reason;
+   box.append(line);
+  }
+ }
+ button.parentElement.append(box);
+}
+
+for(const button of document.querySelectorAll("[data-close-schedule]"))button.onclick=()=>$(button.dataset.closeSchedule).close();
+
+function scheduleEditorPayload(){
+ return {visit_date:$("scheduleEditDate").value,team:Number($("scheduleEditTeam").value),
+  unit_id:$("scheduleEditUnit").value,status:$("scheduleEditStatus").value};
+}
+function scheduleNeedsReason(values){
+ return scheduleEditing?.published&&(values.visit_date!==scheduleEditing.visit_date||
+  values.team!==scheduleEditing.team||values.unit_id!==scheduleEditing.unit_id);
+}
+function updateScheduleReason(){
+ const required=!!scheduleNeedsReason(scheduleEditorPayload());
+ $("scheduleReasonLabel").classList.toggle("hidden",!required);
+ $("scheduleReason").required=required;
+}
+for(const id of ["scheduleEditDate","scheduleEditTeam","scheduleEditUnit"])$(id).onchange=updateScheduleReason;
+
+function openScheduleEditor(row=null){
+ const action=row?"edit":"insert";
+ const units=scheduleUnits().filter(u=>scheduleCan(action,u.id));
+ if(!units.length||(row&&!scheduleCan(action,row.unit_id)))return;
+ scheduleEditing=row;
+ $("scheduleEditTitle").textContent=row?(row.published?"Editar atendimento publicado":"Editar rascunho"):"Agendar atendimento";
+ $("scheduleEditDate").value=row?.visit_date||scheduleReference();
+ $("scheduleEditTeam").value=row?.team||$("scheduleTeam").value||"1";
+ $("scheduleEditUnit").replaceChildren(...scheduleOptions(units,"Selecione",row?.unit_id||$("scheduleUnit").value));
+ $("scheduleEditStatus").value=row?.status||"planned";
+ $("scheduleReason").value="";
+ $("scheduleDiscard").classList.toggle("hidden",!row||row.published||!scheduleCan("delete",row.unit_id));
+ $("scheduleEditNotice").textContent=row?.published?"Alterações salvas aparecem na programação publicada.":"Salve como rascunho e revise antes de publicar.";
+ updateScheduleReason();
+ $("scheduleEditDialog").showModal();
+}
+$("scheduleNew").onclick=()=>openScheduleEditor();
+
+function scheduleFailure(error,fallback){
+ if(error?.code==="23505")return "Já existe um atendimento para essa equipe, unidade e data.";
+ if(error?.code==="42501")return "Seu acesso não permite esta alteração.";
+ if(error?.code==="P0001")return error.message;
+ return fallback;
+}
+
+$("scheduleEditForm").onsubmit=async event=>{
+ event.preventDefault();
+ const row=scheduleEditing;
+ const values=scheduleEditorPayload();
+ if(!scheduleCan(row?"edit":"insert",values.unit_id)||(row&&!scheduleCan("edit",row.unit_id)))return;
+ if(scheduleNeedsReason(values)){
+  values.change_reason=$("scheduleReason").value.trim();
+  if(!values.change_reason){
+   $("scheduleEditNotice").textContent="Informe o motivo do remanejamento.";
+   return;
+  }
+ }
+ const save=$("scheduleSave");
+ save.disabled=true;
+ $("scheduleDiscard").disabled=true;
+ try{
+  const table=db.from("volante_schedule");
+  const result=row
+   ?await table.update(values).eq("id",row.id).eq("revision",row.revision).select("id").maybeSingle()
+   :await table.insert(values).select("id").single();
+  if(result.error||!result.data){
+   $("scheduleEditNotice").textContent=result.error?scheduleFailure(result.error,"Não foi possível salvar o atendimento.")
+    :"O atendimento foi alterado em outra sessão. Feche e reabra o cronograma.";
+   return;
+  }
+  $("scheduleEditDialog").close();
+  $("scheduleDate").value=values.visit_date;
+  if($("scheduleUnit").value&&$("scheduleUnit").value!==values.unit_id)$("scheduleUnit").value="";
+  if($("scheduleTeam").value&&Number($("scheduleTeam").value)!==values.team)$("scheduleTeam").value="";
+  await loadSchedule();
+  message($("appMessage"),row?.published?"Programação atualizada.":"Rascunho salvo.","ok");
+ }finally{
+  save.disabled=false;
+  $("scheduleDiscard").disabled=false;
+ }
+};
+
+$("scheduleDiscard").onclick=async()=>{
+ const row=scheduleEditing;
+ if(!row||row.published||!scheduleCan("delete",row.unit_id)||!confirm("Descartar este rascunho?"))return;
+ $("scheduleDiscard").disabled=true;
+ $("scheduleSave").disabled=true;
+ try{
+  const {data,error}=await db.from("volante_schedule").delete().eq("id",row.id).eq("revision",row.revision).select("id").maybeSingle();
+  if(error||!data){
+   $("scheduleEditNotice").textContent="Não foi possível descartar. Reabra o cronograma para conferir o estado atual.";
+   return;
+  }
+  $("scheduleEditDialog").close();
+  await loadSchedule();
+ }finally{
+  $("scheduleDiscard").disabled=false;
+  $("scheduleSave").disabled=false;
+ }
+};
+
+$("schedulePublish").onclick=async()=>{
+ if(!scheduleUnits().some(u=>scheduleCan("edit",u.id)))return;
+ const owner=scheduleOwner;
+ const date=scheduleReference();
+ const selectedUnit=$("scheduleUnit").value;
+ const selectedTeam=$("scheduleTeam").value;
+ scheduleReviewRows=[];
+ $("scheduleReviewTitle").textContent="Rascunhos de "+scheduleDateLabel(date,true);
+ $("scheduleReviewContent").replaceChildren();
+ $("scheduleReviewStatus").textContent="Carregando rascunhos do mês conforme os filtros...";
+ $("scheduleConfirmPublish").disabled=true;
+ $("scheduleReviewDialog").showModal();
+ const result=await trainingReadPages(()=>{
+  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,revision")
+   .eq("published",false).gte("visit_date",scheduleMonthStart(date)).lt("visit_date",scheduleMonthStart(date,1))
+   .order("visit_date").order("team").order("id");
+  if(selectedUnit)query=query.eq("unit_id",selectedUnit);
+  if(selectedTeam)query=query.eq("team",selectedTeam);
+  return query;
+ });
+ if(owner!==session?.user?.id||!$("scheduleReviewDialog").open)return;
+ scheduleReviewRows=(result.data||[]).filter(row=>scheduleCan("edit",row.unit_id));
+ $("scheduleReviewStatus").textContent=result.error?"Não foi possível carregar os rascunhos."
+  :scheduleReviewRows.length?"Desmarque os atendimentos que deseja manter em rascunho.":"Nenhum rascunho disponível para publicação.";
+ $("scheduleReviewContent").innerHTML=scheduleReviewRows.map(row=>'<label class="schedule-review-line"><input type="checkbox" checked value="'+row.id+'"><span>'+
+  escapeHtml(scheduleDateLabel(row.visit_date)+" · "+scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id))+
+  " "+schedulePill(row.status)+'</span></label>').join("");
+ $("scheduleConfirmPublish").disabled=!scheduleReviewRows.length;
+};
+
+$("scheduleConfirmPublish").onclick=async()=>{
+ const selected=new Set([...$("scheduleReviewContent").querySelectorAll("input:checked")].map(input=>input.value));
+ const entries=scheduleReviewRows.filter(row=>selected.has(row.id)&&scheduleCan("edit",row.unit_id)).map(({id,revision})=>({id,revision}));
+ if(!entries.length||entries.length>500){
+  $("scheduleReviewStatus").textContent="Selecione de 1 a 500 rascunhos.";
+  return;
+ }
+ const button=$("scheduleConfirmPublish");
+ button.disabled=true;
+ try{
+  const {data,error}=await db.rpc("publish_volante_schedule",{entries});
+  if(error){
+   $("scheduleReviewStatus").textContent=scheduleFailure(error,"Não foi possível publicar a seleção.");
+   return;
+  }
+  $("scheduleReviewDialog").close();
+  await loadSchedule();
+  message($("appMessage"),data+" atendimento(s) publicado(s).","ok");
+ }finally{button.disabled=false;}
+};
+
+function scheduleNormalize(value){
+ return String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().replace(/\s+/g," ").toUpperCase();
+}
+
+function scheduleXml(files,path){
+ if(!files[path])throw new Error("A planilha está sem a estrutura esperada.");
+ const doc=new DOMParser().parseFromString(fflate.strFromU8(files[path]),"application/xml");
+ if(doc.querySelector("parsererror"))throw new Error("A planilha contém uma aba inválida.");
+ return doc;
+}
+
+function scheduleOpenWorkbook(bytes){
+ let size=0;
+ const files=fflate.unzipSync(bytes,{filter:entry=>{
+  if(!/^xl\/(?:workbook\.xml|_rels\/workbook\.xml\.rels|styles\.xml|sharedStrings\.xml|worksheets\/[^/]+\.xml)$/.test(entry.name))return false;
+  size+=entry.originalSize;
+  if(size>12*1024*1024)throw new Error("A planilha é grande demais para importação.");
+  return true;
+ }});
+ const book=scheduleXml(files,"xl/workbook.xml");
+ const relations=scheduleXml(files,"xl/_rels/workbook.xml.rels");
+ const targets=new Map([...relations.querySelectorAll("Relationship")].map(rel=>[rel.getAttribute("Id"),rel.getAttribute("Target")]));
+ const sheets=[...book.querySelectorAll("sheet")].map(sheet=>{
+  const id=sheet.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");
+  const target=targets.get(id)||"";
+  return {name:sheet.getAttribute("name"),path:target.startsWith("/")?target.slice(1):"xl/"+target};
+ }).filter(sheet=>/^CRONOGRAMA\b/.test(scheduleNormalize(sheet.name))&&files[sheet.path]);
+ if(!sheets.length)throw new Error("Nenhuma aba mensal com nome CRONOGRAMA foi localizada.");
+ const strings=files["xl/sharedStrings.xml"]?[...scheduleXml(files,"xl/sharedStrings.xml").querySelectorAll("si")].map(scheduleCellText):[];
+ const style=scheduleXml(files,"xl/styles.xml");
+ const fills=[...style.querySelectorAll("fills > fill")].map(fill=>{
+  const pattern=fill.querySelector("patternFill");
+  return pattern?.getAttribute("patternType")==="solid"
+   ?pattern.querySelector("fgColor")?.getAttribute("rgb")?.slice(-6).toUpperCase():"";
+ });
+ const colors=[...style.querySelectorAll("cellXfs > xf")].map(xf=>fills[Number(xf.getAttribute("fillId"))]);
+ return {files,sheets,strings,colors,date1904:["1","true"].includes(book.querySelector("workbookPr")?.getAttribute("date1904"))};
+}
+
+function scheduleCellText(node){
+ return [...node.querySelectorAll("t")].map(text=>text.textContent).join("");
+}
+
+function scheduleReadSheet(book,index){
+ const sheet=scheduleXml(book.files,book.sheets[index].path);
+ const cells=new Map([...sheet.querySelectorAll("sheetData c")].map(cell=>{
+  const raw=cell.querySelector("v")?.textContent??"";
+  const type=cell.getAttribute("t");
+  const value=type==="s"?book.strings[Number(raw)]:type==="inlineStr"?scheduleCellText(cell):raw;
+  return [cell.getAttribute("r"),{value:String(value??"").trim(),color:book.colors[Number(cell.getAttribute("s"))]}];
+ }));
+ const value=ref=>cells.get(ref)?.value||"";
+ const norm=ref=>scheduleNormalize(value(ref));
+ const labels=[...cells.keys()].filter(ref=>/^B\d+$/.test(ref));
+ const heading=labels.find(ref=>norm(ref)==="UNIDADES");
+ if(!heading)throw new Error("A coluna B precisa conter o cabeçalho UNIDADES.");
+ const header=Number(heading.slice(1));
+ const dateValue=value("B"+(header-1));
+ const serial=Number(dateValue);
+ const date=Number.isFinite(serial)&&serial>0
+  ?scheduleIso(new Date(Date.UTC(book.date1904?1904:1899,book.date1904?0:11,book.date1904?1:30)+Math.floor(serial)*86400000))
+  :dateValue.slice(0,10);
+ if(!/^\d{4}-\d{2}-01$/.test(date)||!Number.isFinite(scheduleDateObject(date).getTime()))throw new Error("Informe o primeiro dia do mês na célula acima de UNIDADES.");
+ const legend=labels.find(ref=>Number(ref.slice(1))>header&&norm(ref).startsWith("LEGENDA"));
+ if(!legend)throw new Error("A legenda de cores não foi encontrada abaixo das unidades.");
+ const legendStart=Number(legend.slice(1));
+ const legendLabels={"PLANEJADO":"planned","ATENDIDO":"done","REALIZADO":"done","JANELA DE CONTINGENCIA":"contingency"};
+ const colorStates=new Map();
+ for(let row=legendStart+1;row<=legendStart+10;row++){
+  const cell=cells.get("B"+row);
+  const status=legendLabels[scheduleNormalize(cell?.value)];
+  if(status&&cell?.color)colorStates.set(cell.color,status);
+ }
+ if(![...colorStates.values()].includes("planned")||![...colorStates.values()].includes("done")){
+  throw new Error("A legenda deve indicar as cores de Planejado e Atendido.");
+ }
+ const dayColumns=[...cells.keys()].filter(ref=>!/^B\d+$/.test(ref)&&ref.match(/\d+$/)?.[0]===String(header))
+  .map(ref=>({col:ref.replace(/\d+$/,""),day:Number(value(ref))}))
+  .filter(cell=>Number.isInteger(cell.day)&&cell.day>=1&&cell.day<=31);
+ const daysInMonth=Number(scheduleAddDays(scheduleMonthStart(date,1),-1).slice(-2));
+ const validDays=dayColumns.filter(cell=>cell.day<=daysInMonth);
+ if(validDays.length!==daysInMonth||new Set(validDays.map(cell=>cell.day)).size!==daysInMonth){
+  throw new Error("A linha de datas precisa ter uma coluna para cada dia do mês.");
+ }
+ const isChiller=norm("B"+(header-2)).includes("CHILLER");
+ const rows=[];
+ const ignored=[];
+ for(let row=header+2;row<legendStart;row++){
+  const unit=value("B"+row);
+  if(!unit)continue;
+  for(const {col,day} of validDays){
+   const ref=col+row;
+   const cell=cells.get(ref);
+   if(!cell)continue;
+   const status=colorStates.get(cell.color);
+   const code=scheduleNormalize(cell.value);
+   if(!status){
+    if(code&&code!=="X")ignored.push(ref);
+    continue;
+   }
+   if(code==="X")continue;
+   const codes=code.split("/").map(scheduleNormalize);
+   if(codes.some(token=>token&&!/^[A-Z]{1,3}$/.test(token))){
+    ignored.push(ref);
+    continue;
+   }
+   for(const token of new Set(codes)){
+    rows.push({unit,status,code:token,visit_date:scheduleAddDays(date,day-1)});
+   }
+  }
+ }
+ return {date,isChiller,rows,ignored};
+}
+
+const scheduleUnitAliases={
+ "CENTRON":"COI CENTRON","SIP IPANEMA":"COI SIP IPANEMA","ONCOBARRA":"COI ONCOBARRA",
+ "COI MDX BARRA":"COI MDX","COI AMERICAS MEDICAL CENTER":"COI AMC",
+ "AMERICAS MEDICAL CENTER":"HOSPITAL AMERICAS MEDICAL CITY","PRO CARDIACO":"HOSPITAL PRO CARDIACO",
+ "SAMARITANO BOTAFOGO":"HOSPITAL SAMARITANO BOTAFOGO"
+};
+
+function scheduleImportError(error){
+ $("scheduleImportStatus").textContent=error.message||"Não foi possível interpretar a planilha.";
+ $("schedulePreview").replaceChildren();
+ $("scheduleImportSave").disabled=true;
+}
+
+$("scheduleImport").onclick=()=>{
+ if(!scheduleUnits().some(u=>scheduleCan("insert",u.id)))return;
+ scheduleImportRequest++;
+ scheduleImportBook=null;
+ scheduleImportSource=null;
+ scheduleImportRows=[];
+ $("scheduleFile").value="";
+ for(const id of ["scheduleSheet","scheduleCodeMapping","scheduleUnitMapping","schedulePreview"])$(id).replaceChildren();
+ $("scheduleImportTeam").value="";
+ $("scheduleImportTeamLabel").classList.add("hidden");
+ $("scheduleImportStatus").textContent="Selecione a planilha .xlsx.";
+ $("scheduleImportSave").disabled=true;
+ $("scheduleImportDialog").showModal();
+};
+
+$("scheduleFile").onchange=async()=>{
+ const request=++scheduleImportRequest;
+ scheduleImportBook=null;
+ scheduleImportSource=null;
+ scheduleImportRows=[];
+ for(const id of ["scheduleSheet","scheduleCodeMapping","scheduleUnitMapping","schedulePreview"])$(id).replaceChildren();
+ $("scheduleImportTeamLabel").classList.add("hidden");
+ $("scheduleImportSave").disabled=true;
+ $("scheduleImportStatus").textContent="Selecione a planilha .xlsx.";
+ const file=$("scheduleFile").files[0];
+ if(!file)return;
+ try{
+  if(!window.fflate)throw new Error("O leitor de Excel não carregou. Recarregue o aplicativo e tente novamente.");
+  if(!/\.xlsx$/i.test(file.name)||file.size>5*1024*1024)throw new Error("Escolha um arquivo .xlsx de até 5 MB.");
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  if(request!==scheduleImportRequest||!$("scheduleImportDialog").open)return;
+  scheduleImportBook=scheduleOpenWorkbook(bytes);
+  $("scheduleSheet").replaceChildren(...scheduleImportBook.sheets.map((sheet,i)=>new Option(sheet.name,i)));
+  const monthNames=["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+  const current=monthNames[Number(scheduleReference().slice(5,7))-1];
+  const index=scheduleImportBook.sheets.findIndex(sheet=>scheduleNormalize(sheet.name)==="CRONOGRAMA "+current);
+  $("scheduleSheet").value=String(index>=0?index:scheduleImportBook.sheets.length-1);
+  configureScheduleImportSheet();
+ }catch(error){scheduleImportError(error);}
+};
+
+function configureScheduleImportSheet(){
+ scheduleImportSource=null;
+ scheduleImportRows=[];
+ $("scheduleImportSave").disabled=true;
+ $("scheduleImportTeamLabel").classList.add("hidden");
+ $("scheduleCodeMapping").replaceChildren();
+ $("scheduleUnitMapping").replaceChildren();
+ try{
+  const source=scheduleReadSheet(scheduleImportBook,Number($("scheduleSheet").value));
+  scheduleImportSource=source;
+  const units=scheduleUnits().filter(u=>scheduleCan("insert",u.id));
+  const unitNames=[...new Set(source.rows.map(row=>row.unit))];
+  for(const unit of unitNames){
+   const key=scheduleNormalize(unit);
+   const match=units.find(u=>scheduleNormalize(u.name)===(scheduleUnitAliases[key]||key));
+   const label=document.createElement("label");
+   label.textContent=unit+" → Unidade no aplicativo";
+   const select=document.createElement("select");
+   select.dataset.sourceUnit=unit;
+   select.replaceChildren(...scheduleOptions(units,"Selecione a unidade",match?.id));
+   label.append(select);
+   $("scheduleUnitMapping").append(label);
+  }
+  const codes=[...new Set(source.rows.map(row=>row.code))];
+  $("scheduleImportTeamLabel").classList.toggle("hidden",!codes.includes(""));
+  $("scheduleImportTeam").value=source.isChiller?"3":"";
+  for(const code of codes.filter(Boolean).sort()){
+   const label=document.createElement("label");
+   label.textContent="Equipe para a sigla "+code;
+   const select=$("scheduleImportTeam").cloneNode(true);
+   select.removeAttribute("id");
+   select.dataset.sourceCode=code;
+   select.value="";
+   label.append(select);
+   $("scheduleCodeMapping").append(label);
+  }
+  renderScheduleImportPreview();
+ }catch(error){scheduleImportError(error);}
+}
+
+function renderScheduleImportPreview(){
+ if(!scheduleImportSource)return;
+ const source=scheduleImportSource;
+ const units=new Map([...$("scheduleUnitMapping").querySelectorAll("select")].map(select=>[select.dataset.sourceUnit,select.value]));
+ const codes=new Map([...$("scheduleCodeMapping").querySelectorAll("select")].map(select=>[select.dataset.sourceCode,select.value]));
+ codes.set("",$("scheduleImportTeam").value);
+ const entries=new Map();
+ let pending=0, conflicts=0;
+ for(const item of source.rows){
+  const unit_id=units.get(item.unit);
+  const team=Number(codes.get(item.code));
+  if(!unit_id||!team){pending++;continue;}
+  const row={visit_date:item.visit_date,unit_id,team,status:item.status};
+  const key=row.visit_date+"|"+unit_id+"|"+team;
+  const previous=entries.get(key);
+  if(previous&&previous.status!==row.status)conflicts++;
+  entries.set(key,row);
+ }
+ scheduleImportRows=[...entries.values()].sort((a,b)=>a.visit_date.localeCompare(b.visit_date)||a.team-b.team);
+ const preview=$("schedulePreview");
+ preview.innerHTML=scheduleImportRows.map(row=>'<div class="schedule-row">'+escapeHtml(scheduleDateLabel(row.visit_date)+" · "+
+  scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id))+" "+schedulePill(row.status)+'</div>').join("");
+ $("scheduleImportStatus").textContent=scheduleDateLabel(source.date,true)+" · "+scheduleImportRows.length+" atendimento(s) na prévia."+
+  (pending?" Selecione as equipes e unidades pendentes.":"")+
+  (conflicts?" Há situações diferentes para a mesma equipe, unidade e data. Revise o Excel ou as associações.":"")+
+  (source.ignored.length?" Marcações fora do padrão ignoradas em "+source.ignored.slice(0,20).join(", ")+(source.ignored.length>20?" e outras células.":"."):"");
+ $("scheduleImportSave").disabled=!!(pending||conflicts||!scheduleImportRows.length||scheduleImportRows.length>500);
+}
+
+$("scheduleSheet").onchange=configureScheduleImportSheet;
+$("scheduleImportTeam").onchange=renderScheduleImportPreview;
+$("scheduleCodeMapping").onchange=renderScheduleImportPreview;
+$("scheduleUnitMapping").onchange=renderScheduleImportPreview;
+$("scheduleImportSave").onclick=async()=>{
+ const rows=scheduleImportRows;
+ if(!rows.length||rows.some(row=>!scheduleCan("insert",row.unit_id)))return;
+ const button=$("scheduleImportSave");
+ const inputIds=["scheduleFile","scheduleSheet","scheduleImportTeam"];
+ const inputs=[...inputIds.map($),...$("scheduleUnitMapping").querySelectorAll("select"),...$("scheduleCodeMapping").querySelectorAll("select")];
+ button.disabled=true;
+ for(const input of inputs)input.disabled=true;
+ try{
+  const {data,error}=await db.from("volante_schedule").upsert(rows,{
+   onConflict:"visit_date,team,unit_id",ignoreDuplicates:true
+  }).select("id");
+  if(error){
+   $("scheduleImportStatus").textContent=scheduleFailure(error,"Não foi possível salvar os rascunhos.");
+   return;
+  }
+  $("scheduleImportDialog").close();
+  $("scheduleDate").value=rows[0].visit_date;
+  $("scheduleTeam").value="";
+  $("scheduleUnit").value="";
+  scheduleView="unit";
+  await loadSchedule();
+  message($("appMessage"),data.length+" rascunho(s) salvo(s). "+(rows.length-data.length)+" registro(s) existente(s) preservado(s).","ok");
+ }finally{
+  for(const input of inputs)input.disabled=false;
+  button.disabled=false;
+ }
+};
+
+
 /* NAVEGAÇÃO */
 
 
 
 
 function switchModule(name){
+ if(name==="schedule"&&(!["admin","team","client"].includes(profile?.role)||!hasAccess("cronogramas","view")))return;
  if((name==="units"||name==="access")&&profile?.role!=="admin")return;
  currentModule=name;
 
@@ -4546,6 +5376,7 @@ function switchModule(name){
  const isOrg=name==="org";
  const isWater=name==="water";
  const isTrainings=name==="trainings";
+ const isSchedule=name==="schedule";
 
 
 
@@ -4561,6 +5392,7 @@ function switchModule(name){
  $("orgModuleView").classList.toggle("hidden",!isOrg);
  $("waterModuleView").classList.toggle("hidden",!isWater);
  $("trainingModuleView").classList.toggle("hidden",!isTrainings);
+ $("scheduleModuleView").classList.toggle("hidden",!isSchedule);
 
 
 
@@ -4576,11 +5408,12 @@ function switchModule(name){
  $("moduleOrg").classList.toggle("active",isOrg);
  $("moduleWater").classList.toggle("active",isWater);
  $("moduleTrainings").classList.toggle("active",isTrainings);
+ $("moduleSchedule").classList.toggle("active",isSchedule);
 
 
 
 
- const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports&&!isTrainings;
+ const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports&&!isTrainings&&!isSchedule;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
 
 
@@ -4613,6 +5446,11 @@ function switchModule(name){
   return;
  }
 
+
+ if(isSchedule){
+  loadSchedule();
+  return;
+ }
 
  if(isTrainings){
   loadTrainingsModule();
@@ -4682,6 +5520,7 @@ $("moduleCommunication").onclick=()=>switchModule("communication");
 $("moduleOrg").onclick=()=>switchModule("org");
 $("moduleWater").onclick=()=>switchModule("water");
 $("moduleTrainings").onclick=()=>switchModule("trainings");
+$("moduleSchedule").onclick=()=>switchModule("schedule");
 
 
 
@@ -4783,7 +5622,7 @@ async function loadAccessUsers(){
    ${p.role!=="admin"?`
    <p><strong>Unidades:</strong> ${escapeHtml(unitNames.join(", ")||"Nenhuma")}</p>
    <p><strong>Módulos:</strong> ${escapeHtml(modules.map(m=>({
-     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",relatorios:"Relatórios",documentos:"Documentos",treinamentos:"Treinamentos",comunicacao:"Matriz / Organograma"
+     rdi:"RDI",orcamentos:"Orçamentos",qualidade_agua:"Qualidade da Água",relatorios:"Relatórios",documentos:"Documentos",treinamentos:"Treinamentos",cronogramas:"Cronogramas",comunicacao:"Matriz / Organograma"
    }[m]||m)).join(", ")||"Nenhum")}</p>`:""}
   `;
 
