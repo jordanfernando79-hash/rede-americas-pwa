@@ -4902,7 +4902,9 @@ function renderScheduleGrid(first,last,today){
   '<table><thead><tr><th scope="col">Unidade</th>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'+
   '<p class="muted"><span class="schedule-day-key schedule-weekend">Sábado e domingo</span> '+
   '<span class="schedule-day-key schedule-holiday">F · Feriado nacional ou estadual do RJ</span></p>'+
-  '<p class="muted">I, II e III indicam a equipe. Selecione um atendimento para consultar os detalhes. '+
+  '<p class="muted"><strong>Equipes</strong> · <span class="schedule-day-key">Volante I - Arelí</span> '+
+  '<span class="schedule-day-key">Volante II - Fernando</span> <span class="schedule-day-key">Volante III - Chiller</span></p>'+
+  '<p class="muted">Selecione um atendimento para consultar os detalhes. '+
   scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
   (["admin","team"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
 }
