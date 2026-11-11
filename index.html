@@ -2277,6 +2277,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <select id="accessRole" required>
 <option value="team">Equipe</option>
 <option value="client">Cliente</option>
+<option value="planning">Planejamento (Backoffice)</option>
 </select>
 </div>
 <div>
@@ -2297,8 +2298,8 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
-<h3>Módulos para consulta</h3>
-<p class="muted">Equipe e Cliente têm acesso de somente leitura. Relatórios da rede são compartilhados com quem tem acesso a esse módulo.</p>
+<h3>Abas permitidas</h3>
+<p class="muted" id="accessRoleHelp"></p>
 <div id="accessModules" class="access-unit-grid"></div>
 <p id="accessSaveNotice" role="status" class="muted"></p>
 
@@ -3843,6 +3844,7 @@ async function enterApp(){
  $("userName").textContent=data.display_name||session.user.email;
  $("userRole").textContent=
   data.role==="admin"?"Administrador Geral":
+  data.role==="planning"?"Planejamento (Backoffice)":
   data.role==="client"?"Cliente":"Equipe · Somente leitura";
  startDateTimeClock();
 
@@ -3868,6 +3870,7 @@ async function enterApp(){
 
 
 const ACCESS_MODULES=["rdi","orcamentos","qualidade_agua","relatorios","documentos","comunicacao","cronogramas"];
+const planningEditableModules=new Set(["rdi","orcamentos","qualidade_agua","documentos","cronogramas","comunicacao"]);
 
 
 
@@ -3906,7 +3909,10 @@ async function loadAccessGrantsForCurrentUser(){
 
 function hasAccess(module,action="view",targetUnit=null){
  if(profile?.role==="admin")return true;
- if(["team","client"].includes(profile?.role)&&action!=="view")return false;
+ const role=profile?.role;
+ if(["team","client"].includes(role)&&action!=="view")return false;
+ if(role==="planning" && action!=="view" &&
+    (!["insert","edit"].includes(action) || !planningEditableModules.has(module)))return false;
 
 
 
@@ -3923,6 +3929,7 @@ function hasAccess(module,action="view",targetUnit=null){
 
  return accessGrants.some(g=>
   g.module===module &&
+  (role!=="planning" || g.unit_id!==null) &&
   (targetUnit===null || g.unit_id===targetUnit || g.unit_id===null) &&
   !!g[key]
  );
@@ -3981,6 +3988,7 @@ function configureVisibleModules(){
  $("moduleBudgets").classList.toggle("hidden",!hasAccess("orcamentos","view"));
  $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
  $("moduleReports").classList.toggle("hidden",!hasAccess("relatorios","view"));
+ $("moduleTrainings").classList.toggle("hidden",!hasAccess("treinamentos","view"));
  $("newReportButton").classList.toggle("hidden",!hasAccess("relatorios","insert"));
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
@@ -3995,7 +4003,7 @@ function configureVisibleModules(){
 
 
  // Visão Geral permanece disponível e respeita o RLS das permissões.
- $("moduleSchedule").classList.toggle("hidden",!["admin","team","client"].includes(profile?.role)||!hasAccess("cronogramas","view"));
+ $("moduleSchedule").classList.toggle("hidden",!["admin","team","client","planning"].includes(profile?.role)||!hasAccess("cronogramas","view"));
  $("moduleOverview").classList.remove("hidden");
 }
 
@@ -4234,7 +4242,7 @@ $("unitsNameFilter").addEventListener("input",applyUnitsAdminFilters);
 $("unitsTypeFilter").addEventListener("change",applyUnitsAdminFilters);
 
 function canViewUnits(){
- return profile?.role==="admin"||(profile?.role==="team"&&overviewOperationalUnits().length>0);
+ return profile?.role==="admin"||(["team","planning"].includes(profile?.role)&&overviewOperationalUnits().length>0);
 }
 
 async function loadUnitsAdmin(){
@@ -4667,7 +4675,7 @@ let scheduleEditing=null, scheduleImportBook=null, scheduleImportSource=null, sc
 let scheduleImportRequest=0, scheduleReviewRows=[];
 
 function scheduleCan(action,unit=null){
- return ["admin","team"].includes(profile?.role)&&hasAccess("cronogramas",action,unit)
+ return ["admin","team","planning"].includes(profile?.role)&&hasAccess("cronogramas",action,unit)
   &&hasAccess("cronogramas","view",unit);
 }
 
@@ -4814,7 +4822,7 @@ function schedulePill(status,label=scheduleLabels[status]){
 
 function showScheduleDetail(row){
  const canEdit=scheduleCan("edit",row.unit_id);
- const canViewHistory=row.moved&&["admin","team"].includes(profile?.role);
+ const canViewHistory=row.moved&&["admin","team","planning"].includes(profile?.role);
  $("scheduleDetailTitle").textContent=scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id);
  $("scheduleDetailContent").innerHTML='<p>'+escapeHtml(scheduleDateLabel(row.visit_date))+
   ' '+schedulePill(row.status)+(row.moved?schedulePill("moved"):"")+(!row.published?schedulePill("draft"):"")+'</p>'+
@@ -4877,7 +4885,7 @@ function renderScheduleGrid(first,last,today){
   '<span class="schedule-day-key">Volante II - Fernando</span> <span class="schedule-day-key">Volante III - Chiller</span> <span class="schedule-pill" data-kind="support">SUP · Equipe de suporte</span></p>'+
   '<p class="muted">Selecione um atendimento para consultar os detalhes. '+
   scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
-  (["admin","team"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
+  (["admin","team","planning"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
 }
 
 for(const id of ["scheduleMonth","scheduleTeam","scheduleUnit"])$(id).onchange=()=>loadSchedule();
@@ -4896,7 +4904,7 @@ $("scheduleResults").onclick=event=>{
 };
 
 async function showScheduleHistory(button,row){
- if(!row||!["admin","team"].includes(profile?.role))return;
+ if(!row||!["admin","team","planning"].includes(profile?.role))return;
  const current=button.parentElement.querySelector(".schedule-history");
  if(current){current.remove();return;}
  button.disabled=true;
@@ -5391,7 +5399,8 @@ $("scheduleImportSave").onclick=async()=>{
 
 
 function switchModule(name){
- if(name==="schedule"&&(!["admin","team","client"].includes(profile?.role)||!hasAccess("cronogramas","view")))return;
+ if(name==="trainings"&&!hasAccess("treinamentos","view"))return;
+ if(name==="schedule"&&(!["admin","team","client","planning"].includes(profile?.role)||!hasAccess("cronogramas","view")))return;
  if(name==="units"&&!canViewUnits())return;
  if(name==="access"&&profile?.role!=="admin")return;
  currentModule=name;
@@ -5579,7 +5588,7 @@ $("moduleSchedule").onclick=()=>switchModule("schedule");
 
 
 function roleLabel(role){
- return role==="admin"?"Administrador":role==="client"?"Cliente":"Equipe";
+ return role==="admin"?"Administrador":role==="planning"?"Planejamento (Backoffice)":role==="client"?"Cliente":"Equipe";
 }
 
 
@@ -5742,7 +5751,13 @@ function selectedAccessUnits(){
  return [...document.querySelectorAll(".accessUnitCheck:checked")].map(input=>input.value);
 }
 
+$("accessRole").addEventListener("change",renderAccessModuleChoices);
+
 function renderAccessModuleChoices(){
+ const planning=$("accessRole").value==="planning";
+ $("accessRoleHelp").textContent=planning
+  ?"As abas marcadas permitem consultar, incluir e editar nas unidades selecionadas. Relatórios da rede e Treinamentos são de consulta."
+  :"Equipe e Cliente têm acesso de somente leitura. Relatórios da rede são compartilhados com quem tem acesso a esse módulo.";
  const box=$("accessModules");
  box.replaceChildren();
  const units=editingAccessUser?selectedAccessUnits():[""];
@@ -5767,7 +5782,7 @@ function renderAccessModuleChoices(){
     if(input.checked)allowed.add(module);
     else allowed.delete(module);
    };
-   label.append(input,document.createTextNode(name));
+   label.append(input,document.createTextNode(planning&&!planningEditableModules.has(module)?name+" (consulta)":name));
    group.append(label);
   }
   box.append(group);
@@ -5796,7 +5811,7 @@ function openAccessUserEdit(user,grants){
  $("accessDisplayName").value=user.display_name||"";
  $("accessEmail").value=user.email||"";
  $("accessEmail").disabled=true;
- $("accessRole").value=user.role==="client"?"client":"team";
+ $("accessRole").value=["client","planning"].includes(user.role)?user.role:"team";
  $("accessActive").value=String(!!user.active);
  $("accessUserDialogTitle").textContent="Editar usuário";
  $("saveAccessUser").textContent="Salvar acesso";
@@ -7524,6 +7539,39 @@ $("waterManualForm").addEventListener("submit",async e=>{
 
 
 
+  const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
+   .map(row=>{
+    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
+    const value=parsePtNumber(row.querySelector(".waterManualValue").value);
+
+
+
+
+    if(value===null)return null;
+
+
+
+
+    return{
+     reference_id:ref.id,
+     parameter_name:ref.parameter_name,
+     unit:ref.unit,
+     result_value:value,
+     min_snapshot:ref.min_value,
+     max_snapshot:ref.max_value
+    };
+   })
+   .filter(Boolean);
+
+
+
+
+  if(profile?.role==="planning"){
+   const {error}=await db.rpc("save_planning_water_analysis",{
+    target_id:reportId||null, fields:payload, readings:rows
+   });
+   if(error)throw error;
+  }else{
   if(reportId){
    const {error}=await db
     .from("water_analysis_reports")
@@ -7568,41 +7616,15 @@ $("waterManualForm").addEventListener("submit",async e=>{
 
 
 
-  const rows=[...document.querySelectorAll("#waterManualResults .water-result-row")]
-   .map(row=>{
-    const ref=waterReferences.find(r=>r.id===row.dataset.refId);
-    const value=parsePtNumber(row.querySelector(".waterManualValue").value);
-
-
-
-
-    if(value===null)return null;
-
-
-
-
-    return{
-     report_id:reportId,
-     reference_id:ref.id,
-     parameter_name:ref.parameter_name,
-     unit:ref.unit,
-     result_value:value,
-     min_snapshot:ref.min_value,
-     max_snapshot:ref.max_value
-    };
-   })
-   .filter(Boolean);
-
-
-
-
   if(rows.length){
-   const {error}=await db.from("water_analysis_results").insert(rows);
+   const {error}=await db.from("water_analysis_results").insert(rows.map(row=>({...row,report_id:reportId})));
    if(error)throw error;
   }
 
 
 
+
+  }
 
   $("waterManualDialog").close();
   message($("appMessage"),"Análise salva com sucesso.","ok");
@@ -10160,7 +10182,11 @@ function renderEmployeeUnitChecks(selectedLinks=[]){
 
 
 
- allUnits.forEach(u=>{
+ const action=editingEmployee?"edit":"insert";
+ const units=profile?.role==="planning"
+  ?allUnits.filter(u=>linkMap.has(u.id)||hasAccess("comunicacao",action,u.id))
+  :allUnits;
+ units.forEach(u=>{
   const row=document.createElement("div");
   row.className="unit-check-row";
   row.style.display="grid";
@@ -10422,14 +10448,14 @@ $("cancelEmployeeDialog").onclick=()=>$("employeeDialog").close();
 
 
 
-async function uploadEmployeePhoto(employeeId,file){
+async function uploadEmployeePhoto(employeeId,file,photoUnitId=unitId){
  if(!file)return editingEmployee?.photo_path||null;
 
 
 
 
  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
- const path=`${unitId}/${employeeId}/${Date.now()}.${ext}`;
+ const path=`${photoUnitId}/${employeeId}/${Date.now()}.${ext}`;
 
 
 
@@ -10505,6 +10531,28 @@ $("employeeForm").addEventListener("submit",async e=>{
 
 
   let id=$("employeeId").value;
+  const file=$("employeePhoto").files[0];
+  const links=selectedUnits.map(selectedUnitId=>({
+   unit_id:selectedUnitId,
+   count_in_headcount:!!document.querySelector(`.employeeHeadcountCheck[data-unit-id="${selectedUnitId}"]`)?.checked
+  }));
+  if(profile?.role==="planning"){
+   const action=id?"edit":"insert";
+   if(selectedUnits.some(id=>!hasAccess("comunicacao",action,id))){
+    throw new Error("Confira as permissões das unidades vinculadas.");
+   }
+   const targetId=id||crypto.randomUUID();
+   const photoUnit=selectedUnits.includes(unitId)?unitId:selectedUnits[0];
+   const photoPath=await uploadEmployeePhoto(targetId,file,photoUnit);
+   const {error}=await db.rpc("save_planning_employee",{
+    target_id:targetId, creating:!id, fields:{...basePayload,photo_path:photoPath}, links
+   });
+   if(error)throw error;
+   $("employeeDialog").close();
+   message($("appMessage"),"Profissional salvo com sucesso.","ok");
+   await loadEmployees();
+   return;
+  }
 
 
 
@@ -10638,6 +10686,8 @@ $("employeeForm").addEventListener("submit",async e=>{
    $("appMessage"),
    err?.message==="Selecione pelo menos uma unidade."
     ?err.message
+    :err?.code==="42501"&&profile?.role==="planning"
+     ?"A edição exige acesso às unidades vinculadas ao profissional."
     :duplicatePerson
      ?"Já existe um profissional com este mesmo nome e matrícula. Edite o cadastro existente em vez de criar outro."
      :"Não foi possível salvar o profissional.",
