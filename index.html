@@ -1256,6 +1256,9 @@ main{max-width:1580px;padding:18px 20px 60px}
 .schedule-grid .schedule-today{box-shadow:inset 0 -2px #3575aa}
 .schedule-day-key{display:inline-block;padding:2px 6px;border-radius:5px;color:#25384d}
 .schedule-grid sup{margin-left:2px;font-size:.68em}
+#scheduleDescriptionLabel{display:grid;gap:5px;font-weight:700;margin-top:10px}
+.schedule-pill[data-kind="support"]{background:#6238a0;color:white}
+.schedule-grid button[data-kind="support"]{display:block;margin:3px auto;max-width:138px;white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.25}
 .schedule-grid button{min-width:32px;width:auto;border:0;cursor:pointer}
 .schedule-dialog-list{max-height:45dvh;overflow:auto}
 .schedule-mapping{grid-column:1/-1;display:grid;gap:8px}
@@ -2064,7 +2067,7 @@ main{max-width:1580px;padding:18px 20px 60px}
   <section class="card schedule-controls">
     <div class="schedule-filters">
       <label>Mês de referência<input id="scheduleMonth" type="month" min="1900-01" max="9998-12" placeholder="AAAA-MM" required></label>
-      <label>Equipe<select id="scheduleTeam"><option value="">Todas as equipes</option><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
+      <label>Equipe<select id="scheduleTeam"><option value="">Todas as equipes</option><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option><option value="4">Equipe de suporte</option></select></label>
       <label>Unidade<select id="scheduleUnit"></select></label>
     </div>
     <div class="schedule-actions">
@@ -2186,10 +2189,11 @@ main{max-width:1580px;padding:18px 20px 60px}
       <h2 id="scheduleEditTitle">Agendar atendimento</h2>
       <div class="schedule-filters">
         <label>Data<input id="scheduleEditDate" type="date" required></label>
-        <label>Equipe<select id="scheduleEditTeam" required><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option></select></label>
+        <label>Equipe<select id="scheduleEditTeam" required><option value="1">Volante I</option><option value="2">Volante II</option><option value="3">Volante III</option><option value="4">Equipe de suporte</option></select></label>
         <label>Unidade<select id="scheduleEditUnit" required></select></label>
         <label>Situação<select id="scheduleEditStatus" required><option value="planned">Planejado</option><option value="done">Realizado</option></select></label>
       </div>
+      <label id="scheduleDescriptionLabel" class="hidden">Descrição do atendimento<input id="scheduleDescription" maxlength="100" placeholder="Ex.: Apoio na troca de motor"></label>
       <label id="scheduleReasonLabel" class="hidden">Motivo do remanejamento<textarea id="scheduleReason" maxlength="300" rows="3" placeholder="Ex.: atendimento transferido para priorizar uma demanda emergencial."></textarea></label>
       <div id="scheduleEditNotice" role="status"></div>
       <button id="scheduleEditLegacy" class="ghost hidden" type="button">Abrir registro anterior de contingência</button>
@@ -4685,8 +4689,8 @@ async function deleteUnit(unit){
 
 
 /* CRONOGRAMAS DAS EQUIPES VOLANTES */
-const scheduleTeams=["","Volante I","Volante II","Volante III"];
-const scheduleRoman=["","I","II","III"];
+const scheduleTeams=["","Volante I","Volante II","Volante III","Equipe de suporte"];
+const scheduleRoman=["","I","II","III","SUP"];
 const scheduleLabels={planned:"Planejado",done:"Realizado",moved:"Remanejado",draft:"Rascunho"};
 const scheduleStatusKeys=["planned","done"];
 const scheduleUnitKeys=new Set([
@@ -4822,7 +4826,7 @@ async function loadSchedule(){
  $("scheduleResults").replaceChildren();
  $("scheduleStatus").textContent="Carregando cronograma...";
  const result=await trainingReadPages(()=>{
-  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,published,moved,revision")
+  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,published,moved,revision,description")
    .neq("status","contingency").gte("visit_date",first).lt("visit_date",last).order("visit_date").order("team").order("id");
   if(team)query=query.eq("team",team);
   if(filterUnit)query=query.eq("unit_id",filterUnit);
@@ -4850,6 +4854,7 @@ function showScheduleDetail(row){
  $("scheduleDetailTitle").textContent=scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id);
  $("scheduleDetailContent").innerHTML='<p>'+escapeHtml(scheduleDateLabel(row.visit_date))+
   ' '+schedulePill(row.status)+(row.moved?schedulePill("moved"):"")+(!row.published?schedulePill("draft"):"")+'</p>'+
+  (row.description?'<p><strong>Descrição do atendimento</strong><br>'+escapeHtml(row.description)+'</p>':"")+
   '<div class="schedule-actions">'+
   (canEdit?'<button type="button" class="secondary" data-schedule-edit>'+
   (row.published?"Editar / remanejar":"Editar rascunho")+'</button>':"")+
@@ -4892,10 +4897,12 @@ function renderScheduleGrid(first,last,today){
    const rows=cells.get(unit.id+"|"+day)||[];
    return '<td class="'+classes+'">'+
     rows.map(row=>{
+     const support=row.team===4;
      const label=scheduleTeams[row.team]+" · "+scheduleLabels[row.status]+
+      (row.description?" · "+row.description:"")+
       (row.moved?" · Remanejado":"")+(!row.published?" · Rascunho":"");
-     return '<button type="button" class="schedule-pill" data-status="'+row.status+'" data-schedule-entry="'+row.id+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+
-      scheduleRoman[row.team]+(row.moved?"↪":"")+(!row.published?"*":"")+'</button>';
+     return '<button type="button" class="schedule-pill"'+(support?' data-kind="support"':'')+' data-status="'+row.status+'" data-schedule-entry="'+row.id+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+
+      scheduleRoman[row.team]+(row.moved?"↪":"")+(!row.published?"*":"")+(support&&row.description?" · "+escapeHtml(row.description):"")+'</button>';
     }).join("")+'</td>';
   }).join("")+'</tr>').join("");
  $("scheduleResults").innerHTML='<div class="schedule-grid" tabindex="0" role="region" aria-label="Grade mensal, role para ver os demais dias">'+
@@ -4903,7 +4910,7 @@ function renderScheduleGrid(first,last,today){
   '<p class="muted"><span class="schedule-day-key schedule-weekend">Sábado e domingo</span> '+
   '<span class="schedule-day-key schedule-holiday">F · Feriado nacional ou estadual do RJ</span></p>'+
   '<p class="muted"><strong>Equipes</strong> · <span class="schedule-day-key">Volante I - Arelí</span> '+
-  '<span class="schedule-day-key">Volante II - Fernando</span> <span class="schedule-day-key">Volante III - Chiller</span></p>'+
+  '<span class="schedule-day-key">Volante II - Fernando</span> <span class="schedule-day-key">Volante III - Chiller</span> <span class="schedule-pill" data-kind="support">SUP · Equipe de suporte</span></p>'+
   '<p class="muted">Selecione um atendimento para consultar os detalhes. '+
   scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
   (["admin","team"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
@@ -4956,18 +4963,24 @@ for(const button of document.querySelectorAll("[data-close-schedule]"))button.on
 
 function scheduleEditorPayload(){
  return {visit_date:$("scheduleEditDate").value,team:Number($("scheduleEditTeam").value),
-  unit_id:$("scheduleEditUnit").value,status:$("scheduleEditStatus").value};
+  unit_id:$("scheduleEditUnit").value,status:$("scheduleEditStatus").value,
+  description:$("scheduleEditTeam").value==="4"?$("scheduleDescription").value.trim():null};
 }
 function scheduleNeedsReason(values){
  return scheduleEditing?.published&&(values.visit_date!==scheduleEditing.visit_date||
   values.team!==scheduleEditing.team||values.unit_id!==scheduleEditing.unit_id);
 }
-function updateScheduleReason(){
- const required=!!scheduleNeedsReason(scheduleEditorPayload());
+function updateScheduleEditor(){
+ const values=scheduleEditorPayload();
+ const support=values.team===4;
+ $("scheduleDescriptionLabel").classList.toggle("hidden",!support);
+ $("scheduleDescription").required=support;
+ $("scheduleDescription").disabled=!support;
+ const required=!!scheduleNeedsReason(values);
  $("scheduleReasonLabel").classList.toggle("hidden",!required);
  $("scheduleReason").required=required;
 }
-for(const id of ["scheduleEditDate","scheduleEditTeam","scheduleEditUnit"])$(id).onchange=updateScheduleReason;
+for(const id of ["scheduleEditDate","scheduleEditTeam","scheduleEditUnit"])$(id).onchange=updateScheduleEditor;
 
 function openScheduleEditor(row=null){
  const action=row?"edit":"insert";
@@ -4983,9 +4996,10 @@ function openScheduleEditor(row=null){
  $("scheduleEditStatus").value=row?.status==="done"?"done":"planned";
  $("scheduleEditLegacy").classList.add("hidden");
  $("scheduleReason").value="";
+ $("scheduleDescription").value=row?.description||"";
  $("scheduleDiscard").classList.toggle("hidden",!row||row.published||!scheduleCan("delete",row.unit_id));
  $("scheduleEditNotice").textContent=row?.status==="contingency"?"O registro anterior está vazio na grade. Salve para transformá-lo em atendimento.":row?.published?"Alterações salvas aparecem na programação publicada.":"Salve como rascunho e revise antes de publicar.";
- updateScheduleReason();
+ updateScheduleEditor();
  $("scheduleEditDialog").showModal();
 }
 $("scheduleNew").onclick=()=>openScheduleEditor();
@@ -5004,6 +5018,10 @@ $("scheduleEditForm").onsubmit=async event=>{
  $("scheduleEditLegacy").classList.add("hidden");
  if(!scheduleStatusKeys.includes(values.status)||!scheduleUnits().some(unit=>unit.id===values.unit_id))return;
  if(!scheduleCan(row?"edit":"insert",values.unit_id)||(row&&!scheduleCan("edit",row.unit_id)))return;
+ if(values.team===4&&!values.description){
+  $("scheduleEditNotice").textContent="Informe a descrição do atendimento de suporte.";
+  return;
+ }
  if(scheduleNeedsReason(values)){
   values.change_reason=$("scheduleReason").value.trim();
   if(!values.change_reason){
@@ -5019,8 +5037,8 @@ $("scheduleEditForm").onsubmit=async event=>{
   const result=row
    ?await table.update(values).eq("id",row.id).eq("revision",row.revision).select("id").maybeSingle()
    :await table.insert(values).select("id").single();
-  if(!row&&result.error?.code==="23505"&&scheduleCan("edit",values.unit_id)){
-   const {data:legacy}=await table.select("id,unit_id,team,visit_date,status,published,moved,revision")
+  if(!row&&values.team!==4&&result.error?.code==="23505"&&scheduleCan("edit",values.unit_id)){
+   const {data:legacy}=await table.select("id,unit_id,team,visit_date,status,published,moved,revision,description")
     .eq("visit_date",values.visit_date).eq("team",values.team).eq("unit_id",values.unit_id)
     .eq("status","contingency").maybeSingle();
    if(legacy&&$("scheduleEditDialog").open&&scheduleEditing===row){
@@ -5083,7 +5101,7 @@ $("schedulePublish").onclick=async()=>{
  $("scheduleConfirmPublish").disabled=true;
  $("scheduleReviewDialog").showModal();
  const result=await trainingReadPages(()=>{
-  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,revision")
+  let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,revision,description")
    .eq("published",false).neq("status","contingency").gte("visit_date",scheduleMonthStart(date)).lt("visit_date",scheduleMonthStart(date,1))
    .order("visit_date").order("team").order("id");
   if(selectedUnit)query=query.eq("unit_id",selectedUnit);
@@ -5096,7 +5114,7 @@ $("schedulePublish").onclick=async()=>{
  $("scheduleReviewStatus").textContent=result.error?"Não foi possível carregar os rascunhos."
   :scheduleReviewRows.length?"Desmarque os atendimentos que deseja manter em rascunho.":"Nenhum rascunho disponível para publicação.";
  $("scheduleReviewContent").innerHTML=scheduleReviewRows.map(row=>'<label class="schedule-review-line"><input type="checkbox" checked value="'+row.id+'"><span>'+
-  escapeHtml(scheduleDateLabel(row.visit_date)+" · "+scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id))+
+  escapeHtml(scheduleDateLabel(row.visit_date)+" · "+scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id)+(row.description?" · "+row.description:""))+
   " "+schedulePill(row.status)+'</span></label>').join("");
  $("scheduleConfirmPublish").disabled=!scheduleReviewRows.length;
 };
