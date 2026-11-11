@@ -1314,6 +1314,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <section id="loginView" class="card login">
+<div id="adminLoginBox">
 <h2>Administrador</h2>
 <p class="muted">Acesso administrativo com e-mail e senha.</p>
 <form id="loginForm">
@@ -1324,6 +1325,21 @@ main{max-width:1580px;padding:18px 20px 60px}
 <button id="adminLoginButton" class="primary" style="margin-top:15px">Entrar como administrador</button>
 <button id="forgotPasswordButton" type="button" class="login-link">Esqueci minha senha</button>
 </form>
+<hr>
+<p class="muted"><strong>Equipe e Cliente:</strong> abra o link enviado pelo Administrador.</p>
+</div>
+
+<div id="sharedAccessBox" class="hidden">
+<h2>Acesso ao Rede Américas</h2>
+<p class="muted">Informe o e-mail cadastrado para receber o link de entrada.</p>
+<form id="sharedAccessForm">
+<label for="sharedAccessEmail">E-mail cadastrado</label>
+<input id="sharedAccessEmail" type="email" required maxlength="254" autocomplete="email">
+<button id="requestSharedAccess" class="primary" style="margin-top:15px">Enviar link para meu e-mail</button>
+</form>
+<div id="sharedAccessMessage" class="status" aria-live="polite"></div>
+<a class="login-link" href="./">Voltar à tela de login</a>
+</div>
 
 
 <div id="recoveryBox" class="recovery-box hidden">
@@ -1340,8 +1356,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <div id="loginMessage" class="status"></div>
-<hr>
-<p class="muted"><strong>Equipe e Cliente:</strong> o acesso é feito diretamente pelo link enviado pelo Administrador. Não é necessário informar senha nesta tela.</p>
+
 </section>
 
 
@@ -3468,6 +3483,7 @@ let session=null;
 let profile=null;
 let recoveryMode=false;
 const AUTH_REDIRECT_URL="https://rede-americas-pwa.pages.dev/";
+const sharedAccessToken=new URLSearchParams(location.hash.slice(1)).get("convite");
 let enteringApp=false;
 let overviewLoading=false;
 let unitId="";
@@ -3528,6 +3544,10 @@ let editingWaterReport=null;
 
 
 const $=id=>document.getElementById(id);
+if(sharedAccessToken){
+ $("adminLoginBox").classList.add("hidden");
+ $("sharedAccessBox").classList.remove("hidden");
+}
 
 
 function updateCurrentDateTime(){
@@ -3603,7 +3623,8 @@ function showRecoveryMode(){
  recoveryMode=true;
  $("appView").classList.add("hidden");
  $("loginView").classList.remove("hidden");
- $("loginForm").classList.add("hidden");
+ $("adminLoginBox").classList.add("hidden");
+ $("sharedAccessBox").classList.add("hidden");
  $("recoveryBox").classList.remove("hidden");
  $("headerStatus").textContent="Redefinição segura de senha";
  message($("loginMessage"),"Crie uma nova senha para concluir a recuperação.","info");
@@ -3613,7 +3634,7 @@ function showRecoveryMode(){
 function finishRecoveryMode(){
  recoveryMode=false;
  $("recoveryBox").classList.add("hidden");
- $("loginForm").classList.remove("hidden");
+ $("adminLoginBox").classList.remove("hidden");
  $("newPassword").value="";
  $("confirmNewPassword").value="";
  $("password").value="";
@@ -3726,6 +3747,32 @@ $("recoveryForm").addEventListener("submit",async e=>{
 
 
 
+
+$("sharedAccessForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!sharedAccessToken)return;
+ const button=$("requestSharedAccess");
+ const status=$("sharedAccessMessage");
+ button.disabled=true;
+ try{
+  const {data,error}=await db.functions.invoke("shared-access-link",{
+   body:{action:"request",token:sharedAccessToken,email:$("sharedAccessEmail").value.trim().toLowerCase()}
+  });
+  if(error){
+   if(error.context?.status===400){
+    message(status,"Este link é inválido ou venceu. Peça um novo link ao administrador.","err");
+    return;
+   }
+   throw error;
+  }
+  if(!data?.ok)throw new Error("Solicitação de acesso indisponível.");
+  message(status,"Se o e-mail estiver autorizado, você receberá o link de entrada. Confira também a caixa de spam.","ok");
+ }catch{
+  message(status,"Não foi possível solicitar o link agora. Tente novamente em instantes.","err");
+ }finally{
+  button.disabled=false;
+ }
+});
 
 $("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -5683,6 +5730,7 @@ async function loadAccessUsers(){
     ${p.role!=="admin"?`
     <div class="actions">
      <button class="primary sendAccessLink">${p.active?"Enviar link de acesso":"Acesso revogado"}</button>
+     ${p.active&&p.email?'<button type="button" class="secondary copySharedAccessLink">Copiar link de acesso</button>':""}
      <button class="secondary editAccessUser">Editar acesso</button>
      <button class="${p.active?"danger":"primary"} toggleAccessUser">${p.active?"Desativar":"Ativar"}</button>
      <button class="danger revokeAccessUser">Excluir acesso</button>
@@ -5712,6 +5760,9 @@ async function loadAccessUsers(){
 
 
 
+
+  const copyLink=card.querySelector(".copySharedAccessLink");
+  if(copyLink)copyLink.onclick=()=>copySharedAccessLink(p,copyLink);
 
   const toggle=card.querySelector(".toggleAccessUser");
   if(toggle)toggle.onclick=()=>toggleAccessUser(p);
@@ -6056,6 +6107,29 @@ $("accessUserForm").addEventListener("submit",async e=>{
 
 
 
+
+async function copySharedAccessLink(user,button){
+ if(profile?.role!=="admin"||!user.active||!user.email)return;
+ button.disabled=true;
+ try{
+  const {data,error}=await db.functions.invoke("shared-access-link",{
+   body:{action:"create",user_id:user.user_id}
+  });
+  if(error||!data?.token)throw new Error("Link indisponível.");
+  const url=new URL(AUTH_REDIRECT_URL);
+  url.hash=new URLSearchParams({convite:data.token}).toString();
+  try{
+   await navigator.clipboard.writeText(url.href);
+   message($("appMessage"),"Link copiado. Cole na conversa do WhatsApp.","ok");
+  }catch{
+   window.prompt("Copie o link para enviar pelo WhatsApp:",url.href);
+  }
+ }catch{
+  message($("appMessage"),"Não foi possível gerar o link de acesso. Tente novamente.","err");
+ }finally{
+  button.disabled=false;
+ }
+}
 
 async function sendAccessLink(user,button){
  if(!user?.email||!user?.active)return;
