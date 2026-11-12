@@ -137,12 +137,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-bottom:13px}
 .record-list{display:grid;gap:10px}
 .record{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px}
-.rdi-card-layout{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
-.rdi-card-photo{width:150px;height:115px;border-radius:11px;object-fit:cover;border:1px solid var(--border);background:#eef3f6}
-.rdi-card-photo-wrap{min-height:115px}
+.rdi-card-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.rdi-card-layout:has(.rdi-card-photo-wrap:not(:empty)){grid-template-columns:150px minmax(0,1fr)}
+.rdi-card-layout:has(.rdi-card-photo-wrap.rdi-photo-pair){grid-template-columns:310px minmax(0,1fr)}
+.rdi-card-photo-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.rdi-card-photo-wrap:empty{display:none}
+.rdi-card-photo-wrap.rdi-photo-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rdi-card-photo{display:block;width:100%;height:115px;border-radius:9px;object-fit:contain;border:1px solid var(--border);background:#eef3f6}
 @container app-layout (max-width: 700px){
- .rdi-card-layout{grid-template-columns:1fr}
- .rdi-card-photo{width:100%;height:190px}
+ .rdi-card-layout:has(.rdi-card-photo-wrap:not(:empty)),
+ .rdi-card-layout:has(.rdi-card-photo-wrap.rdi-photo-pair){grid-template-columns:minmax(0,1fr)}
+ .rdi-card-photo-wrap{max-width:310px}
 }
 .record-top{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
 .record-top h3{margin:0;flex:1}
@@ -205,8 +210,13 @@ dialog::backdrop{background:#061b2b99}
 .full{grid-column:1/-1}
 .gut-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}
 .gut-result{background:#eef5fa;border-radius:9px;padding:11px;font-weight:800;text-align:center}
-.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.photo-preview{display:block;width:100%;max-height:170px;object-fit:cover;border-radius:8px;margin-top:5px}
+.photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rdi-photo-tile{min-width:0;margin:0}
+.rdi-photo-tile figcaption{font-weight:700;margin:6px 0}
+.rdi-photo-tile a{display:block;cursor:zoom-in}
+.rdi-photo-tile input,.photo-grid input{min-width:0;max-width:100%}
+.photo-preview{display:block;width:100%;height:clamp(180px,35vh,320px);object-fit:contain;border-radius:8px;background:#eef3f6}
+@media(max-width:540px){.photo-grid{grid-template-columns:minmax(0,1fr)}}
 .dialog-actions{display:flex;gap:8px;margin-top:18px}
 .dialog-actions button{flex:1}
 hr{border:0;border-top:1px solid var(--border);margin:18px 0}
@@ -1215,7 +1225,6 @@ main{max-width:1580px;padding:18px 20px 60px}
   .exec-panel,.training-panel,.training-card,.budget-chart-card,.water-chart-card{padding:11px}
   .record-list,.training-team>*,.exec-panel{min-width:0}
   canvas{max-width:100%}
-  .rdi-card-photo{height:auto;aspect-ratio:16 / 9;max-height:240px}
 }
 
 
@@ -2965,21 +2974,28 @@ main{max-width:1580px;padding:18px 20px 60px}
 <div class="full">
 <hr>
 <h3>Fotos da ocorrência</h3>
-<p class="muted">Até 4 imagens. Máximo de 10 MB por arquivo.</p>
+<p class="muted">Até 4 fotos da ocorrência e 1 foto da conclusão. Máximo de 10 MB por arquivo.</p>
 
 
 
 
 <div class="photo-grid">
-<div><label>Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
-<div><label>Foto 2</label><input id="photo2" type="file" accept="image/*"></div>
-<div><label>Foto 3</label><input id="photo3" type="file" accept="image/*"></div>
-<div><label>Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
+<div><label for="photo1">Foto 1</label><input id="photo1" type="file" accept="image/*"></div>
+<div><label for="photo2">Foto 2</label><input id="photo2" type="file" accept="image/*"></div>
+<div><label for="photo3">Foto 3</label><input id="photo3" type="file" accept="image/*"></div>
+<div><label for="photo4">Foto 4</label><input id="photo4" type="file" accept="image/*"></div>
 </div>
 
 
 
 
+<div class="photo-grid">
+<div>
+<label for="completionPhoto">Foto da demanda concluída (Depois)</label>
+<input id="completionPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" aria-describedby="rdiCompletionPhotoHint">
+</div>
+</div>
+<p id="rdiCompletionPhotoHint" class="muted">Ao salvar, esta foto aparece no resumo ao lado da Foto 2 (Antes).</p>
 <div id="currentPhotos" class="photo-grid"></div>
 </div>
 
@@ -2991,6 +3007,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+<div id="rdiSaveNotice" aria-live="polite"></div>
 <div class="dialog-actions">
 <button id="cancelDialog" type="button" class="ghost">Cancelar</button>
 <button id="saveButton" type="submit" class="primary">Salvar demanda</button>
@@ -3011,6 +3028,10 @@ main{max-width:1580px;padding:18px 20px 60px}
   <h2 id="rdiAttachmentsTitle">Anexos da ocorrência</h2>
   <p class="muted" id="rdiAttachmentsRecord"></p>
   <div id="rdiAttachmentsMessage" aria-live="polite"></div>
+  <section id="rdiAttachmentPhotos" class="hidden">
+   <h3>Fotos da ocorrência</h3>
+   <div class="photo-grid"></div>
+  </section>
   <div id="rdiAttachmentsList" class="form-grid"></div>
   <div class="dialog-actions">
    <button type="button" class="ghost" id="rdiAttachmentsClose">Fechar</button>
@@ -8420,26 +8441,11 @@ function renderRecords(){
 
 
   const photoWrap=el.querySelector(".rdi-card-photo-wrap");
-  const photo2=r.source_image_2||"";
-
-
-
-
-  // Foto 2 = Equipamento/Instalação. Só renderiza quando já estiver
-  // armazenada no bucket interno rdi-photos.
-  if(photo2 && !photo2.startsWith("Demandas Reforma_Images/")){
-   db.storage.from("rdi-photos").createSignedUrl(photo2,600).then(({data})=>{
-    if(!data?.signedUrl)return;
-    const img=document.createElement("img");
-    img.src=data.signedUrl;
-    img.alt="Equipamento ou instalação";
-    img.className="rdi-card-photo";
-    photoWrap.replaceChildren(img);
-   });
-  }
-
-
-
+  const before=internalRdiPhoto(r.source_image_2);
+  const after=internalRdiPhoto(r.completion_image);
+  if(after)photoWrap.classList.add("rdi-photo-pair");
+  if(before||after)appendRdiPhoto(photoWrap,before,"Antes","rdi-card-photo");
+  if(after)appendRdiPhoto(photoWrap,after,"Depois","rdi-card-photo");
 
   list.appendChild(el);
  });
@@ -8474,6 +8480,10 @@ async function openRdiAttachments(record){
  $("rdiAttachmentsRecord").textContent=record.source_id||record.location||"Ocorrência RDI";
  container.replaceChildren(panel);
  message(notice,"Carregando anexos…");
+ const photoSection=$("rdiAttachmentPhotos");
+ const photos=photoSection.querySelector(".photo-grid");
+ renderRdiPhotoGallery(photos,record);
+ photoSection.classList.toggle("hidden",!photos.childElementCount);
  dialog.showModal();
 
  const {data,error}=await bucket.list(folder);
@@ -8600,6 +8610,7 @@ async function openRdiAttachments(record){
 $("newRdiButton").onclick=()=>{
  if(!unitId||!hasAccess("rdi","insert",unitId))return;
  editingRecord=null;
+ resetRdiPhotoForm();
  $("rdiAttachmentsInEdit").classList.add("hidden");
  $("rdiForm").reset();
  $("recordId").value="";
@@ -8622,6 +8633,7 @@ $("newRdiButton").onclick=()=>{
 function openEdit(r){
  if(!r||!hasAccess("rdi","edit",r.unit_id))return;
  editingRecord=r;
+ resetRdiPhotoForm();
  $("rdiAttachmentsInEdit").classList.remove("hidden");
 
 
@@ -8668,136 +8680,113 @@ function openEdit(r){
 
 
  updateGut();
- showExistingPhotos(r);
+ renderRdiPhotoGallery($("currentPhotos"),r);
  $("rdiDialog").showModal();
 }
 
 
 
 
-async function showExistingPhotos(r){
- const box=$("currentPhotos");
- box.replaceChildren();
+const rdiPhotoFields=[
+ {input:"photo1",column:"source_image_1",label:"Foto 1 — Placa de identificação"},
+ {input:"photo2",column:"source_image_2",label:"Foto 2 — Equipamento ou instalação (Antes)"},
+ {input:"photo3",column:"source_image_3",label:"Foto 3 — Detalhe do problema 1"},
+ {input:"photo4",column:"source_image_4",label:"Foto 4 — Detalhe do problema 2"},
+ {input:"completionPhoto",column:"completion_image",label:"Foto da demanda concluída (Depois)"}
+];
+const rdiPhotoMime={jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp",heic:"image/heic",heif:"image/heif"};
+let stagedRdiPhotos=new WeakMap();
+let newRdiDemandId=null;
 
+function internalRdiPhoto(path){
+ return path&&!path.startsWith("Demandas Reforma_Images/")?path:null;
+}
 
+function appendRdiPhoto(container,path,label,imageClass){
+ const tile=document.createElement("figure");
+ tile.className="rdi-photo-tile";
+ const caption=document.createElement("figcaption");
+ caption.textContent=label;
+ tile.append(caption);
+ const feedback=document.createElement("small");
+ feedback.className="muted";
+ feedback.textContent=path?"Carregando foto…":"Foto indisponível.";
+ tile.append(feedback);
+ container.append(tile);
+ if(!path)return;
 
-
- const labels=[
-  "Foto 1 — Placa de identificação",
-  "Foto 2 — Equipamento ou instalação",
-  "Foto 3 — Detalhe do problema 1",
-  "Foto 4 — Detalhe do problema 2"
- ];
-
-
-
-
- const paths=[
-  r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
- ];
-
-
-
-
- for(let i=0;i<paths.length;i++){
-  const path=paths[i];
-  if(!path || path.startsWith("Demandas Reforma_Images/"))continue;
-
-
-
-
-  const {data}=await db.storage
-   .from("rdi-photos")
-   .createSignedUrl(path,600);
-
-
-
-
-  if(!data?.signedUrl)continue;
-
-
-
-
-  const wrap=document.createElement("div");
-  const title=document.createElement("strong");
-  title.textContent=labels[i];
-  title.style.display="block";
-  title.style.margin="8px 0 5px";
-
-
-
-
+ db.storage.from("rdi-photos").createSignedUrl(path,600).then(({data})=>{
+  if(!data?.signedUrl){
+   feedback.textContent="Foto indisponível.";
+   return;
+  }
+  const link=document.createElement("a");
+  link.href=data.signedUrl;
+  link.target="_blank";
+  link.rel="noopener noreferrer";
+  link.setAttribute("aria-label",`Abrir foto em tamanho original — ${label}`);
   const img=document.createElement("img");
+  img.alt=label;
+  img.className=imageClass;
+  img.loading="lazy";
+  img.onerror=()=>{
+   img.remove();
+   link.textContent="Abrir arquivo original";
+  };
   img.src=data.signedUrl;
-  img.className="photo-preview";
-  img.alt=labels[i];
+  link.append(img);
+  feedback.replaceWith(link);
+ }).catch(()=>{feedback.textContent="Foto indisponível.";});
+}
 
-
-
-
-  wrap.appendChild(title);
-  wrap.appendChild(img);
-  box.appendChild(wrap);
+function renderRdiPhotoGallery(container,record){
+ container.replaceChildren();
+ for(const {column,label} of rdiPhotoFields){
+  const path=internalRdiPhoto(record[column]);
+  if(path)appendRdiPhoto(container,path,label,"photo-preview");
  }
 }
 
-
-
+function resetRdiPhotoForm(){
+ for(const {input} of rdiPhotoFields)$(input).value="";
+ stagedRdiPhotos=new WeakMap();
+ newRdiDemandId=null;
+ message($("rdiSaveNotice"),"");
+}
 
 $("cancelDialog").onclick=()=>$("rdiDialog").close();
-
-
-
+$("rdiDialog").addEventListener("cancel",event=>{
+ if($("saveButton").disabled)event.preventDefault();
+});
 
 async function uploadPhotos(demandId,demandUnitId){
- const paths=[];
-
-
-
-
- for(let i=1;i<=4;i++){
-  const file=$("photo"+i).files[0];
-
-
-
-
-  if(!file){
-   paths.push(editingRecord?.["source_image_"+i]||null);
-   continue;
+ const selected=rdiPhotoFields.flatMap(field=>{
+  const file=$(field.input).files[0];
+  if(!file)return [];
+  const extension=file.name.split(".").pop().toLowerCase();
+  const contentType=Object.hasOwn(rdiPhotoMime,extension)?rdiPhotoMime[extension]:null;
+  if(!file.size||file.size>rdiAttachmentLimit||!contentType){
+   throw new Error(`${field.label}. Selecione uma imagem JPG, PNG, WebP, HEIC ou HEIF de até 10 MB.`);
   }
-
-
-
-
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
-  const path=`${demandUnitId}/${demandId}/foto_${i}_${Date.now()}.${ext}`;
-
-
-
-
-  const {error}=await db.storage
-   .from("rdi-photos")
-   .upload(path,file,{cacheControl:"3600",upsert:false});
-
-
-
-
-  if(error)throw error;
-
-
-
-
-  paths.push(path);
+  return [{...field,file,extension,contentType}];
+ });
+ const photos={};
+ const bucket=db.storage.from("rdi-photos");
+ for(const {column,label,file,extension,contentType} of selected){
+  let path=stagedRdiPhotos.get(file);
+  if(!path){
+   path=`${demandUnitId}/${demandId}/${column}_${crypto.randomUUID()}.${extension}`;
+   const {error}=await bucket.upload(path,file,{contentType,cacheControl:"3600",upsert:false});
+   if(error){
+    console.error(error);
+    throw new Error(`Falha ao enviar ${label}. Verifique a conexão e tente novamente.`);
+   }
+   stagedRdiPhotos.set(file,path);
+  }
+  photos[column]=path;
  }
-
-
-
-
- return paths;
+ return photos;
 }
-
-
-
 
 $("rdiForm").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -8812,8 +8801,12 @@ $("rdiForm").addEventListener("submit",async e=>{
 
 
  const btn=$("saveButton");
+ if(btn.disabled)return;
  btn.disabled=true;
+ $("cancelDialog").disabled=true;
  btn.textContent="Salvando...";
+ const notice=$("rdiSaveNotice");
+ message(notice,"");
 
 
 
@@ -8851,53 +8844,16 @@ $("rdiForm").addEventListener("submit",async e=>{
    care_impact:$("careImpact").value,
    manual_priority:textOrNull($("manualPriority").value),
    manual_priority_justification:textOrNull($("manualPriorityJustification").value),
-   created_by:session.user.id,
    updated_by:session.user.id
   };
-
-
-
-
-  let id=editingRecord?.id;
-
-
-
-
-  if(id){
-   const {data,error}=await db.from("rdi_demands").update(payload).eq("id",id).select("id").maybeSingle();
-   if(error||!data)throw error||new Error("Nenhuma demanda atualizada.");
-  }else{
-   const {data,error}=await db.from("rdi_demands").insert(payload).select("id").single();
-   if(error)throw error;
-   id=data.id;
-  }
-
-
-
-
+  const id=editingRecord?.id||(newRdiDemandId??=crypto.randomUUID());
   const photos=await uploadPhotos(id,demandUnitId);
-
-
-
-
-  const {error:photoError}=await db
-   .from("rdi_demands")
-   .update({
-    source_image_1:photos[0],
-    source_image_2:photos[1],
-    source_image_3:photos[2],
-    source_image_4:photos[3],
-    updated_by:session.user.id
-   })
-   .eq("id",id);
-
-
-
-
-  if(photoError)throw photoError;
-
-
-
+  const table=db.from("rdi_demands");
+  const query=editingRecord
+   ?table.update({...payload,...photos}).eq("id",id)
+   :table.insert({...payload,...photos,id,created_by:session.user.id});
+  const {data,error}=await query.select("id").single();
+  if(error||!data)throw error||new Error("Nenhuma demanda salva.");
 
   $("rdiDialog").close();
   message($("appMessage"),"Demanda salva com sucesso.","ok");
@@ -8908,9 +8864,10 @@ $("rdiForm").addEventListener("submit",async e=>{
 
  }catch(err){
   console.error(err);
-  message($("appMessage"),"Não foi possível salvar a demanda. Verifique os campos e permissões.","err");
+  message(notice,err instanceof Error?err.message:"Não foi possível salvar a demanda. Verifique os campos e permissões.","err");
  }finally{
   btn.disabled=false;
+  $("cancelDialog").disabled=false;
   btn.textContent="Salvar demanda";
  }
 });
@@ -8926,8 +8883,8 @@ async function deleteRecord(r){
 
 
  const photos=[
-  r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4
- ].filter(Boolean);
+  r.source_image_1,r.source_image_2,r.source_image_3,r.source_image_4,r.completion_image
+ ].filter(internalRdiPhoto);
 
 
 
