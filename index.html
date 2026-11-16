@@ -1269,6 +1269,11 @@ main{max-width:1580px;padding:18px 20px 60px}
 .schedule-pill[data-kind="support"]{background:#6238a0;color:white}
 .schedule-grid button[data-kind="support"]{display:block;margin:3px auto;max-width:138px;white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.25}
 .schedule-grid button{min-width:32px;width:auto;border:0;cursor:pointer}
+.schedule-grid button.schedule-date-button{background:transparent;color:#123653;padding:4px 0;border-radius:5px;font:inherit;white-space:nowrap}
+.schedule-grid button.schedule-date-button:hover,.schedule-grid button.schedule-date-button:focus-visible{background:#dceeff;outline:2px solid #2573a0;outline-offset:-1px}
+.schedule-comment-mark{color:#084f84}
+#scheduleDateCommentText{overflow-wrap:anywhere;white-space:pre-wrap}
+#scheduleDateCommentForm label{display:grid;gap:5px;margin:12px 0;font-weight:700}
 .schedule-dialog-list{max-height:45dvh;overflow:auto}
 .schedule-mapping{grid-column:1/-1;display:grid;gap:8px}
 .schedule-review-line{display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px solid #e5edf3}
@@ -2198,6 +2203,24 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 <!-- MODAL USUÁRIO E ACESSOS -->
+<dialog id="scheduleDateCommentDialog" aria-labelledby="scheduleDateCommentTitle">
+  <div class="dialog-body">
+    <h2 id="scheduleDateCommentTitle">Comentários da data</h2>
+    <div id="scheduleDateCommentText" class="schedule-dialog-list"></div>
+    <form id="scheduleDateCommentForm" class="hidden">
+      <label>Unidade<select id="scheduleDateCommentUnit" required></select></label>
+      <label id="scheduleDateCommentLabel" class="hidden">Comentário<textarea id="scheduleDateCommentBody" rows="4" maxlength="500" placeholder="Registre um planejamento ou uma observação para esta data." required></textarea></label>
+      <div class="schedule-actions">
+        <button id="scheduleDateCommentSave" type="submit" class="hidden">Salvar comentário</button>
+        <button id="scheduleDateCommentDelete" type="button" class="danger hidden">Remover comentário</button>
+      </div>
+    </form>
+    <p id="scheduleDateCommentStatus" role="status"></p>
+    <div class="dialog-actions">
+      <button class="ghost" type="button" data-close-schedule="scheduleDateCommentDialog">Fechar</button>
+    </div>
+  </div>
+</dialog>
 <dialog id="scheduleDetailDialog" aria-labelledby="scheduleDetailTitle">
   <div class="dialog-body">
     <h2 id="scheduleDetailTitle">Atendimento</h2>
@@ -4692,6 +4715,7 @@ const scheduleUnitKeys=new Set([
  "HOSPITAL PRO CARDIACO","HOSPITAL SAMARITANO BOTAFOGO"
 ]);
 let scheduleRows=[], scheduleRequest=0, scheduleOwner=null;
+let scheduleDateComments=new Map(), scheduleCommentsReady=false, scheduleCommentEditor=null;
 let scheduleEditing=null, scheduleImportBook=null, scheduleImportSource=null, scheduleImportRows=[];
 let scheduleImportRequest=0, scheduleReviewRows=[];
 
@@ -4783,6 +4807,13 @@ function resetScheduleSession(){
  scheduleImportSource=null;
  scheduleImportRows=[];
  scheduleReviewRows=[];
+ scheduleDateComments.clear();
+ scheduleCommentsReady=false;
+ scheduleCommentEditor=null;
+ $("scheduleDateCommentText").replaceChildren();
+ $("scheduleDateCommentBody").value="";
+ $("scheduleDateCommentUnit").replaceChildren();
+ $("scheduleDateCommentStatus").textContent="";
  $("scheduleResults").replaceChildren();
  $("schedulePreview").replaceChildren();
  $("scheduleReviewContent").replaceChildren();
@@ -4791,7 +4822,7 @@ function resetScheduleSession(){
  $("scheduleTeam").value="";
  $("scheduleUnit").replaceChildren();
  $("scheduleDetailContent").replaceChildren();
- for(const id of ["scheduleDetailDialog","scheduleEditDialog","scheduleImportDialog","scheduleReviewDialog"])$(id).close();
+ for(const id of ["scheduleDetailDialog","scheduleEditDialog","scheduleImportDialog","scheduleReviewDialog","scheduleDateCommentDialog"])$(id).close();
 }
 
 async function loadSchedule(){
@@ -4816,15 +4847,25 @@ async function loadSchedule(){
  const team=$("scheduleTeam").value;
  const filterUnit=unit.value;
  scheduleRows=[];
+ scheduleDateComments.clear();
+ scheduleCommentsReady=false;
  $("scheduleResults").replaceChildren();
  $("scheduleStatus").textContent="Carregando cronograma...";
- const result=await trainingReadPages(()=>{
+ const commentsRequest=["admin","team","planning"].includes(profile?.role)
+  ?trainingReadPages(()=>{
+   let query=db.from("volante_date_comments").select("visit_date,unit_id,body")
+    .gte("visit_date",first).lt("visit_date",last).order("visit_date").order("unit_id");
+   if(filterUnit)query=query.eq("unit_id",filterUnit);
+   return query;
+  }):Promise.resolve({data:[]});
+ const rowsRequest=trainingReadPages(()=>{
   let query=db.from("volante_schedule").select("id,unit_id,team,visit_date,status,published,moved,revision,description")
    .neq("status","contingency").gte("visit_date",first).lt("visit_date",last).order("visit_date").order("team").order("id");
   if(team)query=query.eq("team",team);
   if(filterUnit)query=query.eq("unit_id",filterUnit);
   return query;
  });
+ const [result,comments]=await Promise.all([rowsRequest,commentsRequest]);
  if(request!==scheduleRequest||scheduleOwner!==session?.user?.id||currentModule!=="schedule")return;
  if(result.error){
   $("scheduleStatus").textContent="Não foi possível carregar a programação. Tente abrir a aba novamente.";
@@ -4834,6 +4875,18 @@ async function loadSchedule(){
  scheduleRows=result.data.filter(row=>scheduleStatusKeys.includes(row.status)&&units.some(u=>u.id===row.unit_id));
  $("scheduleStatus").textContent=scheduleDateLabel(first,true)+" · "+scheduleRows.length+
   (scheduleRows.length===1?" atendimento":" atendimentos");
+ scheduleCommentsReady=!comments.error;
+ if(comments.error){
+  $("scheduleStatus").textContent+=" · Não foi possível carregar os comentários.";
+  console.error(comments.error);
+ }else{
+  const visibleUnits=new Set(units.filter(u=>!filterUnit||u.id===filterUnit).map(u=>u.id));
+  for(const comment of comments.data){
+   if(!visibleUnits.has(comment.unit_id))continue;
+   if(!scheduleDateComments.has(comment.visit_date))scheduleDateComments.set(comment.visit_date,[]);
+   scheduleDateComments.get(comment.visit_date).push(comment);
+  }
+ }
  renderScheduleGrid(first,last,scheduleTodayDate());
 }
 
@@ -4880,10 +4933,19 @@ function renderScheduleGrid(first,last,today){
  }
  const filter=$("scheduleUnit").value;
  const units=scheduleUnits().filter(u=>!filter||u.id===filter);
+ const canAddComment=scheduleCommentsReady&&units.some(u=>scheduleCan("insert",u.id));
  const head=days.map(({day,holiday,classes})=>{
-  const label=escapeHtml(scheduleDateLabel(day)+(holiday?" · Feriado: "+holiday:"")+(day===today?" · Hoje":""));
-  return '<th scope="col" title="'+label+'" aria-label="'+label+'" class="'+classes+'">'+
-   Number(day.slice(-2))+(holiday?'<sup aria-hidden="true">F</sup>':'')+'</th>';
+  const label=scheduleDateLabel(day)+(holiday?" · Feriado: "+holiday:"")+(day===today?" · Hoje":"");
+  const comments=scheduleDateComments.get(day)||[];
+  const preview=comments.map(c=>scheduleUnitName(c.unit_id)+": "+c.body).join("\n\n");
+  const date=Number(day.slice(-2))+(holiday?'<sup aria-hidden="true">F</sup>':'');
+  const content=comments.length||canAddComment
+   ?'<button type="button" class="schedule-date-button" data-schedule-date="'+day+'" title="'+
+    escapeHtml(preview||label+" · Adicionar comentário").replaceAll('"',"&quot;")+'" aria-label="'+
+    escapeHtml(label+(comments.length?" · Ver comentários":" · Adicionar comentário"))+'">'+
+    date+(comments.length?'<sup aria-hidden="true" class="schedule-comment-mark">●</sup>':"")+'</button>'
+   :date;
+  return '<th scope="col" title="'+escapeHtml(label)+'" class="'+classes+'">'+content+'</th>';
  }).join("");
  const body=units.map(unit=>'<tr><th scope="row">'+escapeHtml(unit.name)+'</th>'+
   days.map(({day,classes})=>{
@@ -4904,6 +4966,7 @@ function renderScheduleGrid(first,last,today){
   '<span class="schedule-day-key schedule-holiday">F · Feriado nacional ou estadual do RJ</span></p>'+
   '<p class="muted"><strong>Equipes</strong> · <span class="schedule-day-key">Volante I - Arelí</span> '+
   '<span class="schedule-day-key">Volante II - Fernando</span> <span class="schedule-day-key">Volante III - Chiller</span> <span class="schedule-pill" data-kind="support">SUP · Equipe de suporte</span></p>'+
+  (canAddComment||scheduleDateComments.size?'<p class="muted">Selecione uma data para abrir os comentários. Passe o mouse sobre ● para ler.</p>':"")+
   '<p class="muted">Selecione um atendimento para consultar os detalhes. '+
   scheduleStatusKeys.map(key=>schedulePill(key)).join(" ")+schedulePill("moved","↪ Remanejado")+
   (["admin","team","planning"].includes(profile?.role)?schedulePill("draft","* Rascunho"):"")+'</p>';
@@ -4919,10 +4982,96 @@ $("scheduleNext").onclick=()=>scheduleStep(1);
 $("scheduleToday").onclick=()=>{$("scheduleMonth").value=scheduleTodayDate().slice(0,7);loadSchedule();};
 
 $("scheduleResults").onclick=event=>{
+ const date=event.target.closest("[data-schedule-date]");
+ if(date){openScheduleDateComments(date.dataset.scheduleDate);return;}
  const button=event.target.closest("[data-schedule-entry]");
  const row=button&&scheduleRows.find(item=>item.id===button.dataset.scheduleEntry);
  if(row)showScheduleDetail(row);
 };
+
+function openScheduleDateComments(day,selected=$("scheduleUnit").value){
+ const comments=scheduleDateComments.get(day)||[];
+ const filter=$("scheduleUnit").value;
+ const units=scheduleUnits().filter(unit=>!filter||unit.id===filter);
+ const writable=units.filter(unit=>comments.some(c=>c.unit_id===unit.id)
+  ?scheduleCan("edit",unit.id):scheduleCan("insert",unit.id));
+ const content=$("scheduleDateCommentText");
+ content.replaceChildren();
+ for(const comment of comments){
+  const line=document.createElement("p");
+  const name=document.createElement("strong");
+  name.textContent=scheduleUnitName(comment.unit_id);
+  line.append(name,document.createElement("br"),document.createTextNode(comment.body));
+  content.append(line);
+ }
+ if(!comments.length)content.textContent="Nenhum comentário para esta data.";
+ scheduleCommentEditor={day,comments,writable,busy:false};
+ for(const id of ["scheduleDateCommentUnit","scheduleDateCommentBody","scheduleDateCommentSave","scheduleDateCommentDelete"])$(id).disabled=false;
+ $("scheduleDateCommentTitle").textContent="Comentários · "+scheduleDateLabel(day);
+ $("scheduleDateCommentForm").classList.toggle("hidden",!writable.length);
+ const unit=$("scheduleDateCommentUnit");
+ unit.replaceChildren(...scheduleOptions(writable,"Selecione a unidade"));
+ unit.value=writable.some(u=>u.id===selected)?selected:writable.length===1?writable[0].id:"";
+ selectScheduleCommentUnit();
+ if(!$("scheduleDateCommentDialog").open)$("scheduleDateCommentDialog").showModal();
+}
+
+function selectScheduleCommentUnit(){
+ const unit=$("scheduleDateCommentUnit").value;
+ const comment=scheduleCommentEditor?.comments.find(c=>c.unit_id===unit);
+ $("scheduleDateCommentBody").value=comment?.body||"";
+ $("scheduleDateCommentLabel").classList.toggle("hidden",!unit);
+ $("scheduleDateCommentSave").classList.toggle("hidden",!unit);
+ $("scheduleDateCommentDelete").classList.toggle("hidden",!comment||!scheduleCan("delete",unit));
+ $("scheduleDateCommentStatus").textContent="";
+}
+
+$("scheduleDateCommentUnit").onchange=selectScheduleCommentUnit;
+$("scheduleDateCommentForm").onsubmit=event=>{event.preventDefault();saveScheduleDateComment(false);};
+$("scheduleDateCommentDelete").onclick=()=>{
+ if(confirm("Remover o comentário desta unidade nesta data?"))saveScheduleDateComment(true);
+};
+
+async function saveScheduleDateComment(remove){
+ const editor=scheduleCommentEditor;
+ const unit=$("scheduleDateCommentUnit").value;
+ if(!editor||editor.busy||!editor.writable.some(u=>u.id===unit))return;
+ const current=editor.comments.find(c=>c.unit_id===unit);
+ const body=$("scheduleDateCommentBody").value.trim();
+ const status=$("scheduleDateCommentStatus");
+ const action=remove?"delete":current?"edit":"insert";
+ if(!scheduleCan(action,unit)||(remove&&!current))return;
+ if(!remove&&!body){status.textContent="Digite um comentário.";return;}
+ if(!remove&&body===current?.body){status.textContent="O comentário já está salvo.";return;}
+ const controls=["scheduleDateCommentUnit","scheduleDateCommentBody","scheduleDateCommentSave","scheduleDateCommentDelete"];
+ editor.busy=true;
+ for(const id of controls)$(id).disabled=true;
+ status.textContent="Salvando…";
+ let query=db.from("volante_date_comments");
+ if(current){
+  query=(remove?query.delete():query.update({body})).eq("visit_date",editor.day).eq("unit_id",unit).eq("body",current.body);
+ }else{
+  query=query.insert({visit_date:editor.day,unit_id:unit,body});
+ }
+ try{
+  const {data,error}=await query.select("visit_date");
+  if(editor!==scheduleCommentEditor)return;
+  if(error||data?.length!==1){
+   status.textContent=error&&error.code!=="23505"?"Não foi possível salvar. Tente novamente.":
+    "Este comentário mudou em outra sessão. Feche a janela e recarregue o cronograma.";
+   return;
+  }
+  $("scheduleDateCommentDialog").close();
+  await loadSchedule();
+  $("scheduleResults").querySelector('[data-schedule-date="'+editor.day+'"]')?.focus();
+ }catch(error){
+  if(editor===scheduleCommentEditor)status.textContent="Não foi possível salvar. Tente novamente.";
+  console.error(error);
+ }finally{
+  editor.busy=false;
+  if(editor===scheduleCommentEditor)for(const id of controls)$(id).disabled=false;
+ }
+}
 
 async function showScheduleHistory(button,row){
  if(!row||!["admin","team","planning"].includes(profile?.role))return;
@@ -4952,7 +5101,12 @@ async function showScheduleHistory(button,row){
  button.parentElement.append(box);
 }
 
-for(const button of document.querySelectorAll("[data-close-schedule]"))button.onclick=()=>$(button.dataset.closeSchedule).close();
+for(const button of document.querySelectorAll("[data-close-schedule]"))button.onclick=()=>{
+ if(button.dataset.closeSchedule!=="scheduleDateCommentDialog"||!scheduleCommentEditor?.busy)$(button.dataset.closeSchedule).close();
+};
+$("scheduleDateCommentDialog").addEventListener("cancel",event=>{
+ if(scheduleCommentEditor?.busy)event.preventDefault();
+});
 
 function scheduleEditorPayload(){
  return {visit_date:$("scheduleEditDate").value,team:Number($("scheduleEditTeam").value),
