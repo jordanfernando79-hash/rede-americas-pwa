@@ -2434,6 +2434,9 @@ main{max-width:1580px;padding:18px 20px 60px}
 <input id="unitNameField" required maxlength="120" placeholder="Ex.: Hospital Pasteur">
 
 
+<label for="unitExpectedHeadcountField">Efetivo esperado</label>
+<input id="unitExpectedHeadcountField" type="number" min="0" max="2147483647" step="1" placeholder="Deixe em branco se ainda não houver meta">
+
 <label>Endereço da unidade</label>
 <textarea id="unitAddressField" rows="3" maxlength="300" placeholder="Ex.: Rua General Polidoro, 192 — Botafogo, Rio de Janeiro/RJ"></textarea>
 
@@ -3435,7 +3438,7 @@ let recoveryMode=false;
 const AUTH_REDIRECT_URL="https://rede-americas-pwa.pages.dev/";
 const sharedAccessToken=new URLSearchParams(location.hash.slice(1)).get("convite");
 let enteringApp=false;
-let overviewLoading=false;
+let overviewRequest=0;
 let unitId="";
 let allUnits=[];
 let editingUnit=null;
@@ -4089,7 +4092,7 @@ function configureActionButtons(){
 async function loadUnits(){
  const {data,error}=await db
   .from("units")
-  .select("id,name,address,active,created_at")
+  .select("id,name,address,active,created_at,expected_headcount")
   .eq("active",true)
   .order("name");
 
@@ -4136,10 +4139,12 @@ async function loadUnits(){
 
  if($("overviewUnitSelect")){
   const overviewSelected=$("overviewUnitSelect").value;
-  $("overviewUnitSelect").innerHTML='<option value="">Toda a Rede</option>';
+  $("overviewUnitSelect").replaceChildren(new Option(
+   profile?.role==="admin"?"Toda a Rede":"Todas as unidades autorizadas",""
+  ));
 
 
-  overviewOperationalUnits().forEach(u=>{
+  allUnits.forEach(u=>{
    const option=document.createElement("option");
    option.value=u.id;
    option.textContent=u.name;
@@ -4148,7 +4153,7 @@ async function loadUnits(){
   });
 
 
-  if(overviewSelected&&!overviewOperationalUnits().some(u=>u.id===overviewSelected)){
+  if(overviewSelected&&!allUnits.some(u=>u.id===overviewSelected)){
    $("overviewUnitSelect").value="";
   }
  }
@@ -4301,7 +4306,7 @@ async function loadUnitsAdmin(){
 
  const {data:unitRows,error}=await db
   .from("units")
-  .select("id,name,address,active,created_at")
+  .select("id,name,address,active,created_at,expected_headcount")
   .eq("active",true)
   .order("name");
 
@@ -4322,7 +4327,7 @@ async function loadUnitsAdmin(){
 
 
 
- const data=(unitRows||[]).filter(isOperationalUnit);
+ const data=isAdmin?(unitRows||[]):(unitRows||[]).filter(isOperationalUnit);
  if(!data.length){
   list.innerHTML='<div class="empty">Nenhuma unidade cadastrada.</div>';
   return;
@@ -4418,7 +4423,7 @@ async function loadUnitsAdmin(){
 
   const name=(u.name||"").trim();
   const normalized=normalizeUnitSearch(name);
-  const expectedHeadcount=expectedHeadcountForUnit(name);
+  const expectedHeadcount=u.expected_headcount;
 
 
 
@@ -4554,6 +4559,7 @@ function openUnitEdit(unit){
  $("unitIdField").value=unit.id;
  $("unitNameField").value=unit.name;
  $("unitAddressField").value=unit.address||"";
+ $("unitExpectedHeadcountField").value=unit.expected_headcount??"";
  $("unitDialogTitle").textContent="Editar unidade";
  $("unitDialog").showModal();
 }
@@ -4570,7 +4576,11 @@ $("unitForm").addEventListener("submit",async e=>{
 
  const name=$("unitNameField").value.trim();
  const address=textOrNull($("unitAddressField").value);
+ const expected=$("unitExpectedHeadcountField").value;
+ const expected_headcount=expected===""?null:Number(expected);
  if(!name)return;
+
+ const unitData={name,address,expected_headcount};
 
 
 
@@ -4590,9 +4600,9 @@ $("unitForm").addEventListener("submit",async e=>{
 
 
   if(id){
-   ({error}=await db.from("units").update({name,address}).eq("id",id));
+   ({error}=await db.from("units").update(unitData).eq("id",id));
   }else{
-   ({error}=await db.from("units").insert({name,address,active:true}));
+   ({error}=await db.from("units").insert({...unitData,active:true}));
   }
 
 
@@ -6222,28 +6232,14 @@ function moneyBr(value){
 
 
 
-const EXPECTED_HEADCOUNT_BY_UNIT=[
- {names:["coi botafogo"],count:4},
- {names:["coi mdx"],count:2},
- {names:["coi volante i","equipe volante i"],count:2},
- {names:["coi volante ii","equipe volante ii"],count:2},
- {names:["coi ipanema"],count:3},
- {names:["coi niteroi"],count:3},
- {names:["coi amc"],count:3},
- {names:["coi oncobarra","coi onco barra"],count:3},
- {names:["backoffice","back office"],count:5},
- {names:["hospital pro cardiaco","pro cardiaco","hospital pro-cardiaco","pro-cardiaco"],count:10},
- {names:["hospital samaritano","samaritano","hospital samaritano botafogo","samaritano botafogo"],count:9},
- {names:["hospital americas medical city","americas medical city"],count:14}
-];
-
-const OVERVIEW_EXPECTED_HEADCOUNT=EXPECTED_HEADCOUNT_BY_UNIT.reduce((total,unit)=>total+unit.count,0);
-
-function expectedHeadcountForUnit(name){
- const normalized=normalizeUnitSearch(name||"").replace(/\s+/g," ");
- return EXPECTED_HEADCOUNT_BY_UNIT.find(unit=>unit.names.includes(normalized))?.count;
+function overviewExpectedHeadcountLabel(units){
+ if(!units.length)return "Efetivo esperado: —";
+ const withGoal=units.filter(unit=>unit.expected_headcount!=null);
+ if(!withGoal.length)return "Efetivo esperado: não cadastrado";
+ const total=withGoal.reduce((sum,unit)=>sum+unit.expected_headcount,0);
+ const missing=units.length-withGoal.length;
+ return `Efetivo esperado: ${total}`+(missing?` · ${missing} sem meta cadastrada`:"");
 }
-
 
 function overviewScopeId(){
  return $("overviewUnitSelect")?.value||"";
@@ -6270,14 +6266,19 @@ $("overviewUnitSelect").addEventListener("change",loadOverview);
 
 
 async function loadOverview(){
- if(!session||!allUnits.length||overviewLoading)return;
- overviewLoading=true;
+ if(!session?.user)return;
+ const owner=session.user.id;
+ const request=++overviewRequest;
+ const isCurrent=()=>request===overviewRequest&&session?.user?.id===owner;
 
 
 
 
  const scope=overviewScopeId();
- const scopedUnitIds=scope?[scope]:allUnits.map(u=>u.id);
+ const scopedUnits=allUnits.filter(unit=>!scope||unit.id===scope);
+ const scopedUnitIds=scopedUnits.map(unit=>unit.id);
+ const staffUnits=scopedUnits.filter(unit=>hasAccess("comunicacao","view",unit.id));
+ const staffUnitIds=staffUnits.map(unit=>unit.id);
 
 
 
@@ -6289,11 +6290,11 @@ async function loadOverview(){
 
 
 
- const canCommunication=profile?.role==="admin"||hasAccess("comunicacao","view");
- const canRdi=profile?.role==="admin"||hasAccess("rdi","view");
- const canDocuments=profile?.role==="admin"||hasAccess("documentos","view");
- const canWater=profile?.role==="admin"||hasAccess("qualidade_agua","view");
- const canBudgets=profile?.role==="admin"||hasAccess("orcamentos","view");
+ const canCommunication=staffUnitIds.length>0;
+ const canRdi=scopedUnitIds.length>0&&hasAccess("rdi","view");
+ const canDocuments=scopedUnitIds.length>0&&hasAccess("documentos","view");
+ const canWater=scopedUnitIds.length>0&&hasAccess("qualidade_agua","view");
+ const canBudgets=scopedUnitIds.length>0&&hasAccess("orcamentos","view");
 
 
 
@@ -6326,7 +6327,7 @@ async function loadOverview(){
    budgetsRes
   ]=await Promise.all([
    safe("vínculos da equipe",canCommunication,
-    db.from("employee_units").select("employee_id,unit_id,count_in_headcount").in("unit_id",scopedUnitIds)),
+    db.from("employee_units").select("employee_id,unit_id,count_in_headcount").in("unit_id",staffUnitIds)),
    safe("funcionários",canCommunication,
     db.from("employees").select("id,job_title,org_role,status")),
    safe("RDI",canRdi,
@@ -6341,6 +6342,8 @@ async function loadOverview(){
 
 
 
+
+  if(!isCurrent())return;
 
   let partialErrors=[
    employeeLinksRes,employeesRes,rdiRes,docsRes,waterReportsRes,budgetsRes
@@ -6378,6 +6381,7 @@ async function loadOverview(){
       .select("id,report_id,result_value,min_snapshot,max_snapshot")
       .in("report_id",waterIds)
    );
+   if(!isCurrent())return;
    waterResults=resultRes.data||[];
    if(resultRes.error)partialErrors++;
   }
@@ -6438,7 +6442,7 @@ async function loadOverview(){
   const operationalUnits=overviewOperationalUnits();
 
 
-  $("ovUnits").textContent=scope?1:operationalUnits.length;
+  $("ovUnits").textContent=scope?scopedUnits.length:operationalUnits.length;
   $("ovUnitsNote").textContent=scope
    ?(allUnits.find(u=>u.id===scope)?.name||"Unidade selecionada")
    :"Unidades operacionais";
@@ -6454,10 +6458,7 @@ async function loadOverview(){
    :"Sem acesso ao módulo";
 
 
-  const expectedHeadcount=scope
-   ?expectedHeadcountForUnit(allUnits.find(u=>u.id===scope)?.name)
-   :OVERVIEW_EXPECTED_HEADCOUNT;
-  $("ovEmployeesExpectedNote").textContent=`Efetivo esperado: ${expectedHeadcount??"não definido"}`;
+  $("ovEmployeesExpectedNote").textContent=overviewExpectedHeadcountLabel(staffUnits);
 
 
 
@@ -6517,11 +6518,10 @@ async function loadOverview(){
 
 
  }catch(err){
+  if(!isCurrent())return;
   console.error(err);
   $("ovAttention").innerHTML='<div class="empty">Não foi possível carregar os indicadores disponíveis.</div>';
   message($("appMessage"),"Falha ao carregar a Visão Geral.","err");
- }finally{
-  overviewLoading=false;
  }
 }
 
