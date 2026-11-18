@@ -4036,7 +4036,7 @@ function configureVisibleModules(){
  $("moduleWater").classList.toggle("hidden",!hasAccess("qualidade_agua","view"));
  $("moduleReports").classList.toggle("hidden",!hasAccess("relatorios","view"));
  $("moduleTrainings").classList.toggle("hidden",!hasAccess("treinamentos","view"));
- $("newReportButton").classList.toggle("hidden",!hasAccess("relatorios","insert"));
+ $("newReportButton").classList.toggle("hidden",!canUploadReports());
  $("moduleDocuments").classList.toggle("hidden",!hasAccess("documentos","view"));
 
 
@@ -5941,8 +5941,10 @@ $("accessRole").addEventListener("change",renderAccessModuleChoices);
 function renderAccessModuleChoices(){
  const planning=$("accessRole").value==="planning";
  $("accessRoleHelp").textContent=planning
-  ?"As abas marcadas permitem consultar, incluir e editar nas unidades selecionadas. Relatórios da rede e Treinamentos são de consulta."
-  :"Equipe e Cliente têm acesso de somente leitura. Relatórios da rede são compartilhados com quem tem acesso a esse módulo.";
+  ?"O acesso às abas segue as unidades selecionadas. Em Relatórios da rede, é possível consultar e enviar PDFs quando o módulo está liberado."
+  :$("accessRole").value==="team"
+   ?"Equipe pode consultar as abas liberadas e enviar PDFs em Relatórios da rede quando esse módulo está liberado."
+   :"Cliente pode consultar as abas liberadas. Relatórios da rede são compartilhados com quem tem acesso ao módulo.";
  const box=$("accessModules");
  box.replaceChildren();
  const units=editingAccessUser?selectedAccessUnits():[""];
@@ -9083,6 +9085,12 @@ function formatReferenceMonth(value){
 }
 
 
+function canUploadReports(){
+ if(["team","planning"].includes(profile?.role))return hasAccess("relatorios","view");
+ return hasAccess("relatorios","insert");
+}
+
+
 function safeFileName(name){
  return String(name||"relatorio")
   .normalize("NFD")
@@ -9251,7 +9259,11 @@ async function openReport(report){
 
 
 $("newReportButton").onclick=()=>{
+ if(!canUploadReports())return;
  $("reportForm").reset();
+ $("reportFile").accept=["team","planning"].includes(profile?.role)
+  ?".pdf,application/pdf"
+  :".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt";
  $("reportDialog").showModal();
 };
 
@@ -9261,6 +9273,7 @@ $("cancelReportDialog").onclick=()=>$("reportDialog").close();
 
 $("reportForm").addEventListener("submit",async e=>{
  e.preventDefault();
+ if(!canUploadReports())return;
 
 
  const btn=$("saveReportButton");
@@ -9282,8 +9295,14 @@ $("reportForm").addEventListener("submit",async e=>{
   }
 
 
+  const pdfOnly=["team","planning"].includes(profile?.role);
+  if(pdfOnly&&(!/\.pdf$/i.test(file.name)||(file.type&&file.type!=="application/pdf"))){
+   throw new Error("Selecione um arquivo PDF.");
+  }
+
+  const contentType=pdfOnly?"application/pdf":file.type;
   const cleanName=safeFileName(file.name);
-  const storagePath=`${referenceMonth}/${Date.now()}_${cleanName}`;
+  const storagePath=`${referenceMonth}/${crypto.randomUUID()}_${cleanName}`;
 
 
   const {error:uploadError}=await db.storage
@@ -9291,7 +9310,7 @@ $("reportForm").addEventListener("submit",async e=>{
    .upload(storagePath,file,{
     cacheControl:"3600",
     upsert:false,
-    contentType:file.type||undefined
+    contentType:contentType||undefined
    });
 
 
@@ -9306,7 +9325,7 @@ $("reportForm").addEventListener("submit",async e=>{
     reference_month:`${referenceMonth}-01`,
     original_filename:file.name,
     storage_path:storagePath,
-    mime_type:file.type||null,
+    mime_type:contentType||null,
     uploaded_by:session.user.id
    });
 
@@ -9330,7 +9349,7 @@ $("reportForm").addEventListener("submit",async e=>{
 
   message(
    $("appMessage"),
-   err?.message==="Preencha nome, mês de referência e arquivo."
+   ["Preencha nome, mês de referência e arquivo.","Selecione um arquivo PDF."].includes(err?.message)
     ?err.message
     :"Não foi possível enviar o relatório.",
    "err"
