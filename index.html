@@ -4734,6 +4734,13 @@ function scheduleCan(action,unit=null){
   &&hasAccess("cronogramas","view",unit);
 }
 
+function canEditScheduleVisit(row,unit=row.unit_id){
+ if(profile?.role!=="team")return scheduleCan("edit",unit);
+ return row.published&&[1,2,3].includes(Number(row.team))
+  &&["planned","done"].includes(row.status)
+  &&accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit&&g.can_view);
+}
+
 function scheduleUnits(){
  return allUnits.filter(unit=>scheduleUnitKeys.has(scheduleNormalize(unit.name))&&(profile?.role==="client"
   ?accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit.id&&g.can_view)
@@ -4905,7 +4912,7 @@ function schedulePill(status,label=scheduleLabels[status]){
 }
 
 function showScheduleDetail(row){
- const canEdit=scheduleCan("edit",row.unit_id);
+ const canEdit=canEditScheduleVisit(row);
  const canViewHistory=row.moved&&["admin","team","planning"].includes(profile?.role);
  $("scheduleDetailTitle").textContent=scheduleTeams[row.team]+" · "+scheduleUnitName(row.unit_id);
  $("scheduleDetailContent").innerHTML='<p>'+escapeHtml(scheduleDateLabel(row.visit_date))+
@@ -5140,15 +5147,18 @@ function updateScheduleEditor(){
 for(const id of ["scheduleEditDate","scheduleEditTeam","scheduleEditUnit"])$(id).onchange=updateScheduleEditor;
 
 function openScheduleEditor(row=null){
- const action=row?"edit":"insert";
- const units=scheduleUnits().filter(u=>scheduleCan(action,u.id));
- if(!units.length||(row&&!scheduleCan(action,row.unit_id)))return;
+ const units=scheduleUnits().filter(u=>row?canEditScheduleVisit(row,u.id):scheduleCan("insert",u.id));
+ if(!units.length||(row&&!canEditScheduleVisit(row)))return;
  scheduleEditing=row;
  $("scheduleEditTitle").textContent=row?(row.published?"Editar atendimento publicado":"Editar rascunho"):"Agendar atendimento";
  const today=scheduleTodayDate();
  const first=scheduleReference();
  $("scheduleEditDate").value=row?.visit_date||(today.slice(0,7)===first.slice(0,7)?today:first);
- $("scheduleEditTeam").value=row?.team||$("scheduleTeam").value||"1";
+ const teamSelect=$("scheduleEditTeam");
+ const supportOption=teamSelect.querySelector('option[value="4"]');
+ supportOption.disabled=profile?.role==="team";
+ supportOption.hidden=supportOption.disabled;
+ teamSelect.value=row?.team||$("scheduleTeam").value||"1";
  $("scheduleEditUnit").replaceChildren(...scheduleOptions(units,"Selecione",row?.unit_id||$("scheduleUnit").value));
  $("scheduleEditStatus").value=row?.status==="done"?"done":"planned";
  $("scheduleEditLegacy").classList.add("hidden");
@@ -5174,7 +5184,10 @@ $("scheduleEditForm").onsubmit=async event=>{
  const values=scheduleEditorPayload();
  $("scheduleEditLegacy").classList.add("hidden");
  if(!scheduleStatusKeys.includes(values.status)||!scheduleUnits().some(unit=>unit.id===values.unit_id))return;
- if(!scheduleCan(row?"edit":"insert",values.unit_id)||(row&&!scheduleCan("edit",row.unit_id)))return;
+ if(row){
+  if(!canEditScheduleVisit(row)||!canEditScheduleVisit(row,values.unit_id))return;
+  if(profile?.role==="team"&&![1,2,3].includes(values.team))return;
+ }else if(!scheduleCan("insert",values.unit_id))return;
  if(values.team===4&&!values.description){
   $("scheduleEditNotice").textContent="Informe a descrição do atendimento de suporte.";
   return;
@@ -5943,7 +5956,7 @@ function renderAccessModuleChoices(){
  $("accessRoleHelp").textContent=planning
   ?"O acesso às abas segue as unidades selecionadas. Em Relatórios da rede, é possível consultar e enviar PDFs quando o módulo está liberado."
   :$("accessRole").value==="team"
-   ?"Equipe pode consultar as abas liberadas e enviar PDFs em Relatórios da rede quando esse módulo está liberado."
+   ?"Equipe pode editar ou remanejar atendimentos publicados no Cronograma das unidades liberadas e enviar PDFs em Relatórios da rede."
    :"Cliente pode consultar as abas liberadas. Relatórios da rede são compartilhados com quem tem acesso ao módulo.";
  const box=$("accessModules");
  box.replaceChildren();
