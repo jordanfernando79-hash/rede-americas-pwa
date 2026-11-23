@@ -1799,7 +1799,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <input id="budgetSyncFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
 <button id="budgetChooseFileButton" class="ghost" style="width:auto">📤 Selecionar planilha</button>
 <button id="syncBudgetButton" class="secondary" style="width:auto" disabled>🔄 Sincronizar agora</button>
-<button type="button" class="secondary hidden" data-follow-open>Follow executivo (0)</button><button type="button" class="secondary hidden" data-follow-history>Histórico de follow</button><button id="newBudgetButton" class="primary" style="width:auto">+ Novo orçamento</button>
+<button id="newBudgetButton" class="primary" style="width:auto">+ Novo orçamento</button>
 </div>
 </div>
 
@@ -3469,7 +3469,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 <dialog id="followDialog" aria-labelledby="followHeading">
  <div class="section-title"><h2 id="followHeading">Follow executivo por unidade</h2><button type="button" id="followClose" class="secondary">Fechar</button></div>
- <p>Revise os itens e relacione cada orçamento à RDI correspondente para incluir fotos e GUT. Se a RDI também estiver selecionada, ela aparecerá uma única vez junto ao orçamento vinculado.</p>
+ <p>Revise as demandas selecionadas na aba RDI. Fotos, GUT, status, serviço proposto, referência de orçamento e valor informado serão obtidos da própria demanda.</p>
  <div class="follow-date-fields">
   <label>Data do follow (não confirma envio)<input type="date" id="followDate" required></label>
 
@@ -12799,8 +12799,6 @@ function renderBudgetCharts(data){
 
 
 function renderBudgets(){
- followUpdateButtons();
- setTimeout(followUpdateBadges,0);
  const data=filteredBudgets();
  const approved=data.filter(budgetIsApproved);
  const executed=data.filter(r=>r.executed);
@@ -12855,7 +12853,6 @@ function renderBudgets(){
    <td><span class="badge ${approvedFlag?"budget-status-approved":"budget-status-pending"}">${approvedFlag?"Aprovado":"Não aprovado"}</span></td>
    <td>${canEdit?'<button class="secondary budgetEditBtn" style="width:auto">Editar</button>':"—"}</td>
   `;
-  if(followAdmin()){tr.firstElementChild.prepend(followCheckbox("budget",r));tr.firstElementChild.appendChild(followHistoryBadge("budget",r));}
   const edit=tr.querySelector(".budgetEditBtn");
   if(edit)edit.onclick=()=>openBudgetDialog(r);
   tbody.appendChild(tr);
@@ -12880,7 +12877,6 @@ function renderBudgets(){
    <p><strong>Escopo:</strong> ${escapeHtml(r.scope||"—")}</p>
    ${canEdit?'<div class="actions"><button class="secondary budgetEditBtnMobile">Editar</button></div>':""}
   `;
-  if(followAdmin()){card.prepend(followCheckbox("budget",r));card.appendChild(followHistoryBadge("budget",r));}
   const editMobile=card.querySelector(".budgetEditBtnMobile");
   if(editMobile)editMobile.onclick=()=>openBudgetDialog(r);
   mobile.appendChild(card);
@@ -13233,25 +13229,25 @@ const followFontBold='AAEAAAARAQAABAAQR0RFRgTDBqMAAT/QAAAAIkdQT1MOlvXgAAE/9AAAAl
 /* Follow executivo: seleção temporária, exclusiva do administrador. */
 const followSelection=new Map();
 let followRdis=[],followRows=[],followBusy=false;
-const followLinks=new Map();
 const followEdits=new Map(),followPending=new Map();
 let followHistory=[],followHistoryReady=false,followHistoryError='',followHistoryLoading=null,followHistoryFilter=null,followSendId=null,followSessionEpoch=0;
 function followToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
-function followItemKey(item){return item.rdi?'rdi:'+item.rdi.id:'budget:'+item.budgets[0].id;}
-function followItemStatus(item){return item.rdi?.status||(item.budgets[0]?.executed?'Executado':item.budgets[0]&&budgetIsApproved(item.budgets[0])?'Aprovado':'Não informado');}
-function followService(item){return item.budgets.map(b=>b.scope).filter(Boolean).join('\n')||item.rdi?.recommended_action||'Não informado';}
+function followItemKey(item){return 'rdi:'+item.rdi.id;}
+function followItemStatus(item){return item.rdi?.status||'Não informado';}
+function followService(item){return item.rdi?.recommended_action||'Não informado';}
 function followApplyEdits(items){return items.map(item=>({...item,...followEdits.get(followItemKey(item))}));}
 function followAdmin(){return profile?.role==='admin'&&profile?.active!==false;}
 function followKey(kind,row){return kind+':'+row.id;}
 function followUnit(row){return allUnits.find(u=>u.id===row.unit_id)?.name||row.source_unit_name||'Unidade não informada';}
 function followGroup(row){return row.unit_id||('sem-cadastro:'+followUnit(row));}
-function followTitle(kind,row){return kind==='rdi'?(row.source_id||'RDI')+' — '+(row.operational_deviation||'Demanda sem descrição'):'Orçamento '+(row.quote_number||'sem número')+' — '+(row.scope||'Sem descrição');}
+function followTitle(kind,row){return (row.source_id||'RDI')+' — '+(row.operational_deviation||'Demanda sem descrição');}
 function followUpdateButtons(){
  document.querySelectorAll('[data-follow-history]').forEach(b=>b.classList.toggle('hidden',!followAdmin()));
  document.querySelectorAll('[data-follow-open]').forEach(b=>{b.classList.toggle('hidden',!followAdmin());b.textContent='Follow executivo ('+followSelection.size+')';});
  document.querySelectorAll('[data-follow-key]').forEach(c=>{c.checked=followSelection.has(c.dataset.followKey);});
 }
 function followCheckbox(kind,row){
+ if(kind!=='rdi')throw new Error('O follow utiliza somente demandas RDI.');
  const label=document.createElement('label');label.className='follow-select';
  const input=document.createElement('input');input.type='checkbox';input.dataset.followKey=followKey(kind,row);input.checked=followSelection.has(input.dataset.followKey);
  input.onchange=()=>{if(!followAdmin()){input.checked=false;return;}if(input.checked)followSelection.set(input.dataset.followKey,{kind,row});else followSelection.delete(input.dataset.followKey);followUpdateButtons();};
@@ -13261,23 +13257,18 @@ async function followRead(table,build){
  let rows=[];
  for(let offset=0;;offset+=500){
   const {data,error}=await build(db.from(table).select('*').eq('archived',false)).order('id').range(offset,offset+499);
-  if(error)throw new Error('Não foi possível conferir os dados de '+(table==='budgets'?'orçamentos':'RDI')+'.');
+  if(error)throw new Error('Não foi possível conferir os dados de RDI.');
   rows.push(...(data||[]));if(!data||data.length<500)return rows;
  }
 }
 async function followRefresh(){
- const selected=[...followSelection.values()];let fresh=[];
- for(const kind of ['rdi','budget']){
-  const ids=selected.filter(s=>s.kind===kind).map(s=>s.row.id);
-  for(let i=0;i<ids.length;i+=100){const part=ids.slice(i,i+100);fresh.push(...(await followRead(kind==='rdi'?'rdi_demands':'budgets',q=>q.in('id',part))).map(row=>({kind,row})));}
- }
- if(fresh.length!==selected.length)throw new Error('Um item selecionado foi removido ou arquivado. Feche a revisão, atualize a listagem e refaça a seleção.');
- const units=[...new Set(fresh.map(s=>s.row.unit_id).filter(Boolean))];let rdis=[];
- for(let i=0;i<units.length;i+=100){const part=units.slice(i,i+100);rdis.push(...await followRead('rdi_demands',q=>q.in('unit_id',part)));}
- followRows=fresh;followRdis=rdis;
- fresh.forEach(s=>followSelection.set(followKey(s.kind,s.row),s));
- // Não inferir vínculos apenas pela semelhança dos textos.
- for(const [id,rdiId] of followLinks){const b=fresh.find(s=>s.kind==='budget'&&s.row.id===id)?.row;const r=rdis.find(r=>r.id===rdiId);if(!b||!r||!b.unit_id||r.unit_id!==b.unit_id)followLinks.delete(id);}
+ const selected=[...followSelection.values()];
+ if(selected.some(s=>s.kind!=='rdi'))throw new Error('Selecione somente demandas da aba RDI.');
+ const ids=selected.map(s=>s.row.id),fresh=[];
+ for(let i=0;i<ids.length;i+=100){const part=ids.slice(i,i+100);fresh.push(...(await followRead('rdi_demands',q=>q.in('id',part))).map(row=>({kind:'rdi',row})));}
+ if(fresh.length!==selected.length)throw new Error('Uma demanda selecionada foi removida ou arquivada. Feche a revisão, atualize a listagem e refaça a seleção.');
+ followRows=fresh;followRdis=fresh.map(s=>s.row);
+ fresh.forEach(s=>followSelection.set(followKey('rdi',s.row),s));
 }
 function followGroups(){
  const groups=new Map();followRows.forEach(s=>{const key=followGroup(s.row);if(!groups.has(key))groups.set(key,{key,name:followUnit(s.row),rows:[]});groups.get(key).rows.push(s);});return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
@@ -13290,20 +13281,13 @@ function followReview(){
   group.rows.forEach(s=>{
    const item=document.createElement('div');item.className='follow-review-item';
    const title=document.createElement('strong');title.textContent=followTitle(s.kind,s.row);item.appendChild(title);
-   if(s.kind==='budget'){
-    const label=document.createElement('label');label.textContent='Relacionar à RDI desta unidade (para trazer fotos e GUT)';
-    const select=document.createElement('select');select.dataset.followLink=s.row.id;
-    const empty=document.createElement('option');empty.value='';empty.textContent='Sem RDI vinculada — fotos e GUT não informados';select.appendChild(empty);
-    followRdis.filter(r=>s.row.unit_id&&r.unit_id===s.row.unit_id).sort((a,b)=>Number(b.gut_score||0)-Number(a.gut_score||0)).forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=followTitle('rdi',r);select.appendChild(o);});
-    select.value=followLinks.get(s.row.id)||'';select.onchange=()=>{if(select.value)followLinks.set(s.row.id,select.value);else followLinks.delete(s.row.id);followReview();};label.appendChild(select);item.appendChild(label);
-   }
-   const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='Retirar do follow';remove.onclick=()=>{followSelection.delete(followKey(s.kind,s.row));followRows=followRows.filter(x=>followKey(x.kind,x.row)!==followKey(s.kind,s.row));if(s.kind==='budget')followLinks.delete(s.row.id);followUpdateButtons();followReview();};item.appendChild(remove);section.appendChild(item);
+   const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='Retirar do follow';remove.onclick=()=>{followSelection.delete(followKey(s.kind,s.row));followRows=followRows.filter(x=>followKey(x.kind,x.row)!==followKey(s.kind,s.row));followUpdateButtons();followReview();};item.appendChild(remove);section.appendChild(item);
   });
   const summaries=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Revisar os textos executivos (somente neste PDF)';summaries.appendChild(summary);
   followItems(group).forEach(page=>{
    const key=followItemKey(page),draft=followEdits.get(key)||{};
-   const edit=document.createElement('div');edit.className='follow-review-item';const heading=document.createElement('strong');heading.textContent=page.rdi?.source_id||('Orçamento '+(page.budgets[0]?.quote_number||'sem número'));edit.appendChild(heading);
-   [['executiveDemand','Demanda',page.rdi?.operational_deviation||page.budgets[0]?.scope||'Não informado'],['executiveService','Serviço proposto',followService(page)]].forEach(([field,name,original])=>{
+   const edit=document.createElement('div');edit.className='follow-review-item';const heading=document.createElement('strong');heading.textContent=page.rdi?.source_id||'RDI';edit.appendChild(heading);
+   [['executiveDemand','Demanda',page.rdi?.operational_deviation||'Não informado'],['executiveService','Serviço proposto',followService(page)]].forEach(([field,name,original])=>{
     const label=document.createElement('label');label.textContent=name;const area=document.createElement('textarea');area.rows=3;area.maxLength=3000;area.value=draft[field]??original;area.oninput=()=>{const current=followEdits.get(key)||{};current[field]=area.value.trim();followEdits.set(key,current);};label.appendChild(area);edit.appendChild(label);
    });summaries.appendChild(edit);
   });section.appendChild(summaries);
@@ -13313,25 +13297,17 @@ function followReview(){
   }
   const generate=document.createElement('button');generate.type='button';generate.className='primary';generate.textContent=followPending.has(group.key)?'Retomar arquivamento do PDF':'Gerar, arquivar e baixar PDF';generate.onclick=()=>followGenerate(group.key);section.appendChild(generate);body.appendChild(section);
  });
- if(!followRows.length)body.textContent='Nenhum item selecionado. Selecione demandas nas abas RDI e Orçamentos.';
+ if(!followRows.length)body.textContent='Nenhum item selecionado. Selecione as demandas na aba RDI.';
 }
 async function followOpen(){
  if(!followAdmin())return;
- if(!followSelection.size){message($('appMessage'),'Marque os itens que devem compor o follow nas abas RDI e Orçamentos.','err');return;}
+ if(!followSelection.size){message($('appMessage'),'Marque as demandas que devem compor o follow na aba RDI.','err');return;}
  $('followDialog').showModal();$('followReview').textContent='Conferindo os dados selecionados...';$('followMessage').textContent='';
  $('followDate').value=followToday();
  try{await followRefresh();if(!followAdmin())throw new Error('Acesso restrito ao administrador.');followReview();}catch(e){$('followReview').textContent='';$('followMessage').textContent=e.message;}
 }
 function followItems(group){
- const budgetRows=group.rows.filter(s=>s.kind==='budget').map(s=>s.row);
- const linked=new Set(budgetRows.map(b=>followLinks.get(b.id)).filter(Boolean));
- const result=[],byRdi=new Map();
- for(const b of budgetRows){const rdi=followRdis.find(r=>r.id===followLinks.get(b.id)&&r.unit_id===b.unit_id)||null;
-  if(rdi&&byRdi.has(rdi.id)){byRdi.get(rdi.id).budgets.push(b);continue;}
-  const item={budgets:[b],rdi};result.push(item);if(rdi)byRdi.set(rdi.id,item);
- }
- group.rows.filter(s=>s.kind==='rdi'&&!linked.has(s.row.id)).forEach(s=>result.push({budgets:[],rdi:s.row}));
- return result.sort((a,b)=>Number(b.rdi?.gut_score||0)-Number(a.rdi?.gut_score||0));
+ return group.rows.filter(s=>s.kind==='rdi').map(s=>({rdi:s.row})).sort((a,b)=>Number(b.rdi.gut_score||0)-Number(a.rdi.gut_score||0));
 }
 async function followPhoto(path){
  if(!internalRdiPhoto(path))throw new Error('Foto ainda não disponível no sistema');
@@ -13371,26 +13347,26 @@ function followPdf(group,items,photos,date){
  }
  function label(txt,x,y){doc.setFont('FollowSans','bold');doc.setFontSize(8);doc.setTextColor(100,119,131);doc.text(txt,x,y);}
  items.forEach((item,i)=>{
-  if(i)doc.addPage();const r=item.rdi,bs=item.budgets||[],b=bs[0];
+  if(i)doc.addPage();const r=item.rdi;
   doc.setFillColor(14,49,75);doc.rect(0,0,210,32,'F');
   fit('FOLLOW EXECUTIVO',M,13,180,9,17,17,true,[255,255,255]);
   fit(group.name,M,23,180,7,10,9,false,[237,246,250]);
-  const refs=bs.map(q=>q.quote_number).filter(Boolean).join(' / ');
-  fit((r?.source_id||'Demanda')+(refs?'  |  Orçamento '+refs:''),M,41,116,7,9,8,true);
+  const refs=r?.budget_reference||'';
+  fit((r?.source_id||'Demanda')+(refs?'  |  Ref. '+refs:''),M,41,116,7,9,8,true);
   fit('Data do follow: '+dateBr,135,41,61,7,9,9);
   doc.setFillColor(240,246,249);doc.roundedRect(M,48,56,25,2,2,'F');doc.roundedRect(76,48,56,25,2,2,'F');doc.roundedRect(138,48,58,25,2,2,'F');
   label('CRITICIDADE GUT',M+4,55);
   const gut=r?.gut_score==null?'Não informada':r.gut_score+'  |  '+gutClass(r.gut_score);
   fit(gut,M+4,64,48,10,13,10,true,r?.gut_score>=100?[171,64,40]:[21,88,122]);
   label('STATUS',80,55);fit(followItemStatus(item),80,64,48,10,12,9,true);
-  label(bs.length>1?'TOTAL DOS ORÇAMENTOS':'VALOR DO ORÇAMENTO',142,55);
-  const valued=bs.filter(q=>q.amount!=null&&q.amount!==''&&Number.isFinite(Number(q.amount)));
-  const amount=!bs.length?'Não selecionado':valued.length!==bs.length?'Valor não informado':moneyBr(valued.reduce((v,q)=>v+Number(q.amount),0));
+  label('VALOR INFORMADO NA RDI',142,55);
+  const cost=r?.cost_estimated;
+  const amount=cost==null||cost===''||!Number.isFinite(Number(cost))?'Não informado':moneyBr(cost);
   fit(amount,142,65,50,9,14,10,true,[21,101,143]);
   label('DEMANDA',M,83);
-  fit(item.executiveDemand||r?.operational_deviation||b?.scope,M,90,W,20,11,9);
+  fit(item.executiveDemand||r?.operational_deviation,M,90,W,20,11,9);
   label('SERVIÇO PROPOSTO',M,119);
-  fit(item.executiveService||bs.map(q=>q.scope).filter(Boolean).join('\n')||r?.recommended_action,M,126,W,26,10.5,9);
+  fit(item.executiveService||r?.recommended_action,M,126,W,26,10.5,9);
   label('REGISTRO FOTOGRÁFICO',M,159);
   const images=r?(photos.get(r.id)||[]):[];
   for(let slot=0;slot<4;slot++){
@@ -13410,10 +13386,10 @@ async function followSha(blob){return [...new Uint8Array(await crypto.subtle.dig
 function followFileName(name,date){return 'Follow_'+name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').slice(0,140)+'_'+date+'.pdf';}
 function followSnapshot(items,photos){
  return items.map(item=>({
-  rdi_id:item.rdi?.id||null,budget_ids:item.budgets.map(b=>b.id),
-  reference:item.rdi?.source_id||null,demand:item.executiveDemand||item.rdi?.operational_deviation||item.budgets[0]?.scope||'Não informado',
+  rdi_id:item.rdi.id,budget_ids:[],
+  reference:item.rdi?.source_id||null,demand:item.executiveDemand||item.rdi?.operational_deviation||'Não informado',
   service:item.executiveService||followService(item),status:followItemStatus(item),gut_score:item.rdi?.gut_score??null,
-  budgets:item.budgets.map(b=>({id:b.id,reference:b.quote_number,amount:b.amount??null})),
+  budget_reference:item.rdi?.budget_reference||null,cost_estimated:item.rdi?.cost_estimated??null,
   photos:(photos.get(item.rdi?.id)||[]).map(p=>({label:p.label,available:!!p.data}))
  }));
 }
@@ -13471,7 +13447,7 @@ function followHistoryBadge(kind,row){
  const button=document.createElement('button');button.type='button';button.className='secondary follow-last';button.dataset.followLast=followKey(kind,row);button.onclick=()=>followOpenHistory({kind,id:row.id});button.textContent='Consultar histórico de follow';return button;
 }
 function followUpdateBadges(){
- const latest=new Map();for(const report of followHistory){for(const id of report.rdi_ids||[])if(!latest.has('rdi:'+id))latest.set('rdi:'+id,report);for(const id of report.budget_ids||[])if(!latest.has('budget:'+id))latest.set('budget:'+id,report);}
+ const latest=new Map();for(const report of followHistory){for(const id of report.rdi_ids||[])if(!latest.has('rdi:'+id))latest.set('rdi:'+id,report);}
  document.querySelectorAll('[data-follow-last]').forEach(button=>{
   const r=latest.get(button.dataset.followLast);
   button.textContent=followHistoryError?'Histórico de follow indisponível':r?'Último follow: '+formatDate(r.document_date)+(r.sent_on?' • envio confirmado':' • envio não confirmado'):followHistoryReady?'Sem follow arquivado • consultar histórico':'Consultar histórico de follow';
@@ -13486,7 +13462,7 @@ async function followLoadHistory(force=false){
   try{
    const rows=[];
    for(let offset=0;;offset+=500){
-    const {data,error}=await db.from('follow_reports').select('id,unit_id,unit_name,document_date,generated_at,file_name,storage_path,item_count,rdi_ids,budget_ids,sent_on,sent_confirmed_at').order('generated_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+499);
+    const {data,error}=await db.from('follow_reports').select('id,unit_id,unit_name,document_date,generated_at,file_name,storage_path,item_count,rdi_ids,sent_on,sent_confirmed_at').order('generated_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+499);
     if(error)throw error;rows.push(...(data||[]));if(!data||data.length<500)break;
    }
    if(epoch!==followSessionEpoch||!followAdmin())return;followHistory=rows;followHistoryReady=true;followHistoryError='';
@@ -13506,7 +13482,7 @@ function followRenderHistory(){
  if(!followAdmin())return;const list=$('followHistoryList');list.replaceChildren();
  if(followHistoryError){list.textContent=followHistoryError;return;}
  const uid=$('followHistoryUnit').value;
- const rows=followHistory.filter(r=>(!uid||r.unit_id===uid)&&(!followHistoryFilter||(followHistoryFilter.kind==='rdi'?r.rdi_ids:r.budget_ids)?.includes(followHistoryFilter.id)));
+ const rows=followHistory.filter(r=>(!uid||r.unit_id===uid)&&(!followHistoryFilter||r.rdi_ids?.includes(followHistoryFilter.id)));
  if(!rows.length){list.textContent='Nenhum follow arquivado para esta consulta.';return;}
  rows.forEach(report=>{
   const card=document.createElement('article');card.className='follow-unit';const title=document.createElement('h3');title.textContent=report.unit_name;card.appendChild(title);
@@ -13536,7 +13512,7 @@ $('followSendForm').onsubmit=async e=>{
  catch(err){if(epoch===followSessionEpoch)message($('followSendMessage'),err.message,'err');}finally{$('followSendSubmit').disabled=false;}
 };
 db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){
- followSessionEpoch++;followSelection.clear();followLinks.clear();followEdits.clear();followPending.clear();followRows=[];followRdis=[];followHistory=[];followHistoryReady=false;followHistoryError='';followHistoryLoading=null;followBusy=false;
+ followSessionEpoch++;followSelection.clear();followEdits.clear();followPending.clear();followRows=[];followRdis=[];followHistory=[];followHistoryReady=false;followHistoryError='';followHistoryLoading=null;followBusy=false;
  ['followDialog','followHistoryDialog','followSendDialog'].forEach(id=>$(id).close());followUpdateButtons();
 }});
 
