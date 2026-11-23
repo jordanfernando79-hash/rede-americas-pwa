@@ -1285,6 +1285,21 @@ main{max-width:1580px;padding:18px 20px 60px}
  .schedule-grid th:first-child{min-width:96px;max-width:112px;font-size:.84rem}
  .schedule-actions button{flex:1 1 auto}
 }
+
+/* Chat compacto fixo, independente da navegação. */
+.chat-launcher{position:fixed;right:22px;bottom:0;z-index:1200;width:360px;max-width:calc(100vw - 24px);height:46px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;padding:0 16px;background:#123d5c;color:#fff;box-shadow:0 -3px 18px #102b4c24;border:1px solid #316887;font-size:16px;text-align:left}
+.chat-launcher.hidden{display:none}.chat-launcher span:first-child{flex:1}.chat-launcher:hover{background:#195174}
+#chatUnread,.chat-count{background:#1677b8;color:#fff;border-radius:20px;padding:2px 7px;font-size:14px}#chatUnread[hidden],#chatBack[hidden],#chatOlder[hidden]{display:none}
+#chatModuleView{position:fixed;right:22px;bottom:46px;z-index:1200;width:360px;max-width:calc(100vw - 24px);height:460px;max-height:calc(100dvh - 72px);box-sizing:border-box;background:#fff;border:1px solid #c6dce9;border-radius:14px 14px 0 0;box-shadow:0 0 25px #102b4c30;display:flex;flex-direction:column;overflow:hidden;color:#173d59}
+#chatModuleView.hidden{display:none}.chat-dock-header{display:flex;align-items:center;gap:6px;padding:10px;background:#edf5fa;border-bottom:1px solid #d5e3ee}.chat-dock-header strong{flex:1}.chat-dock-header button{width:auto!important;padding:7px 9px!important;min-height:34px;font-size:14px}
+#chatConnection{font-size:14px;margin:6px 12px}#chatMessage{margin:0 10px;font-size:14px}#chatMessage:empty{display:none}#chatMessage .msg{padding:6px}
+.chat-layout{display:flex;flex:1;min-height:0;overflow:hidden}.chat-sidebar{width:100%;padding:10px 12px;box-sizing:border-box;display:flex;flex-direction:column;min-height:0}.chat-sidebar input{width:100%;box-sizing:border-box;margin:5px 0 10px;font-size:16px}
+#chatRooms{overflow:auto;display:grid;gap:8px}.chat-room{text-align:left;position:relative;display:flex;flex-direction:column;gap:4px;width:100%;padding:11px;border:1px solid #d5e3ee;background:#f7fafc;border-radius:10px;color:#173d59}.chat-room.selected{background:#e3f3ff;border-color:#1677b8}.chat-room strong{padding-right:26px}.chat-room small{color:#516b7f;font-size:14px}.chat-room span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-weight:400}.chat-count{position:absolute;right:8px;top:8px}
+.chat-thread{display:none;flex-direction:column;min-width:0;min-height:0;width:100%;padding:10px 12px;box-sizing:border-box}.chat-thread h3{font-size:16px;margin:0 0 5px}#chatScope{font-size:14px;margin:0 0 5px}.chat-thread #chatOlder{width:auto;align-self:center;padding:5px 9px;font-size:14px}
+#chatModuleView.in-conversation .chat-sidebar{display:none}#chatModuleView.in-conversation .chat-thread{display:flex}
+#chatMessages{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:8px 0;overscroll-behavior:contain}.chat-bubble{align-self:flex-start;max-width:90%;background:#f0f4f8;border-radius:10px;padding:9px 11px;overflow-wrap:anywhere;box-sizing:border-box;font-size:16px}.chat-bubble.mine{align-self:flex-end;background:#e0f1ff}.chat-bubble strong{font-size:14px}.chat-bubble p{white-space:pre-wrap;margin:5px 0}.chat-bubble time{display:block;color:#526b7d;font-size:14px}
+#chatCompose{display:flex;align-items:flex-end;gap:7px;border-top:1px solid #d5e3ee;padding-top:8px}#chatCompose.hidden{display:none}#chatCompose label{flex:1;min-width:0;font-size:14px}#chatBody{width:100%;box-sizing:border-box;resize:vertical;height:55px;min-height:45px;max-height:90px;padding:8px;font-size:16px}#chatSend{width:auto!important;padding:10px!important;margin-bottom:3px}
+@media(max-width:480px){.chat-launcher,#chatModuleView{right:12px;width:340px}#chatModuleView{height:440px}.chat-dock-header{gap:4px}}
 </style>
 </head>
 
@@ -1420,6 +1435,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <button id="moduleBudgets" class="module"><i data-lucide="wallet-cards"></i><span>Orçamentos</span></button>
 <button id="moduleWater" class="module"><i data-lucide="droplets"></i><span>Qualidade da Água</span></button>
 <button class="module" disabled><i data-lucide="activity"></i><span>Neovero</span></button>
+
 <button id="moduleReports" class="module"><i data-lucide="file-chart-column"></i><span>Relatórios</span></button>
 <button id="moduleDocuments" class="module"><i data-lucide="folder-open"></i><span>Documentos</span></button>
 <button class="module" disabled><i data-lucide="package-search"></i><span>Inventário</span></button>
@@ -2188,6 +2204,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 </section>
+
 </main>
 
 
@@ -3424,6 +3441,14 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+<section id="chatModuleView" class="hidden" role="region" aria-label="Chat rápido">
+<header class="chat-dock-header"><button id="chatBack" type="button" class="secondary" hidden>Conversas</button><strong>Chat</strong><button id="chatNew" type="button" class="secondary">Nova</button><button id="chatRefresh" type="button" class="secondary" aria-label="Atualizar conversas" title="Atualizar conversas">↻</button><button id="chatMinimize" type="button" class="secondary" aria-label="Minimizar chat" title="Minimizar chat">−</button></header><p id="chatConnection" class="muted" role="status"></p><div id="chatMessage" role="status"></div>
+<div class="chat-layout"><aside class="chat-sidebar"><label for="chatSearch">Buscar conversa</label><input id="chatSearch" type="search" placeholder="Unidade ou pessoa"><div id="chatRooms"></div></aside>
+<div class="chat-thread"><h3 id="chatTitle">Selecione uma conversa</h3><p id="chatScope" class="muted">Abra uma conversa existente ou clique em Nova conversa.</p><button id="chatOlder" type="button" class="secondary" hidden>Carregar mensagens anteriores</button><div id="chatMessages" aria-label="Mensagens da conversa" tabindex="0"></div>
+<form id="chatCompose" class="hidden"><label for="chatBody">Mensagem<textarea id="chatBody" maxlength="4000" placeholder="Escreva sua mensagem" required></textarea></label><button id="chatSend" type="submit">Enviar</button></form></div></div>
+</section><button id="moduleChat" class="chat-launcher hidden" type="button" aria-controls="chatModuleView" aria-expanded="false"><span>Chat</span><b id="chatUnread" hidden></b><span id="chatLauncherSymbol" aria-hidden="true">▴</span></button>
+
+<dialog id="chatNewDialog"><h3>Nova conversa</h3><p>Escolha uma unidade ou uma pessoa com quem você pode conversar.</p><label for="chatTarget">Destino</label><select id="chatTarget"></select><div class="actions"><button id="chatOpen" type="button">Abrir conversa</button><button type="button" class="secondary" onclick="document.getElementById('chatNewDialog').close()">Cancelar</button></div></dialog>
 <script>
 const SUPABASE_URL="https://ndvfunasairodldltnmi.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekxfvd6cHGb2GN6-_2RLSQ_vd-ul3Qn";
@@ -3815,6 +3840,8 @@ $("logoutButton").onclick=async()=>{
 db.auth.onAuthStateChange(async(event,newSession)=>{
  session=newSession;
  if(event==="SIGNED_OUT"){
+  resetChat();
+  $("chatModuleView").classList.add("hidden");
   resetScheduleSession();
   if(currentModule==="schedule"){
    $("scheduleModuleView").classList.add("hidden");
@@ -3912,6 +3939,7 @@ async function enterApp(){
  $("appView").classList.remove("hidden");
  $("headerStatus").textContent="Ambiente autenticado";
  await loadOverview();
+ startChat();
  enteringApp=false;
 }
 
@@ -5690,12 +5718,163 @@ $("scheduleImportSave").onclick=async()=>{
 };
 
 
+/* Chat privado: unidades e conversas diretas. */
+let chatRooms=[],chatRoom=null,chatDirectory={units:[],people:[]},chatChannel=null,chatTimer=null;
+let chatEpoch=0,chatLoading=false,chatSending=false,chatHasOlder=false,chatPending=null;
+const chatDrafts=new Map();
+function resetChat(){
+ chatEpoch++;setChatOpen(false);$('moduleChat').classList.add('hidden');$('chatModuleView').classList.remove('in-conversation');$('chatBack').hidden=true;if($('chatNewDialog').open)$('chatNewDialog').close();clearInterval(chatTimer);chatTimer=null;
+ if(chatChannel)db.removeChannel(chatChannel);chatChannel=null;
+ chatRooms=[];chatRoom=null;chatPending=null;chatDrafts.clear();chatLoading=false;
+ $('chatMessages').replaceChildren();$('chatRooms').replaceChildren();$('chatBody').value='';
+ $('chatUnread').textContent='';$('chatUnread').hidden=true;
+ $('chatCompose').classList.add('hidden');$('chatTitle').textContent='Selecione uma conversa';
+}
+async function chatRpc(name,args={}){
+ const {data,error}=await db.rpc(name,args);if(error)throw error;return data;
+}
+function chatError(error){message($('chatMessage'),'Não foi possível concluir: '+(error?.message||'verifique sua conexão e tente novamente.'),'err');}
+async function startChat(){
+ resetChat();const epoch=chatEpoch;
+ $('moduleChat').classList.toggle('hidden',!profile?.active);
+ try{
+  const data=await chatRpc('chat_directory');if(epoch!==chatEpoch||!session)return;
+  chatDirectory=data;$('moduleChat').classList.remove('hidden');
+  await refreshChatRooms();
+  chatChannel=db.channel('contract-chat-'+session.user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},()=>refreshChat()).subscribe();
+  chatTimer=setInterval(()=>{if(!document.hidden)refreshChat();},15000);
+ }catch(e){if(epoch===chatEpoch){$('chatConnection').textContent='Chat indisponível. Use Atualizar para tentar novamente.';}}
+}
+async function refreshChat(){
+ if(chatLoading||!session)return;chatLoading=true;
+ try{await refreshChatRooms();if(chatIsOpen()&&chatRoom)await loadChatHistory(false);}
+ catch(e){if(chatIsOpen())chatError(e);}finally{chatLoading=false;}
+}
+async function refreshChatRooms(){
+ const epoch=chatEpoch,data=await chatRpc('chat_list');if(epoch!==chatEpoch||!session)return;
+ chatRooms=data;renderChatRooms();
+ const unread=data.reduce((s,r)=>s+Number(r.unread||0),0);
+ $('chatUnread').hidden=!unread;$('chatUnread').textContent=unread>99?'99+':String(unread);
+ $('chatConnection').textContent='Mensagens salvas no sistema · atualização automática';
+ if(chatRoom&&!data.some(r=>r.id===chatRoom.id)){
+  chatRoom=null;$('chatMessages').replaceChildren();$('chatCompose').classList.add('hidden');$('chatTitle').textContent='Conversa indisponível';
+ }
+}
+function renderChatRooms(){
+ const list=$('chatRooms'),filter=$('chatSearch').value.toLocaleLowerCase('pt-BR');list.replaceChildren();
+ for(const r of chatRooms.filter(r=>(r.title||'').toLocaleLowerCase('pt-BR').includes(filter))){
+  const b=document.createElement('button');b.type='button';b.className='chat-room'+(chatRoom?.id===r.id?' selected':'');
+  const title=document.createElement('strong');title.textContent=r.title;
+  const type=document.createElement('small');type.textContent=r.unit_id?'Conversa da unidade':'Conversa direta';
+  const preview=document.createElement('span');preview.textContent=r.last_body||'Nenhuma mensagem ainda';
+  b.append(title,type,preview);
+  if(r.unread){const badge=document.createElement('b');badge.className='chat-count';badge.textContent=r.unread;b.append(badge);}
+  b.onclick=()=>selectChatRoom(r);list.append(b);
+ }
+ if(!list.children.length){const p=document.createElement('p');p.className='muted';p.textContent='Nenhuma conversa encontrada. Clique em Nova conversa para começar.';list.append(p);}
+}
+async function selectChatRoom(r){
+ if(chatRoom)chatDrafts.set(chatRoom.id,$('chatBody').value);
+ chatRoom=r;chatHasOlder=false;$('chatModuleView').classList.add('in-conversation');$('chatBack').hidden=false;$('chatMessages').replaceChildren();$('chatTitle').textContent=r.title;
+ $('chatScope').textContent=r.unit_id?'Participam os usuários com acesso a esta unidade.':'Visível somente para você e esta pessoa.';
+ $('chatCompose').classList.remove('hidden');$('chatBody').value=chatDrafts.get(r.id)||'';
+ $('chatOlder').hidden=true;renderChatRooms();
+ try{await loadChatHistory(false);}catch(e){chatError(e);}
+}
+function chatRenderMessage(m){
+ const article=document.createElement('article');article.className='chat-bubble'+(m.sender_id===session.user.id?' mine':'');article.dataset.messageId=m.id;
+ const name=document.createElement('strong');name.textContent=m.sender_name;
+ const body=document.createElement('p');body.textContent=m.body;
+ const time=document.createElement('time');time.dateTime=m.created_at;time.textContent=new Date(m.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+ article.append(name,body,time);return article;
+}
+async function loadChatHistory(older=false){
+ const r=chatRoom,epoch=chatEpoch;if(!r)return;
+ const box=$('chatMessages'),first=box.firstElementChild?.dataset.messageId;
+ const data=await chatRpc('chat_history',{target:r.id,before_id:older&&first?first:null});
+ if(epoch!==chatEpoch||chatRoom?.id!==r.id||!session)return;
+ const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90,oldHeight=box.scrollHeight;
+ const existing=new Set([...box.children].map(el=>el.dataset.messageId));
+ const frag=document.createDocumentFragment();for(const m of data)if(!existing.has(m.id))frag.append(chatRenderMessage(m));
+ if(older){box.prepend(frag);box.scrollTop+=box.scrollHeight-oldHeight;chatHasOlder=data.length===50;}
+ else{
+  const newTail=data.at(-1)?.id;
+  const oldTail=box.lastElementChild?.dataset.messageId;
+  // A reconnect may span more than one page: reload the latest page with an older-history button.
+  if(oldTail&&data.length===50&&!data.some(m=>m.id===oldTail)&&BigInt(newTail)>BigInt(oldTail)){box.replaceChildren();for(const m of data)box.append(chatRenderMessage(m));chatHasOlder=true;}
+  else{box.append(frag);if(!oldTail)chatHasOlder=data.length===50;}
+  if(atBottom||!oldTail)box.scrollTop=box.scrollHeight;
+ }
+ $('chatOlder').hidden=!chatHasOlder;
+ if(!document.hidden&&chatIsOpen()&&$('chatModuleView').classList.contains('in-conversation')&&box.lastElementChild&&box.scrollHeight-box.scrollTop-box.clientHeight<90){
+  await chatRpc('chat_mark_read',{target:r.id,through_id:box.lastElementChild.dataset.messageId});
+  if(epoch!==chatEpoch)return;
+  await refreshChatRooms();
+ }
+}
+function chatIsOpen(){return !$('chatModuleView').classList.contains('hidden');}
+function setChatOpen(open){
+ if(!session||!profile?.active)open=false;
+ $('chatModuleView').classList.toggle('hidden',!open);
+ $('moduleChat').setAttribute('aria-expanded',String(open));
+ $('chatLauncherSymbol').textContent=open?'▾':'▴';
+ if(open){refreshChat();if(chatRoom)$('chatBody').focus();else $('chatSearch').focus();}
+}
+$('moduleChat').onclick=()=>setChatOpen(!chatIsOpen());
+$('chatMinimize').onclick=()=>{setChatOpen(false);$('moduleChat').focus();};
+$('chatBack').onclick=()=>{$('chatModuleView').classList.remove('in-conversation');$('chatBack').hidden=true;$('chatSearch').focus();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chatIsOpen()&&!$('chatNewDialog').open){setChatOpen(false);$('moduleChat').focus();}});
+$('chatSearch').oninput=renderChatRooms;
+$('chatRefresh').onclick=async()=>{if(!chatTimer){await startChat();setChatOpen(true);}else await refreshChat();};
+$('chatOlder').onclick=async()=>{try{await loadChatHistory(true);}catch(e){chatError(e);}};
+$('chatMessages').addEventListener('scroll',()=>{
+ const box=$('chatMessages');if(chatRoom&&!document.hidden&&chatIsOpen()&&$('chatModuleView').classList.contains('in-conversation')&&box.lastElementChild&&box.scrollHeight-box.scrollTop-box.clientHeight<20){
+  chatRpc('chat_mark_read',{target:chatRoom.id,through_id:box.lastElementChild.dataset.messageId}).then(refreshChatRooms).catch(()=>{});
+ }
+});
+$('chatNew').onclick=async()=>{
+ try{
+  const epoch=chatEpoch,d=await chatRpc('chat_directory');if(epoch!==chatEpoch)return;chatDirectory=d;
+  const sel=$('chatTarget');sel.replaceChildren();
+  for(const [label,items,prefix] of [['Unidades',d.units,'unit:'],['Pessoas',d.people,'peer:']]){
+   const group=document.createElement('optgroup');group.label=label;
+   for(const item of items){const opt=document.createElement('option');opt.value=prefix+item.id;opt.textContent=item.name;group.append(opt);}sel.append(group);
+  }
+  $('chatOpen').disabled=!sel.value;$('chatNewDialog').showModal();
+ }catch(e){chatError(e);}
+};
+$('chatOpen').onclick=async()=>{
+ const value=$('chatTarget').value;if(!value)return;$('chatOpen').disabled=true;
+ try{
+  const epoch=chatEpoch,[kind,id]=value.split(':'),rid=await chatRpc('chat_open',{target_unit:kind==='unit'?id:null,peer:kind==='peer'?id:null});
+  if(epoch!==chatEpoch)return;await refreshChatRooms();$('chatNewDialog').close();
+  const r=chatRooms.find(r=>r.id===rid);if(r)await selectChatRoom(r);
+ }catch(e){chatError(e);}finally{$('chatOpen').disabled=false;}
+};
+$('chatCompose').onsubmit=async e=>{
+ e.preventDefault();if(chatSending||!chatRoom)return;
+ const r=chatRoom,body=$('chatBody').value;if(!body.trim())return;
+ const epoch=chatEpoch,owner=session.user.id;
+ if(!chatPending||chatPending.room!==r.id||chatPending.body!==body)chatPending={room:r.id,body,id:crypto.randomUUID()};
+ const request=chatPending;chatSending=true;$('chatSend').disabled=true;
+ try{
+  await chatRpc('chat_send',{target:r.id,text_body:body,request_id:request.id});
+  if(epoch!==chatEpoch||session?.user?.id!==owner)return;
+  chatPending=null;chatDrafts.delete(r.id);
+  if(chatRoom?.id===r.id&&$('chatBody').value===body)$('chatBody').value='';
+  if(chatRoom?.id===r.id)await loadChatHistory(false);await refreshChatRooms();
+  message($('chatMessage'),'Mensagem enviada.','ok');
+ }catch(error){if(epoch===chatEpoch)chatError(error);}finally{chatSending=false;$('chatSend').disabled=false;}
+};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)refreshChat();});
+
 /* NAVEGAÇÃO */
 
 
 
 
 function switchModule(name){
+ if(name==="chat"){setChatOpen(true);return;}
  if(name==="trainings"&&!hasAccess("treinamentos","view"))return;
  if(name==="schedule"&&(!["admin","team","client","planning"].includes(profile?.role)||!hasAccess("cronogramas","view")))return;
  if(name==="units"&&!canViewUnits())return;
@@ -5705,6 +5884,7 @@ function switchModule(name){
 
 
 
+ 
  const isOverview=name==="overview";
  const isUnits=name==="units";
  const isAccess=name==="access";
@@ -5753,12 +5933,13 @@ function switchModule(name){
 
 
 
- const needsUnit=!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports&&!isTrainings&&!isSchedule;
+ const needsUnit=name!=="chat"&&!isOverview&&!isUnits&&!isAccess&&!isBudget&&!isReports&&!isTrainings&&!isSchedule;
  $("moduleUnitBar").classList.toggle("hidden",!needsUnit);
 
 
 
 
+ if(name==="chat")return;
  if(isOverview){
   loadOverview();
   return;
@@ -12459,4 +12640,5 @@ bootApp();
 </script>
 </body>
 </html>
+
 
