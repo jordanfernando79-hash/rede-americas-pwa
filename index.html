@@ -4775,6 +4775,12 @@ function canViewUnits(){
  return profile?.role==="admin"||(["team","planning"].includes(profile?.role)&&overviewOperationalUnits().length>0);
 }
 
+function isUnitCardLeader(employee){
+ const role=String(employee.org_role||"").trim()||String(employee.job_title||"").trim();
+ const normalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ return /^lider(?:\s|$)/.test(normalized);
+}
+
 async function loadUnitsAdmin(){
  if(!canViewUnits())return;
  const isAdmin=profile?.role==="admin";
@@ -4874,8 +4880,7 @@ async function loadUnitsAdmin(){
 
 
 
-  const roleNormalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-  if(roleNormalized==="lider" && summary.leader==="Não definido"){
+  if(isUnitCardLeader(employee) && summary.leader==="Não definido"){
    summary.leader=employee.full_name||"Não definido";
   }
 
@@ -13532,6 +13537,7 @@ bootApp();
 </script>
 </body>
 </html>
+
 
 
 
