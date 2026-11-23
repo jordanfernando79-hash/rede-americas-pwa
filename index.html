@@ -4984,7 +4984,7 @@ function renderScheduleGrid(first,last,today){
  }
  const filter=$("scheduleUnit").value;
  const units=scheduleUnits().filter(u=>!filter||u.id===filter);
- const canAddComment=scheduleCommentsReady&&units.some(u=>scheduleCan("insert",u.id));
+ const canAddComment=scheduleCommentsReady&&units.some(u=>canInsertScheduleComment(u.id));
  const head=days.map(({day,holiday,classes})=>{
   const label=scheduleDateLabel(day)+(holiday?" · Feriado: "+holiday:"")+(day===today?" · Hoje":"");
   const comments=scheduleDateComments.get(day)||[];
@@ -5046,6 +5046,11 @@ function scheduleCommentStatusLabel(comment){
  return comment.rescheduled_to?"Remanejado":scheduleCommentStatuses[comment.execution_status];
 }
 
+function canInsertScheduleComment(unit){
+ if(profile?.role!=="team")return scheduleCan("insert",unit);
+ return !!profile?.active&&accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit&&g.can_view);
+}
+
 function canRecordScheduleComment(unit){
  if(profile?.role!=="team")return scheduleCan("edit",unit);
  return accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit&&g.can_view);
@@ -5064,7 +5069,7 @@ function openScheduleDateComments(day){
  const comments=scheduleDateComments.get(day)||[];
  const filter=$("scheduleUnit").value;
  const units=scheduleUnits().filter(unit=>!filter||unit.id===filter);
- const writable=units.filter(unit=>scheduleCan("insert",unit.id));
+ const writable=units.filter(unit=>canInsertScheduleComment(unit.id));
  const content=$("scheduleDateCommentText");
  content.replaceChildren();
  for(const comment of comments){
@@ -5177,7 +5182,7 @@ async function saveScheduleDateComment(remove){
  const status=$("scheduleDateCommentStatus");
  const editingText=mode==="text";
  if(editingText){
-  if(!scheduleCan(remove?"delete":comment?"edit":"insert",unit)||(remove&&!comment))return;
+  if(!(remove?scheduleCan("delete",unit):comment?scheduleCan("edit",unit):canInsertScheduleComment(unit))||(remove&&!comment))return;
   if(!remove&&!body){status.textContent="Digite um comentário.";return;}
   if(!remove&&body===comment?.body){status.textContent="O comentário já está salvo.";return;}
  }else if(!comment||!canRecordScheduleComment(unit))return;
@@ -12640,5 +12645,6 @@ bootApp();
 </script>
 </body>
 </html>
+
 
 
