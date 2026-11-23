@@ -4775,6 +4775,10 @@ function canViewUnits(){
  return profile?.role==="admin"||(["team","planning"].includes(profile?.role)&&overviewOperationalUnits().length>0);
 }
 
+function defaultUnitCardLeader(unit){
+ return normalizeUnitSearch(unit.name).replace(/\s+/g,"")==="backoffice"?"Sem líder":"Não definido";
+}
+
 function isUnitCardLeader(employee){
  const role=String(employee.org_role||"").trim()||String(employee.job_title||"").trim();
  const normalized=role.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -4852,7 +4856,7 @@ async function loadUnitsAdmin(){
 
  data.forEach(u=>{
   summaries.set(u.id,{
-   leader:"Não definido",
+   leader:defaultUnitCardLeader(u),
    composition:new Map(),
    totalEmployees:0
   });
@@ -4930,7 +4934,7 @@ async function loadUnitsAdmin(){
 
 
   const summary=summaries.get(u.id)||{
-   leader:"Não definido",
+   leader:defaultUnitCardLeader(u),
    composition:new Map(),
    totalEmployees:0
   };
@@ -13537,6 +13541,7 @@ bootApp();
 </script>
 </body>
 </html>
+
 
 
 
