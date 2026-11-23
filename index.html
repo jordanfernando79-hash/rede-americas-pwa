@@ -5215,6 +5215,12 @@ function scheduleCan(action,unit=null){
   &&hasAccess("cronogramas","view",unit);
 }
 
+function canInsertScheduleVisit(unit){
+ if(profile?.role!=="team")return scheduleCan("insert",unit);
+ return !!unit&&profile?.active!==false&&hasAccess("cronogramas","view",unit)
+  &&accessGrants.some(g=>g.module==="cronogramas"&&g.unit_id===unit&&g.can_view);
+}
+
 function canEditScheduleVisit(row,unit=row.unit_id){
  if(profile?.role!=="team")return scheduleCan("edit",unit);
  return row.published&&[1,2,3].includes(Number(row.team))
@@ -5335,11 +5341,12 @@ async function loadSchedule(){
  const selected=unit.value;
  unit.replaceChildren(...scheduleOptions(units,"Todas as unidades",selected));
  if(!unit.value)unit.value="";
- const canAdd=units.some(u=>scheduleCan("insert",u.id));
+ const canAdd=units.some(u=>canInsertScheduleVisit(u.id));
+ const canImport=units.some(u=>scheduleCan("insert",u.id));
  const canReview=units.some(u=>scheduleCan("edit",u.id));
  $("scheduleWriteActions").classList.toggle("hidden",!canAdd&&!canReview);
  $("scheduleNew").classList.toggle("hidden",!canAdd);
- $("scheduleImport").classList.toggle("hidden",!canAdd);
+ $("scheduleImport").classList.toggle("hidden",!canImport);
  $("schedulePublish").classList.toggle("hidden",!canReview);
  const [first,last]=scheduleRange();
  const team=$("scheduleTeam").value;
@@ -5726,7 +5733,7 @@ function updateScheduleEditor(){
 for(const id of ["scheduleEditDate","scheduleEditTeam","scheduleEditUnit"])$(id).onchange=updateScheduleEditor;
 
 function openScheduleEditor(row=null){
- const units=scheduleUnits().filter(u=>row?canEditScheduleVisit(row,u.id):scheduleCan("insert",u.id));
+ const units=scheduleUnits().filter(u=>row?canEditScheduleVisit(row,u.id):canInsertScheduleVisit(u.id));
  if(!units.length||(row&&!canEditScheduleVisit(row)))return;
  scheduleEditing=row;
  $("scheduleEditTitle").textContent=row?(row.published?"Editar atendimento publicado":"Editar rascunho"):"Agendar atendimento";
@@ -5738,6 +5745,7 @@ function openScheduleEditor(row=null){
  supportOption.disabled=profile?.role==="team";
  supportOption.hidden=supportOption.disabled;
  teamSelect.value=row?.team||$("scheduleTeam").value||"1";
+ if(profile?.role==="team"&&!["1","2","3"].includes(teamSelect.value))teamSelect.value="1";
  $("scheduleEditUnit").replaceChildren(...scheduleOptions(units,"Selecione",row?.unit_id||$("scheduleUnit").value));
  $("scheduleEditStatus").value=row?.status==="done"?"done":"planned";
  $("scheduleEditLegacy").classList.add("hidden");
@@ -5766,7 +5774,10 @@ $("scheduleEditForm").onsubmit=async event=>{
  if(row){
   if(!canEditScheduleVisit(row)||!canEditScheduleVisit(row,values.unit_id))return;
   if(profile?.role==="team"&&![1,2,3].includes(values.team))return;
- }else if(!scheduleCan("insert",values.unit_id))return;
+ }else{
+  if(!canInsertScheduleVisit(values.unit_id))return;
+  if(profile?.role==="team"&&![1,2,3].includes(values.team))return;
+ }
  if(values.team===4&&!values.description){
   $("scheduleEditNotice").textContent="Informe a descrição do atendimento de suporte.";
   return;
@@ -5811,7 +5822,7 @@ $("scheduleEditForm").onsubmit=async event=>{
   if($("scheduleUnit").value&&$("scheduleUnit").value!==values.unit_id)$("scheduleUnit").value="";
   if($("scheduleTeam").value&&Number($("scheduleTeam").value)!==values.team)$("scheduleTeam").value="";
   await loadSchedule();
-  message($("appMessage"),row?.published?"Programação atualizada.":"Rascunho salvo.","ok");
+  message($("appMessage"),row?.published?"Programação atualizada.":profile?.role==="team"?"Atendimento agendado como rascunho. Aguarda revisão e publicação.":"Rascunho salvo.","ok");
  }finally{
   save.disabled=false;
   $("scheduleDiscard").disabled=false;
@@ -13521,6 +13532,7 @@ bootApp();
 </script>
 </body>
 </html>
+
 
 
 
