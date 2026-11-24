@@ -2444,7 +2444,19 @@ main{max-width:1580px;padding:18px 20px 60px}
 <input id="budgetPurchaseOrder" maxlength="100" placeholder="Ex.: 4504927226 ou C000708176">
 <div class="muted" style="margin-top:5px">O orçamento será considerado aprovado somente quando este campo contiver um número de pedido.</div>
 </div>
+<div class="full" id="budgetAttachmentsInEdit">
+ <button type="button" class="secondary" id="budgetAttachmentsInEditButton">Visualizar / inserir PDFs</button>
 </div>
+<div class="full" id="budgetNewPdfs">
+ <h3>Arquivos PDF (opcionais)</h3>
+ <p class="muted">Até 10 MB por arquivo. Os PDFs serão enviados após salvar o cadastro.</p>
+ <label for="budgetNewQuotePdf">PDF do orçamento</label>
+ <input id="budgetNewQuotePdf" type="file" accept=".pdf,application/pdf">
+ <label for="budgetNewTechnicalPdf">PDF do parecer técnico</label>
+ <input id="budgetNewTechnicalPdf" type="file" accept=".pdf,application/pdf">
+</div>
+</div>
+<div id="budgetFormMessage" aria-live="polite"></div>
 <div class="dialog-actions">
 <button id="cancelBudgetDialog" type="button" class="ghost">Cancelar</button>
 <button id="saveBudgetButton" type="submit" class="primary">Salvar orçamento</button>
@@ -2455,6 +2467,16 @@ main{max-width:1580px;padding:18px 20px 60px}
 
 
 
+
+<dialog id="budgetAttachmentsDialog" aria-labelledby="budgetAttachmentsTitle">
+ <div class="dialog-body">
+  <h2 id="budgetAttachmentsTitle">PDFs do orçamento</h2>
+  <p class="muted" id="budgetAttachmentsRecord"></p>
+  <div id="budgetAttachmentsMessage" aria-live="polite"></div>
+  <div id="budgetAttachmentsList" class="form-grid"></div>
+  <div class="dialog-actions"><button type="button" class="ghost" id="budgetAttachmentsClose">Fechar</button></div>
+ </div>
+</dialog>
 
 <!-- MODAL UNIDADE -->
 <dialog id="unitDialog">
@@ -9531,6 +9553,160 @@ async function openRdiAttachments(record){
  }
 }
 
+const budgetAttachmentTypes=[
+ {name:"parecer-tecnico",label:"Parecer técnico",extensions:["pdf"]},
+ {name:"orcamento",label:"Orçamento",extensions:["pdf"]}
+];
+function canWriteBudgetAttachments(row){
+ return hasAccess("orcamentos","edit",row.unit_id)||
+  (row.created_by===session?.user?.id&&hasAccess("orcamentos","insert",row.unit_id));
+}
+async function validateBudgetPdf(file){
+ if(!file?.size||file.size>10*1024*1024||!/\.pdf$/i.test(file.name)||
+    (file.type&&!["application/pdf","application/octet-stream"].includes(file.type))||
+    new TextDecoder().decode(await file.slice(0,5).arrayBuffer())!=="%PDF-"){
+  throw new Error("Selecione um PDF válido, com até 10 MB.");
+ }
+}
+$("budgetAttachmentsClose").onclick=()=>$("budgetAttachmentsDialog").close();
+$("budgetAttachmentsInEditButton").onclick=()=>openBudgetAttachments(editingBudget);
+async function openBudgetAttachments(record){
+ if(!record||!hasAccess("orcamentos","view",record.unit_id))return;
+ const dialog=$("budgetAttachmentsDialog");
+ const notice=$("budgetAttachmentsMessage");
+ const container=$("budgetAttachmentsList");
+ const bucket=db.storage.from("budget-attachments");
+ const folder=`${record.id}`;
+ const canEdit=canWriteBudgetAttachments(record);
+ const panel=document.createElement("div");
+ panel.className="full form-grid";
+ $("budgetAttachmentsRecord").textContent=`Orçamento ${record.quote_number||""} · ${budgetUnitName(record)}`;
+ container.replaceChildren(panel);
+ message(notice,"Carregando anexos…");
+ dialog.showModal();
+
+ const {data,error}=await bucket.list(folder);
+ if(!dialog.open||!panel.isConnected)return;
+ if(error){
+  message(notice,"Não foi possível consultar os anexos desta orçamento.","err");
+  return;
+ }
+ message(notice,"");
+
+ for(const type of budgetAttachmentTypes){
+  const item=document.createElement("section");
+  item.className="record full";
+  item.innerHTML=`
+   <h3>${type.label}</h3>
+   <p class="muted attachment-state"></p>
+   <div class="actions attachment-links">
+    <button type="button" class="secondary attachment-open">Abrir PDF</button>
+    <button type="button" class="secondary attachment-download">Baixar arquivo</button>
+   </div>
+   ${canEdit?`<form>
+    <label for="budgetFile-${type.name}">Selecionar arquivo</label>
+    <input id="budgetFile-${type.name}" type="file" required accept="${type.extensions.map(ext=>"."+ext).join(",")}">
+    <p class="muted">${type.extensions.join(" ou ").toUpperCase()} • até 10 MB</p>
+    <button type="submit" class="primary attachment-save"></button>
+   </form>`:""}
+   <div class="attachment-message" aria-live="polite"></div>`;
+  panel.appendChild(item);
+  const path=`${folder}/${type.name}.pdf`;
+  const status=item.querySelector(".attachment-state");
+  const links=item.querySelector(".attachment-links");
+  const open=item.querySelector(".attachment-open");
+  const download=item.querySelector(".attachment-download");
+  const feedback=item.querySelector(".attachment-message");
+  const form=item.querySelector("form");
+  const fileInput=form?.querySelector("input");
+  const save=form?.querySelector("button");
+  const current=data?.find(file=>file.name===`${type.name}.pdf`);
+  let extension=current?(current.metadata?.mimetype===rdiAttachmentMime.docx?"docx":"pdf"):null;
+
+  function renderAttachment(){
+   status.textContent=extension?`Arquivo anexado • ${extension.toUpperCase()}`:"Nenhum arquivo anexado.";
+   links.classList.toggle("hidden",!extension);
+   open.classList.toggle("hidden",extension!=="pdf");
+   if(save)save.textContent=extension?"Substituir arquivo":"Anexar arquivo";
+  }
+
+  open.onclick=async()=>{
+   const preview=window.open("about:blank","_blank");
+   if(!preview){
+    message(feedback,"O navegador bloqueou a abertura. Use Baixar arquivo.","err");
+    return;
+   }
+   preview.opener=null;
+   try{
+    const {data,error}=await bucket.createSignedUrl(path,120);
+    if(error||!data?.signedUrl)throw error||new Error("URL indisponível");
+    preview.location.replace(data.signedUrl);
+   }catch(error){
+    console.error(error);
+    preview.close();
+    message(feedback,"Não foi possível abrir o PDF.","err");
+   }
+  };
+
+  download.onclick=async()=>{
+   download.disabled=true;
+   try{
+    const filename=`${type.name}.${extension}`;
+    const {data,error}=await bucket.createSignedUrl(path,120,{download:filename});
+    if(error||!data?.signedUrl)throw error||new Error("URL indisponível");
+    const link=document.createElement("a");
+    link.href=data.signedUrl;
+    link.download=filename;
+    item.appendChild(link);
+    link.click();
+    link.remove();
+   }catch(error){
+    console.error(error);
+    message(feedback,"Não foi possível baixar o arquivo.","err");
+   }finally{
+    download.disabled=false;
+   }
+  };
+
+  if(form)form.onsubmit=async event=>{
+   event.preventDefault();
+   if(save.disabled)return;
+   const file=fileInput.files[0];
+   const selectedExtension=file?.name.split(".").pop().toLowerCase();
+   if(!file?.size||file.size>rdiAttachmentLimit||!type.extensions.includes(selectedExtension)||
+      (file.type&&file.type!=="application/octet-stream"&&file.type!==rdiAttachmentMime[selectedExtension])){
+    message(feedback,"Selecione um arquivo no formato indicado, com até 10 MB.","err");
+    return;
+   }
+   save.disabled=true;
+   fileInput.disabled=true;
+   save.textContent="Enviando…";
+   message(feedback,"");
+   try{
+    await validateBudgetPdf(file);
+    const contentType="application/pdf";
+    const {error}=await bucket.upload(path,file.slice(0,file.size,contentType),{
+     contentType,
+     cacheControl:"0",
+     upsert:!!extension
+    });
+    if(error)throw error;
+    extension=selectedExtension;
+    form.reset();
+    message(feedback,"Arquivo salvo na orçamento.","ok");
+   }catch(error){
+    console.error(error);
+    message(feedback,"Não foi possível salvar o arquivo. Confira a permissão ou reabra os anexos e tente novamente.","err");
+   }finally{
+    save.disabled=false;
+    fileInput.disabled=false;
+    renderAttachment();
+   }
+  };
+  renderAttachment();
+ }
+}
+
 $("newRdiButton").onclick=()=>{
  if(!unitId||!hasAccess("rdi","insert",unitId))return;
  editingRecord=null;
@@ -12574,6 +12750,7 @@ function fillBudgetUnitControls(){
 
 
  const selectedFilter=filter.value;
+ const selectedField=field.value;
  filter.innerHTML='<option value="">Todas as unidades</option>';
 
 
@@ -12592,6 +12769,7 @@ function fillBudgetUnitControls(){
   if(profile?.role==="admin"||hasAccess("orcamentos","insert",u.id)||hasAccess("orcamentos","edit",u.id)){
    const o=document.createElement("option");
    o.value=u.id;o.textContent=u.name;
+   o.selected=u.id===selectedField;
    field.appendChild(o);
   }
  });
@@ -12871,10 +13049,11 @@ function renderBudgets(){
    <td>${r.extra_labor_coi?"Sim":"Não"}</td>
    <td>${escapeHtml(r.purchase_order||"—")}</td>
    <td><span class="badge ${approvedFlag?"budget-status-approved":"budget-status-pending"}">${approvedFlag?"Aprovado":"Não aprovado"}</span></td>
-   <td>${canEdit?'<button class="secondary budgetEditBtn" style="width:auto">Editar</button>':"—"}</td>
+   <td>${canEdit?'<button class="secondary budgetEditBtn" style="width:auto">Editar</button>':""} <button type="button" class="secondary budgetAttachmentsBtn" style="width:auto">PDFs</button></td>
   `;
   const edit=tr.querySelector(".budgetEditBtn");
   if(edit)edit.onclick=()=>openBudgetDialog(r);
+  tr.querySelector(".budgetAttachmentsBtn").onclick=()=>openBudgetAttachments(r);
   tbody.appendChild(tr);
 
 
@@ -12895,10 +13074,11 @@ function renderBudgets(){
     <div><span>Pedido</span><strong>${escapeHtml(r.purchase_order||"—")}</strong></div>
    </div>
    <p><strong>Escopo:</strong> ${escapeHtml(r.scope||"—")}</p>
-   ${canEdit?'<div class="actions"><button class="secondary budgetEditBtnMobile">Editar</button></div>':""}
+   <div class="actions">${canEdit?'<button class="secondary budgetEditBtnMobile">Editar</button>':""}<button type="button" class="secondary budgetAttachmentsBtn">PDFs</button></div>
   `;
   const editMobile=card.querySelector(".budgetEditBtnMobile");
   if(editMobile)editMobile.onclick=()=>openBudgetDialog(r);
+  card.querySelector(".budgetAttachmentsBtn").onclick=()=>openBudgetAttachments(r);
   mobile.appendChild(card);
  });
 }
@@ -12927,6 +13107,9 @@ function openBudgetDialog(row){
  editingBudget=row||null;
  fillBudgetUnitControls();
  $("budgetForm").reset();
+ $("budgetAttachmentsInEdit").classList.toggle("hidden",!row);
+ $("budgetNewPdfs").classList.toggle("hidden",!!row);
+ message($("budgetFormMessage"),"");
  $("budgetIdField").value=row?.id||"";
  $("budgetDialogTitle").textContent=row?"Editar orçamento":"Novo orçamento";
  $("saveBudgetButton").textContent=row?"Salvar alterações":"Salvar orçamento";
@@ -12952,73 +13135,63 @@ function openBudgetDialog(row){
 
 $("budgetForm").addEventListener("submit",async e=>{
  e.preventDefault();
-
-
+ const btn=$("saveBudgetButton");
+ if(btn.disabled)return;
+ const notice=$("budgetFormMessage");
  const quoteNumber=$("budgetQuoteNumber").value.trim();
  const selectedUnit=$("budgetUnitField").value;
  if(!quoteNumber||!selectedUnit)return;
-
-
- const action=editingBudget?"edit":"insert";
+ const wasNew=!editingBudget;
+ const action=wasNew?"insert":"edit";
  if(!hasAccess("orcamentos",action,selectedUnit)){
-  message($("appMessage"),"Seu perfil não possui permissão para esta operação.","err");
-  return;
+  message(notice,"Seu perfil não possui permissão para esta operação.","err");return;
  }
-
-
- const payload={
-  quote_number:quoteNumber,
-  client_name:$("budgetClientName").value.trim()||null,
-  unit_id:selectedUnit,
-  source_unit_name:allUnits.find(u=>u.id===selectedUnit)?.name||null,
-  issued_on:$("budgetIssuedOn").value||null,
-  sent_on:$("budgetSentOn").value||null,
-  approved_on:$("budgetApprovedOn").value||null,
-  executed:$("budgetExecuted").value==="true",
-  cost_center:$("budgetCostCenter").value.trim()||null,
-  scope:$("budgetScope").value.trim()||null,
-  amount:Number($("budgetAmount").value||0),
-  extra_labor_coi:$("budgetExtraLabor").value==="true",
-  purchase_order:$("budgetPurchaseOrder").value.trim()||null,
-  updated_by:session.user.id,
-  updated_at:new Date().toISOString()
- };
-
-
- const btn=$("saveBudgetButton");
- btn.disabled=true;
- btn.textContent="Salvando...";
-
-
- let error;
- if(editingBudget){
-  ({error}=await db.from("budgets").update(payload).eq("id",editingBudget.id));
- }else{
-  ({error}=await db.from("budgets").insert({
-   ...payload,
-   source_key:quoteNumber,
-   source:"aplicativo",
-   created_by:session.user.id
-  }));
- }
-
-
- btn.disabled=false;
- btn.textContent=editingBudget?"Salvar alterações":"Salvar orçamento";
-
-
- if(error){
+ const pending=[
+  {input:$("budgetNewQuotePdf"),name:"orcamento"},
+  {input:$("budgetNewTechnicalPdf"),name:"parecer-tecnico"}
+ ].filter(x=>x.input.files?.[0]);
+ btn.disabled=true;$("cancelBudgetDialog").disabled=true;btn.textContent="Salvando…";
+ let saved=false;
+ try{
+  for(const x of pending)await validateBudgetPdf(x.input.files[0]);
+  const payload={
+   quote_number:quoteNumber,client_name:$("budgetClientName").value.trim()||null,
+   unit_id:selectedUnit,source_unit_name:allUnits.find(u=>u.id===selectedUnit)?.name||null,
+   issued_on:$("budgetIssuedOn").value||null,sent_on:$("budgetSentOn").value||null,
+   approved_on:$("budgetApprovedOn").value||null,executed:$("budgetExecuted").value==="true",
+   cost_center:$("budgetCostCenter").value.trim()||null,scope:$("budgetScope").value.trim()||null,
+   amount:Number($("budgetAmount").value||0),extra_labor_coi:$("budgetExtraLabor").value==="true",
+   purchase_order:$("budgetPurchaseOrder").value.trim()||null,
+   updated_by:session.user.id,updated_at:new Date().toISOString()
+  };
+  const query=editingBudget
+   ?db.from("budgets").update(payload).eq("id",editingBudget.id)
+   :db.from("budgets").insert({...payload,source_key:quoteNumber,source:"aplicativo",created_by:session.user.id});
+  const {data,error}=await query.select("*").single();
+  if(error)throw error;
+  editingBudget=data;saved=true;$("budgetIdField").value=data.id;
+  $("budgetDialogTitle").textContent="Editar orçamento";
+  $("budgetAttachmentsInEdit").classList.remove("hidden");
+  for(const x of pending){
+   btn.textContent="Enviando PDFs…";
+   const file=x.input.files[0];
+   const {error}=await db.storage.from("budget-attachments").upload(`${data.id}/${x.name}.pdf`,file.slice(0,file.size,"application/pdf"),{contentType:"application/pdf",cacheControl:"0",upsert:true});
+   if(error)throw error;
+   x.input.value="";
+  }
+  $("budgetDialog").close();
+  message($("appMessage"),pending.length?"Orçamento e PDFs salvos.":wasNew?"Orçamento cadastrado.":"Orçamento atualizado.","ok");
+ }catch(error){
   console.error(error);
   const duplicate=String(error.message||"").toLowerCase().includes("duplicate");
-  message($("appMessage"),duplicate?"Já existe um orçamento com este número.":"Não foi possível salvar o orçamento.","err");
-  return;
+  message(notice,saved?"O cadastro foi salvo, mas há PDF pendente de envio. Os arquivos anteriores foram preservados. Clique em Salvar para tentar novamente ou use Visualizar / inserir PDFs.":duplicate?"Já existe um orçamento com este número.":error.message||"Não foi possível salvar o orçamento.","err");
+ }finally{
+  btn.disabled=false;$("cancelBudgetDialog").disabled=false;
+  btn.textContent=editingBudget?"Salvar alterações":"Salvar orçamento";
+  if(saved)await loadBudgets();
  }
-
-
- $("budgetDialog").close();
- message($("appMessage"),editingBudget?"Orçamento atualizado.":"Orçamento cadastrado.","ok");
- await loadBudgets();
 });
+$("budgetDialog").addEventListener("cancel",e=>{if($("saveBudgetButton").disabled)e.preventDefault();});
 
 
 
@@ -13541,6 +13714,7 @@ bootApp();
 </script>
 </body>
 </html>
+
 
 
 
