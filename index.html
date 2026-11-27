@@ -1318,7 +1318,19 @@ main{max-width:1580px;padding:18px 20px 60px}
 .follow-last{font-size:12px!important;text-align:left;white-space:normal;margin-top:8px}.follow-review-item textarea{width:100%;box-sizing:border-box}#followHistoryUnit{width:100%;margin:12px 0}#followSendDialog{width:min(560px,94vw)}
 
 </style>
-</head>
+<style>
+.unit-technical-dialog{width:min(900px,94vw);max-width:94vw;max-height:90dvh;overflow:auto;padding:24px;border:1px solid #cadbe8;border-radius:18px}
+.unit-technical-dialog::backdrop{background:rgba(12,35,53,.55)}
+.unit-technical-dialog h2{font-size:1.25rem;margin:0;overflow-wrap:anywhere}
+.unit-technical-dialog label{display:grid;gap:6px;margin:10px 0}
+.unit-technical-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.unit-technical-dialog input{width:100%;min-width:0;box-sizing:border-box}
+.unit-technical-dialog input[type=search]{flex:1;min-width:180px}
+.unit-technical-list .record{margin-top:12px;overflow-wrap:anywhere}
+.unit-technical-dialog [aria-pressed=true]{background:#143e59;color:white}
+.unit-technical-card .actions{flex-wrap:wrap}
+@media(max-width:600px){.unit-technical-dialog{padding:16px}.unit-technical-fields{grid-template-columns:1fr}.unit-technical-dialog .actions{flex-wrap:wrap}}
+</style></head>
 
 
 
@@ -2050,7 +2062,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <option>NRs</option>
 <option>POPs</option>
 <option>Contrato</option>
-</select>
+<option>Plantas</option><option>Manuais técnicos</option></select>
 <div class="document-tools">
 <button id="selectAllDocuments" type="button" class="secondary">Selecionar todos</button>
 <button id="deleteSelectedDocuments" type="button" class="danger">Excluir selecionados</button>
@@ -3204,7 +3216,7 @@ main{max-width:1580px;padding:18px 20px 60px}
 <option>NRs</option>
 <option>POPs</option>
 <option>Contrato</option>
-</select>
+<option>Plantas</option><option>Manuais técnicos</option></select>
 </div>
 
 
@@ -3515,6 +3527,25 @@ main{max-width:1580px;padding:18px 20px 60px}
  </form>
 </dialog>
 
+
+<dialog id="unitTechnicalDialog" class="unit-technical-dialog">
+ <div class="actions" style="justify-content:space-between"><h2 id="unitTechnicalTitle">Documentos técnicos</h2><button type="button" id="unitTechnicalClose">Fechar</button></div>
+ <div class="actions" aria-label="Pastas de documentos técnicos"><button type="button" data-unit-tech-category="Plantas">Plantas</button><button type="button" data-unit-tech-category="Manuais técnicos">Manuais técnicos</button></div>
+ <div class="actions"><input id="unitTechnicalSearch" type="search" placeholder="Buscar título, equipamento ou revisão" aria-label="Buscar documentos técnicos"><button type="button" id="unitTechnicalNew" class="primary">Enviar PDF</button></div>
+ <p id="unitTechnicalMessage" role="status" aria-live="polite"></p>
+ <form id="unitTechnicalForm" class="hidden">
+  <div class="unit-technical-fields">
+   <label>Título<input id="unitTechnicalName" required maxlength="200"></label>
+   <label>Equipamento / instalação<input id="unitTechnicalEquipment" maxlength="200" placeholder="Ex.: Chiller 01 · CAG"></label>
+   <label>Revisão<input id="unitTechnicalRevision" maxlength="80" placeholder="Ex.: Rev. 02"></label>
+   <label>Data do documento<input id="unitTechnicalDate" type="date"></label>
+  </div>
+  <label>Arquivo PDF<input id="unitTechnicalFile" type="file" accept=".pdf,application/pdf"></label>
+  <p class="muted" id="unitTechnicalCurrent">PDF de até 25 MB.</p>
+  <div class="actions"><button type="submit" class="primary">Salvar documento</button><button type="button" id="unitTechnicalCancelEdit">Cancelar</button></div>
+ </form>
+ <div id="unitTechnicalList" class="unit-technical-list"></div>
+</dialog>
 <script>
 /** @license
  *
@@ -5025,6 +5056,10 @@ async function loadUnitsAdmin(){
       <span class="unit-card-label">Equipamentos</span>
       Inventário ainda não ativo
      </div>
+     <div class="unit-technical-card">
+      <div class="unit-function-title">Documentos técnicos</div>
+      ${hasAccess('documentos','view',u.id)?`<div class="actions"><button type="button" class="secondary unit-tech-plants">Plantas</button><button type="button" class="secondary unit-tech-manuals">Manuais técnicos</button></div>`:'<span class="muted">Sem acesso aos documentos desta unidade.</span>'}
+     </div>
      ${isAdmin?`<div class="unit-card-footer">
       <button type="button" class="unit-edit-btn editUnit">Editar</button>
       <button type="button" class="unit-delete-btn deleteUnit">Excluir</button>
@@ -5033,6 +5068,9 @@ async function loadUnitsAdmin(){
    </details>
   `;
 
+  const plants=card.querySelector('.unit-tech-plants'),manuals=card.querySelector('.unit-tech-manuals');
+  if(plants)plants.onclick=()=>openUnitTechnical(u,'Plantas');
+  if(manuals)manuals.onclick=()=>openUnitTechnical(u,'Manuais técnicos');
   if(isAdmin){
    card.querySelector(".editUnit").onclick=()=>openUnitEdit(u);
    card.querySelector(".deleteUnit").onclick=()=>deleteUnit(u);
@@ -10453,7 +10491,7 @@ function documentUnitName(unitIdValue){
 
 
 const DOCUMENT_NORMS=["NR01","NR06","NR10","NR12","NR18","NR35","NR33","SEP"];
-const DOCUMENT_CATEGORIES=["NRs","PMOC","ART","PGR","PCMSO","POPs","Contrato"];
+const DOCUMENT_CATEGORIES=["NRs","PMOC","ART","PGR","PCMSO","POPs","Contrato","Plantas","Manuais técnicos"];
 const documentFolderOpen=new Set();
 
 function documentFolderMetadata(d){
@@ -10464,6 +10502,7 @@ function documentFolderMetadata(d){
 
 function syncDocumentClassificationFields(){
  const active=$("documentCategory").value==="NRs";
+ $("documentFile").accept=["Plantas","Manuais técnicos"].includes($("documentCategory").value)?".pdf,application/pdf":"";
  $("documentEmployeeField").classList.toggle("hidden",!active);
  $("documentNormField").classList.toggle("hidden",!active);
  $("documentEmployee").required=active;
@@ -10521,6 +10560,8 @@ function renderDocumentRecord(d,parent){
    <p><strong>Unidade:</strong> ${escapeHtml(documentUnitName(d.unit_id))}</p>
    <p class="muted">${escapeHtml(documentFolderMetadata(d).description||"Sem descrição")}</p>
    <p><strong>Arquivo:</strong> ${escapeHtml(d.filename)}</p>
+   ${d.equipment_ref?`<p><strong>Equipamento / instalação:</strong> ${escapeHtml(d.equipment_ref)}</p>`:""}
+   ${d.revision?`<p><strong>Revisão:</strong> ${escapeHtml(d.revision)}</p>`:""}
    <p><strong>Data:</strong> ${formatDate(d.document_date)}</p>
    <p>${validityInfo(d)}</p>
    <div class="actions">
@@ -10704,6 +10745,7 @@ $("documentForm").addEventListener("submit",async e=>{
   const classifiedDescription=classifiedDocumentDescription();
   const file=$("documentFile").files[0];
   const id=$("documentId").value||crypto.randomUUID();
+  if(file&&["Plantas","Manuais técnicos"].includes($("documentCategory").value))await unitTechnicalValidatePdf(file);
 
 
 
@@ -10827,7 +10869,7 @@ $("documentForm").addEventListener("submit",async e=>{
 
   message(
    $("appMessage"),
-   ["Selecione um arquivo.","Selecione uma unidade."].includes(err?.message)
+   ["Selecione um arquivo.","Selecione uma unidade.","Selecione um PDF válido de até 25 MB.","O arquivo selecionado não contém um PDF válido."].includes(err?.message)
     ?err.message
     :"Não foi possível salvar o documento.",
    "err"
@@ -13710,10 +13752,138 @@ db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){
 }});
 
 
+/* UNIT_TECHNICAL_DOCUMENTS_START */
+let unitTechnicalUnit=null,unitTechnicalCategory='Plantas',unitTechnicalRows=[],unitTechnicalEditing=null,unitTechnicalBusy=false,unitTechnicalEpoch=0;
+const unitTechnicalCategories=['Plantas','Manuais técnicos'];
+function unitTechnicalAccess(action){return !!session&&!!unitTechnicalUnit&&hasAccess('documentos',action,unitTechnicalUnit.id);}
+function unitTechnicalNotice(text,kind='err'){message($('unitTechnicalMessage'),text,kind);}
+async function openUnitTechnical(unit,category='Plantas'){
+ if(!session||!hasAccess('documentos','view',unit.id))return;
+ unitTechnicalEpoch++;unitTechnicalUnit=unit;unitTechnicalCategory=unitTechnicalCategories.includes(category)?category:'Plantas';unitTechnicalRows=[];
+ $('unitTechnicalTitle').textContent=`Documentos técnicos · ${unit.name}`;
+ $('unitTechnicalMessage').textContent='';$('unitTechnicalSearch').value='';unitTechnicalReset();
+ $('unitTechnicalDialog').showModal();await loadUnitTechnical();
+}
+async function loadUnitTechnical(){
+ const epoch=unitTechnicalEpoch;
+ $('unitTechnicalList').textContent='Carregando documentos...';
+ const {data,error}=await db.from('documents').select('*').eq('unit_id',unitTechnicalUnit.id).in('category',unitTechnicalCategories).order('title');
+ if(epoch!==unitTechnicalEpoch)return;
+ if(error){$('unitTechnicalList').textContent='Não foi possível carregar os documentos.';unitTechnicalNotice('Falha ao consultar os documentos. Tente abrir novamente.');return;}
+ unitTechnicalRows=data||[];renderUnitTechnical();
+}
+function unitTechnicalReset(){
+ unitTechnicalEditing=null;$('unitTechnicalForm').reset();$('unitTechnicalForm').classList.add('hidden');
+ $('unitTechnicalFile').disabled=false;$('unitTechnicalFile').required=true;$('unitTechnicalCurrent').textContent='PDF de até 25 MB.';
+}
+function renderUnitTechnical(){
+ document.querySelectorAll('[data-unit-tech-category]').forEach(b=>{
+  const category=b.dataset.unitTechCategory,count=unitTechnicalRows.filter(d=>d.category===category).length;
+  b.textContent=`${category} (${count})`;b.setAttribute('aria-pressed',String(category===unitTechnicalCategory));b.disabled=unitTechnicalBusy;
+ });
+ $('unitTechnicalNew').hidden=!unitTechnicalAccess('insert');
+ const q=$('unitTechnicalSearch').value.trim().toLocaleLowerCase('pt-BR');
+ const rows=unitTechnicalRows.filter(d=>d.category===unitTechnicalCategory&&(!q||[d.title,d.equipment_ref,d.revision,d.filename].join(' ').toLocaleLowerCase('pt-BR').includes(q)));
+ const list=$('unitTechnicalList');list.replaceChildren();
+ if(!rows.length){list.textContent='Nenhum PDF nesta pasta.';return;}
+ for(const d of rows){
+  const el=document.createElement('article');el.className='record';
+  el.innerHTML=`<h3>${escapeHtml(d.title)}</h3><p class="muted">${escapeHtml(d.equipment_ref||'Equipamento / instalação não informado')}</p><p>Revisão: ${escapeHtml(d.revision||'—')} · Data: ${formatDate(d.document_date)}</p><p>${escapeHtml(d.filename)}</p><div class="actions"><button type="button" class="primary tech-view">Visualizar PDF</button><button type="button" class="secondary tech-download">Baixar</button>${unitTechnicalAccess('edit')?'<button type="button" class="secondary tech-edit">Editar / substituir</button>':''}${unitTechnicalAccess('delete')?'<button type="button" class="danger tech-delete">Excluir</button>':''}</div>`;
+  el.querySelector('.tech-view').onclick=()=>unitTechnicalOpenPdf(d);
+  el.querySelector('.tech-download').onclick=()=>unitTechnicalDownload(d);
+  if(el.querySelector('.tech-edit'))el.querySelector('.tech-edit').onclick=()=>unitTechnicalEdit(d);
+  if(el.querySelector('.tech-delete'))el.querySelector('.tech-delete').onclick=()=>unitTechnicalDelete(d);
+  list.append(el);
+ }
+}
+function unitTechnicalEdit(d=null){
+ if(unitTechnicalBusy||!unitTechnicalAccess(d?'edit':'insert'))return;
+ unitTechnicalReset();unitTechnicalEditing=d;
+ $('unitTechnicalForm').classList.remove('hidden');$('unitTechnicalName').value=d?.title||'';
+ $('unitTechnicalEquipment').value=d?.equipment_ref||'';$('unitTechnicalRevision').value=d?.revision||'';$('unitTechnicalDate').value=d?.document_date||'';
+ $('unitTechnicalFile').required=!d;
+ $('unitTechnicalFile').disabled=!!d&&!unitTechnicalAccess('insert');
+ $('unitTechnicalCurrent').textContent=d?`Atual: ${d.filename}. ${unitTechnicalAccess('insert')?'Selecione outro PDF para substituir, se necessário.':'Seu acesso permite editar os dados; o envio de outro arquivo exige permissão de inserção.'}`:'PDF de até 25 MB.';
+ $('unitTechnicalName').focus();
+}
+async function unitTechnicalValidatePdf(file){
+ if(!file||!file.size||file.size>25*1024*1024||!/\.pdf$/i.test(file.name)||(file.type&&!['application/pdf','application/octet-stream'].includes(file.type)))throw new Error('Selecione um PDF válido de até 25 MB.');
+ if(new TextDecoder().decode(await file.slice(0,5).arrayBuffer())!=='%PDF-')throw new Error('O arquivo selecionado não contém um PDF válido.');
+}
+function unitTechnicalSetBusy(busy){
+ unitTechnicalBusy=busy;
+ $('unitTechnicalDialog').querySelectorAll('button,input').forEach(el=>el.disabled=busy);
+ if(!busy&&unitTechnicalEditing&&!unitTechnicalAccess('insert'))$('unitTechnicalFile').disabled=true;
+}
+async function unitTechnicalSave(e){
+ e.preventDefault();if(unitTechnicalBusy||!unitTechnicalAccess(unitTechnicalEditing?'edit':'insert'))return;
+ const epoch=unitTechnicalEpoch,old=unitTechnicalEditing;let uploadedPath=null,saved=false;
+ unitTechnicalSetBusy(true);$('unitTechnicalMessage').textContent='';
+ try{
+  const file=$('unitTechnicalFile').files[0],title=$('unitTechnicalName').value.trim();
+  if(!title)throw new Error('Informe o título do documento.');
+  if(!old&&!file)throw new Error('Selecione um PDF.');
+  if(file){if(!unitTechnicalAccess('insert'))throw new Error('Sem permissão para enviar arquivos.');await unitTechnicalValidatePdf(file);}
+  const id=old?.id||crypto.randomUUID(),target=unitTechnicalUnit.id;
+  if(file){
+   uploadedPath=`${target}/${id}/${crypto.randomUUID()}.pdf`;
+   const {error}=await db.storage.from('documents-private').upload(uploadedPath,file,{contentType:'application/pdf',upsert:false,cacheControl:'3600'});
+   if(error){uploadedPath=null;throw new Error('Falha no envio do PDF. Os dados anteriores foram preservados.');}
+  }
+  const payload={title,equipment_ref:$('unitTechnicalEquipment').value.trim()||null,revision:$('unitTechnicalRevision').value.trim()||null,document_date:$('unitTechnicalDate').value||null,updated_by:session.user.id};
+  if(file)Object.assign(payload,{storage_path:uploadedPath,filename:file.name,mime_type:'application/pdf',size_bytes:file.size});
+  const query=old?db.from('documents').update(payload).eq('id',id).eq('unit_id',target):db.from('documents').insert({...payload,id,unit_id:target,category:unitTechnicalCategory,created_by:session.user.id});
+  const {data,error}=await query.select('id').single();if(error||!data)throw new Error('Não foi possível salvar o documento. Os dados anteriores foram preservados.');
+  saved=true;
+  if(epoch!==unitTechnicalEpoch)return;
+  unitTechnicalReset();await loadUnitTechnical();unitTechnicalNotice('Documento salvo.','ok');
+  if(file&&old?.storage_path&&unitTechnicalAccess('delete')){
+   const cleanup=await db.storage.from('documents-private').remove([old.storage_path]);
+   if(cleanup.error)unitTechnicalNotice('Documento salvo. A versão anterior permanece no armazenamento privado.','ok');
+  }
+ }catch(err){
+  if(uploadedPath&&!saved&&unitTechnicalAccess('delete'))await db.storage.from('documents-private').remove([uploadedPath]);
+  if(epoch===unitTechnicalEpoch)unitTechnicalNotice(err.message||'Falha ao salvar o documento.');
+ }finally{unitTechnicalSetBusy(false);}
+}
+async function unitTechnicalOpenPdf(d){
+ if(!unitTechnicalAccess('view'))return;
+ const popup=window.open('about:blank','_blank');if(popup)popup.opener=null;
+ const {data,error}=await db.storage.from('documents-private').createSignedUrl(d.storage_path,600);
+ if(error||!data?.signedUrl){popup?.close();unitTechnicalNotice('Não foi possível abrir o PDF.');return;}
+ if(popup)popup.location.href=data.signedUrl;else unitTechnicalNotice('Permita a abertura de uma nova aba para visualizar o PDF.');
+}
+async function unitTechnicalDownload(d){
+ if(!unitTechnicalAccess('view'))return;
+ const {data,error}=await db.storage.from('documents-private').download(d.storage_path);
+ if(error||!data){unitTechnicalNotice('Não foi possível baixar o PDF.');return;}
+ const url=URL.createObjectURL(data),a=document.createElement('a');a.href=url;a.download=d.filename||'documento.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function unitTechnicalDelete(d){
+ if(unitTechnicalBusy||!unitTechnicalAccess('delete')||!confirm(`Excluir "${d.title}"?`))return;
+ unitTechnicalSetBusy(true);
+ try{
+  const {data,error}=await db.from('documents').delete().eq('id',d.id).eq('unit_id',unitTechnicalUnit.id).select('id').single();
+  if(error||!data)throw new Error('Não foi possível excluir o documento.');
+  const removed=await db.storage.from('documents-private').remove([d.storage_path]);
+  unitTechnicalReset();await loadUnitTechnical();unitTechnicalNotice(removed.error?'Documento retirado da lista. Não foi possível remover o arquivo do armazenamento.':'Documento excluído.',removed.error?'err':'ok');
+ }catch(err){unitTechnicalNotice(err.message);}finally{unitTechnicalSetBusy(false);}
+}
+$('unitTechnicalNew').onclick=()=>unitTechnicalEdit();
+$('unitTechnicalForm').onsubmit=unitTechnicalSave;
+$('unitTechnicalCancelEdit').onclick=()=>{if(!unitTechnicalBusy)unitTechnicalReset();};
+$('unitTechnicalClose').onclick=()=>{if(!unitTechnicalBusy){unitTechnicalEpoch++;$('unitTechnicalDialog').close();}};
+$('unitTechnicalDialog').addEventListener('cancel',e=>{if(unitTechnicalBusy)e.preventDefault();else unitTechnicalEpoch++;});
+$('unitTechnicalSearch').oninput=renderUnitTechnical;
+document.querySelectorAll('[data-unit-tech-category]').forEach(b=>b.onclick=()=>{if(!unitTechnicalBusy){unitTechnicalCategory=b.dataset.unitTechCategory;unitTechnicalReset();renderUnitTechnical();}});
+db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){unitTechnicalEpoch++;unitTechnicalUnit=null;unitTechnicalRows=[];unitTechnicalReset();$('unitTechnicalDialog').close();}});
+/* UNIT_TECHNICAL_DOCUMENTS_END */
+
 bootApp();
 </script>
 </body>
 </html>
+
 
 
 
